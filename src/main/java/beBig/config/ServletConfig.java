@@ -12,7 +12,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
-@ComponentScan(basePackages = {"beBig.controller", "beBig.exception"}) //컨트롤러만 찾는다. 반드시 이 패키지에 컨트로러 적어줘야한다.
+@ComponentScan(basePackages = {"beBig.controller","beBig.exception"}) //컨트롤러만 찾는다. 반드시 이 패키지에 컨트로러 적어줘야한다.
 public class ServletConfig implements WebMvcConfigurer {
 
     @Override
@@ -23,18 +23,17 @@ public class ServletConfig implements WebMvcConfigurer {
                 .addResourceLocations("/resources/"); // webapp/resources/경로로 매핑
     }
 
-    // jsp view resolver 설정
-    @Override
+// jsp view resolver 설정
+@Override
 // viewname 어떻게 해석할거냐 부분 : 우리는 jsp 파일을 view로 쓸거에요
-    public void configureViewResolvers(ViewResolverRegistry registry) {
-        InternalResourceViewResolver bean = new InternalResourceViewResolver();
-        bean.setViewClass(JstlView.class);
-        bean.setPrefix("/WEB-INF/views/");
-        bean.setSuffix(".jsp");
+public void configureViewResolvers(ViewResolverRegistry registry){
+    InternalResourceViewResolver bean = new InternalResourceViewResolver();
+    bean.setViewClass(JstlView.class);
+    bean.setPrefix("/WEB-INF/views/");
+    bean.setSuffix(".jsp");
 
-        registry.viewResolver(bean);
-    }
-
+    registry.viewResolver(bean);
+}
     // Servlet 3.0 파일 업로드 사용시- MultipartResolver 빈 등록
     @Bean
     public MultipartResolver multipartResolver() {
