@@ -9,6 +9,14 @@ application.properties
 
 
 ### IntelliJ IDEA ###
+# 파일 삭제
+git rm --cached application.properties
+
+# 변경 사항 커밋
+git commit -m "bebig-40 build : initial folder settings, delete application.properties"
+
+# GitHub로 푸시
+git push origin main
 
 .idea/
 *.iws
