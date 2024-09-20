@@ -15,8 +15,8 @@ import java.util.Map;
 @Slf4j
 public class MissionController {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<String> mission(@PathVariable Long id) {
+    @GetMapping("/{userNo}")
+    public ResponseEntity<String> mission(@PathVariable Long userNo) {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 //    public ResponseEntity<Map<String, Object>> mission(@RequestHeader("Authorization") String token,
@@ -33,8 +33,8 @@ public class MissionController {
 //        return new ResponseEntity<>(response, HttpStatus.OK);
 //    }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<String> postMission(@PathVariable Long id) {
+    @PostMapping("/{userNo}")
+    public ResponseEntity<String> postMission(@PathVariable Long userNo) {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
