@@ -1,19 +1,56 @@
 package beBig.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin("*")
 @Controller
+@RequestMapping("/home")
 @Slf4j
 public class HomeController {
 
-    @GetMapping("/") //getMap("/",home) 이거 하라는 말 , map을 직접 다루지 않고, 어노테이션이 다해줌
-    public String home() { // 이름 아무거나해도 되고, 매개변수 고정 아님
-        log.info("================> HomController /"); // 출력: build에 로깅설정해야 가능
-        return "index"; // View의 이름 , 문자열 리턴, 서블릿컨피그랑 연결되서 앞 뒤 잘라줌
+    @GetMapping("/{userNo}/info")
+    public ResponseEntity<String> getMyInfo(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/{userNo}/survey")
+    public ResponseEntity<String> surveyList(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @PostMapping("/{userNo}/survey")
+    public ResponseEntity<String> submitSurvey(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/{userNo}/survey-result")
+    public ResponseEntity<String> surveyResult(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @PostMapping("/{userNo}/account/add")
+    public ResponseEntity<String> addAccount(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/{userNo}/mission")
+    public ResponseEntity<String> missionList(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/{userNo}/account/list")
+    public ResponseEntity<String> accountList(@PathVariable Long userNo) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/{userNo}/account/{accountNum}/detail")
+    public ResponseEntity<String> transactionList(@PathVariable Long userNo,
+                                                  @PathVariable String accountNum) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
 }
