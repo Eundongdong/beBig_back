@@ -1,8 +1,11 @@
 package beBig.vo;
 
+import lombok.Data;
+
 import java.sql.Date;
 import java.util.List;
 
+@Data
 public class UserVo {
     private Long userNo;
     private int userFinTypeCode;
