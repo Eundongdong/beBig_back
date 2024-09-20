@@ -1,6 +1,7 @@
 package beBig.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -36,5 +37,8 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
-
+    @DeleteMapping("/{postId}/delete")
+    public ResponseEntity<String> delete(@PathVariable Long postId) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
 }
