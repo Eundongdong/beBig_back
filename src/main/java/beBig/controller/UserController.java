@@ -1,6 +1,9 @@
 package beBig.controller;
 
+import beBig.form.UserForm;
+import beBig.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,9 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 @Slf4j
 public class UserController {
+
+    private UserService userService;
+
     @PostMapping("/signup")
-    public ResponseEntity<String> signup() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> signup(@ModelAttribute UserForm userForm) throws Exception {
+        log.info(String.valueOf(userForm));
+        userService.registerUser(userForm);
+        return ResponseEntity.status(HttpStatus.OK).body("유저등록완료!");
     }
 
     @GetMapping("/login/{userNo}")
@@ -50,4 +58,5 @@ public class UserController {
     public ResponseEntity<String> findUserPwd() {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
+
 }

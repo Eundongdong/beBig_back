@@ -1,5 +1,8 @@
 package beBig.vo;
 
+import lombok.Data;
+
+@Data
 public class SavingsProductVo {
     private String savingsProductCode;
     private int savingsProductBankId;
