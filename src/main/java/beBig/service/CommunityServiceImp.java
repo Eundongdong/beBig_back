@@ -9,6 +9,7 @@ import java.util.List;
 
 @Service
 public class CommunityServiceImp implements CommunityService {
+
     @Autowired
     private CommunityService communityService;
 
@@ -25,6 +26,11 @@ public class CommunityServiceImp implements CommunityService {
 
     @Override
     public void write(PostVo post) {
+
+    }
+
+    @Override
+    public void updateLike(int postId) {
 
     }
 
