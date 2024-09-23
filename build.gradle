@@ -93,6 +93,10 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 
+    // https://mvnrepository.com/artifact/com.sun.mail/javax.mail
+    // 메일
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+
 
 }
 

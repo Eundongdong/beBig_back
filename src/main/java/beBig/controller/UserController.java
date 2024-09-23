@@ -69,9 +69,16 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
+    // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
-    public ResponseEntity<String> findUserPwd() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> findPassword(@ModelAttribute UserForm userForm) {
+        boolean isUpdated = userService.updatePasswordByEmail(userForm.getUserId(), userForm.getName(), userForm.getEmail());
+
+        if (isUpdated) {
+            return ResponseEntity.status(HttpStatus.OK).body("Temporary password sent to your email!");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
     }
 
 }
