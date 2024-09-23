@@ -17,8 +17,12 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class UserService {
 
+    private final UserMapper userMapper;
+
     @Autowired
-    private UserMapper userMapper;
+    public UserService(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
 
     public void registerUser(UserForm userForm) throws Exception {
         // String을 Date로 변환 (java.time.LocalDate 사용)
@@ -27,7 +31,8 @@ public class UserService {
         UserVo user = new UserVo();
         user.setUserName(userForm.getName());
         user.setUserNickname(userForm.getNickname());
-        user.setUserId(userForm.getPassword());  // 비밀번호 암호화 필요
+        user.setUserId(userForm.getUserId());
+        user.setUserPassword(userForm.getPassword());// 비밀번호 암호화 필요
         user.setUserEmail(userForm.getEmail());
         user.setUserGender(userForm.isGender());
         user.setUserBirth(userForm.getBirth());  // 변환된 Date 객체 설정

@@ -15,7 +15,12 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@ModelAttribute UserForm userForm) throws Exception {
