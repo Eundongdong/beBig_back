@@ -110,7 +110,7 @@ public class UserService {
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("yonggwon9941@gmail.com", "vpxo nprm uhio lkxf");
+                return new PasswordAuthentication("yonggwon9941@gmail.com", "yonggwon's key....");
             }
         });
 
