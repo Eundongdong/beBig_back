@@ -30,8 +30,13 @@ public class UserController {
     }
 
     @GetMapping("/login/{userId}")
-    public ResponseEntity<String> idDuplicateCheck(@PathVariable Long userId) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> idDuplicateCheck(@PathVariable String userId) {
+        boolean isDuplicated = userService.isUserIdDuplicated(userId);
+        if (isDuplicated) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("중복된 아이디입니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.OK).body("사용 가능한 아이디입니다.");
+        }
     }
 
     @GetMapping("/social-signup/info")
