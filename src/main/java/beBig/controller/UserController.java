@@ -16,13 +16,18 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
-    @GetMapping("/login/{userNo}")
-    public ResponseEntity<String> idDuplicateCheck(@PathVariable Long userNo) {
+    @GetMapping("/login/{userId}")
+    public ResponseEntity<String> idDuplicateCheck(@PathVariable Long userId) {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
-    @PostMapping("/social-signup")
-    public ResponseEntity<String> socialSignup() {
+    @GetMapping("/social-signup/info")
+    public ResponseEntity<String> infoSocialSignup() {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @PostMapping("/social-signup/register")
+    public ResponseEntity<String> registerSocialSignup() {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
@@ -41,7 +46,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
-    @GetMapping("/find-id")
+    @PostMapping("/find-id")
     public ResponseEntity<String> findUserId() {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
