@@ -1,5 +1,8 @@
 package beBig.vo;
 
+import lombok.Data;
+
+@Data
 public class LikeHitsVo {
     private int likeHitsNo;
     private Long likeHitsUserId;

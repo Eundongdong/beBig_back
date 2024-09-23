@@ -1,7 +1,9 @@
 package beBig.vo;
 
-import java.util.List;
+import lombok.Data;
 
+import java.util.List;
+@Data
 public class PostVo {
     private Long postId;
     private Long postWriterNo;

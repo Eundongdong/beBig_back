@@ -1,5 +1,8 @@
 package beBig.vo;
 
+import lombok.Data;
+
+@Data
 public class FinTestVo {
     private int finTestNo;
     private int finTestType;

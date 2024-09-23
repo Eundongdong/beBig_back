@@ -1,5 +1,8 @@
 package beBig.vo;
 
+import lombok.Data;
+
+@Data
 public class TransactionVo {
     private int transactionId;
     private String transactionAccountNum;
