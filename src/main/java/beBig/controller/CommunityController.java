@@ -1,30 +1,54 @@
 package beBig.controller;
 
+import beBig.service.CommunityService;
+import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Delete;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/community")
 @Slf4j
 public class CommunityController {
-    @GetMapping()
+    private CommunityService communityService;
+
+    @Autowired
+    public CommunityController(CommunityService communityService) {
+        this.communityService = communityService;
+    }
+
+    @GetMapping("")
     public ResponseEntity<String> list() {
+        log.info("get community list");
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<String> detail(@PathVariable Long postId) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+        log.info("get community detail");
+        return ResponseEntity.status(HttpStatus.OK).body(postId.toString());
     }
 
     @PostMapping("/write")
-    public ResponseEntity<String> write() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> write(@RequestBody Map<String,Object> map) {
+        log.info("write community");
+        PostVo content = new PostVo();
+        content.setPostWriterNo((long) (int) map.get("postWriterNo"));
+        content.setPostTitle((String) map.get("postTitle"));
+        content.setPostContent((String) map.get("postContent"));
+        content.setPostWriterFinTypeCode((int) map.get("postWriterFinTypeCode"));
+        content.setPostImagePath(map.get("postImagePath").toString());
+        content.setPostCategory((Integer) map.get("postCategory"));
+
+        log.info("content",content);
+        communityService.write(content);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{postId}/like")
