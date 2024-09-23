@@ -49,4 +49,12 @@
                 #{userIntro},
                 #{userSalary})
     </insert>
+
+    <!--아이디 중복체크-->
+    <select id="isUserIdDuplicated" resultType="boolean" parameterType="string">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
 </mapper>

@@ -43,4 +43,10 @@ public class UserService {
         log.info("user 저장성공");
         log.info("user의 이름은 : " + user.getUserName());
     }
+
+    //아이디 중복체크
+    public boolean isUserIdDuplicated(String userId) {
+        return userMapper.isUserIdDuplicated(userId);
+    }
+
 }
