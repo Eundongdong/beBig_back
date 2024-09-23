@@ -34,11 +34,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
-    // 회원가입 서비스
-    public void registerUser(UserForm userForm) throws Exception {
-        // String을 Date로 변환 (java.time.LocalDate 사용)
-  
     //로그인
     public boolean login(String userId, String rawPassword) {
         UserVo user = userMapper.findByUserId(userId);
@@ -47,8 +42,6 @@ public class UserService {
         // 비밀번호 비교 (입력한 비밀번호와 저장된 암호화된 비밀번호 비교)
         return passwordEncoder.matches(rawPassword, user.getUserPassword());
     }
-
-
 
     //유저등록(회원가입)
     public void registerUser(UserForm userForm) throws Exception {
@@ -105,6 +98,7 @@ public class UserService {
         return true;
 
     }
+
     // 이메일 전송
     public void sendEmail(String toEmail, String tempPassword) {
         Properties props = new Properties();
