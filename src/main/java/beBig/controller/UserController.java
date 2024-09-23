@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@ModelAttribute UserForm userForm) throws Exception {
+    public ResponseEntity<String> signup(@RequestBody UserForm userForm) throws Exception {
         log.info(String.valueOf(userForm));
         userService.registerUser(userForm);
         return ResponseEntity.status(HttpStatus.OK).body("유저등록완료!");
@@ -57,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@ModelAttribute LoginForm loginForm) {
+    public ResponseEntity<String> login(@RequestBody LoginForm loginForm) {
         log.info(loginForm.toString());
 
         // 로그인 성공 여부 확인
@@ -95,7 +95,7 @@ public class UserController {
 
     // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
-    public ResponseEntity<String> findPassword(@ModelAttribute UserForm userForm) {
+    public ResponseEntity<String> findPassword(@RequestBody UserForm userForm) {
         boolean isUpdated = userService.updatePasswordByEmail(userForm.getUserId(), userForm.getName(), userForm.getEmail());
 
         if (isUpdated) {
