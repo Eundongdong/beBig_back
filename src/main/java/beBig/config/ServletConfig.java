@@ -9,7 +9,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
-@ComponentScan(basePackages = {"beBig.controller", "beBig.exception", "beBig.service"}) //컨트롤러만 찾는다. 반드시 이 패키지에 컨트로러 적어줘야한다.
+@ComponentScan(basePackages = {"beBig.controller", "beBig.exception", "beBig.service","beBig.config"})
 public class ServletConfig implements WebMvcConfigurer {
 
     @Override

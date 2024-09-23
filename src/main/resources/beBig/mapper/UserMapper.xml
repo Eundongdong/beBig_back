@@ -6,8 +6,9 @@
 <mapper namespace="beBig.mapper.UserMapper">
 
     <!-- userId로 사용자 정보를 조회하는 쿼리 -->
-    <select id="findByUserId" parameterType="String" resultType="UserVo">
-        SELECT *
+    <!--아이디 비밀번호 확인-->
+    <select id="findByUserId" resultType="UserVo">
+        SELECT user_id, user_password
         FROM user
         WHERE user_id = #{userId}
     </select>
