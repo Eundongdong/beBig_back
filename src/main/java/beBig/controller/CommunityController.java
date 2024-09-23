@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.persistence.Access;
+import java.lang.module.FindException;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -26,8 +27,11 @@ public class CommunityController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<PostVo>> list() {
+    public ResponseEntity<List<PostVo>> list() throws NoHandlerFoundException {
         List<PostVo> list = communityService.showList();
+        if(list == null || list.isEmpty()) {
+            throw new NoHandlerFoundException("GET", "/community", null);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
