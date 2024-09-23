@@ -53,8 +53,15 @@
     <!--아이디 중복체크-->
     <select id="isUserIdDuplicated" resultType="boolean" parameterType="string">
         SELECT COUNT(*) > 0
-        FROM users
+        FROM user
         WHERE user_id = #{userId}
+    </select>
+
+    <!--아이디 찾기-->
+    <select id="findUserIdByNameAndEmail" resultType="string" parameterType="map">
+        SELECT user_id
+        FROM user
+        WHERE user_name = #{name} AND user_email = #{email}
     </select>
 
 </mapper>
