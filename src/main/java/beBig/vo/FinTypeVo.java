@@ -1,5 +1,8 @@
 package beBig.vo;
 
+import lombok.Data;
+
+@Data
 public class FinTypeVo {
     private int finTypeCode;
     private String finTypeAnimal;

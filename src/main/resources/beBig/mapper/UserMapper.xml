@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.UserMapper">
+
+    <!-- userId로 사용자 정보를 조회하는 쿼리 -->
+    <select id="findByUserId" parameterType="String" resultType="UserVo">
+        SELECT *
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 사용자 정보를 users 테이블에 삽입하는 쿼리 -->
+    <insert id="insert" parameterType="beBig.vo.UserVo">
+        INSERT INTO user (user_no,
+                           user_fin_type_code,
+                           user_badge_code,
+                           user_id,
+                           user_name,
+                           user_nickname,
+                           user_password,
+                           user_email,
+                           user_gender,
+                           user_birth,
+                           user_age_range,
+                           user_login_type,
+                           user_mission_current_month_score,
+                           user_mission_last_month_score,
+                           user_connected_id,
+                           user_intro,
+                           user_salary)
+        VALUES (#{userNo},
+                #{userFinTypeCode},
+                #{userBadgeCode},
+                #{userId},
+                #{userName},
+                #{userNickname},
+                #{userPassword},
+                #{userEmail},
+                #{userGender},
+                #{userBirth},
+                #{userAgeRange},
+                #{userLoginType},
+                #{userMissionCurrentMonthScore},
+                #{userMissionLastMonthScore},
+                #{userConnectedId},
+                #{userIntro},
+                #{userSalary})
+    </insert>
+</mapper>
