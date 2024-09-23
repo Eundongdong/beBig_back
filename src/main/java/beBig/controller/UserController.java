@@ -1,7 +1,9 @@
 package beBig.controller;
 
+import beBig.form.LoginForm;
 import beBig.form.UserForm;
 import beBig.service.UserService;
+import beBig.service.jwt.JwtTokenProvider;
 import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +21,12 @@ public class UserController {
 
     private final UserService userService;
 
+    private final JwtTokenProvider jwtTokenProvider;
+
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider) {
         this.userService = userService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @PostMapping("/signup")
@@ -52,9 +57,26 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> login(@ModelAttribute LoginForm loginForm) {
+        log.info(loginForm.toString());
+
+        // 로그인 성공 여부 확인
+        boolean isLoginSuccessful = userService.login(loginForm.getUserId(), loginForm.getPassword());
+        log.info("로그인 성공 여부: " + isLoginSuccessful);
+
+        if (!isLoginSuccessful) {
+            // 로그인 실패 시
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
+        } else {
+            // 로그인 성공 시 JWT 토큰 생성
+            String token = jwtTokenProvider.generateToken(loginForm.getUserId());
+            log.info("JWT 토큰 생성: " + token);
+
+            // 토큰을 클라이언트로 응답
+            return ResponseEntity.status(HttpStatus.OK).body(token);
+        }
     }
+
 
     @PostMapping("/social-login")
     public ResponseEntity<String> socialLogin() {

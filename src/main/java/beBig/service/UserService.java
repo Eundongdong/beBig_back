@@ -3,8 +3,6 @@ package beBig.service;
 import beBig.form.UserForm;
 import beBig.mapper.UserMapper;
 import beBig.vo.UserVo;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,11 +24,19 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    //로그인
+    public boolean login(String userId, String rawPassword) {
+        UserVo user = userMapper.findByUserId(userId);
+        if (user == null) return false;
 
+        // 비밀번호 비교 (입력한 비밀번호와 저장된 암호화된 비밀번호 비교)
+        return passwordEncoder.matches(rawPassword, user.getUserPassword());
+    }
+
+
+    //유저등록(회원가입)
     public void registerUser(UserForm userForm) throws Exception {
-
         String encryptedPassword = passwordEncoder.encode(userForm.getPassword());
-
         // 새로운 사용자 객체 생성
         UserVo user = new UserVo();
         user.setUserName(userForm.getName());

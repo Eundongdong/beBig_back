@@ -9,5 +9,4 @@ public interface UserMapper {
     void insert(UserVo userVo);
     UserVo findByUserId(String userId);
     boolean isUserIdDuplicated(String userId); //아이디 중복체크
-
 }
