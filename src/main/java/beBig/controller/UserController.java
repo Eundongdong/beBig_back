@@ -2,10 +2,12 @@ package beBig.controller;
 
 import beBig.form.UserForm;
 import beBig.service.UserService;
+import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,5 +70,4 @@ public class UserController {
     public ResponseEntity<String> findUserPwd() {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
-
 }
