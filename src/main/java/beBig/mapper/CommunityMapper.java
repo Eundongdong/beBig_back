@@ -8,9 +8,9 @@ import java.util.List;
 @Mapper
 public interface CommunityMapper {
     List<PostVo> findAll();
-    PostVo findDetail();
+    PostVo findDetail(Long postId);
     void insert(PostVo post);
-    void updateLike(int postId);
+    void updateLike(Long postId);
     void update(PostVo post);
     void delete(PostVo post);
 }

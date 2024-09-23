@@ -1,25 +1,44 @@
 package beBig.controller;
 
+import beBig.service.CommunityService;
+import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Delete;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.NoHandlerFoundException;
+
+import javax.persistence.Access;
+import java.util.List;
 
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/community")
 @Slf4j
 public class CommunityController {
+    private CommunityService communityService;
+
+    @Autowired
+    public CommunityController(CommunityService communityService) {
+        this.communityService = communityService;
+    }
+
     @GetMapping()
-    public ResponseEntity<String> list() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<List<PostVo>> list() {
+        List<PostVo> list = communityService.showList();
+        return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<String> detail(@PathVariable Long postId) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<PostVo> detail(@PathVariable Long postId) throws NoHandlerFoundException {
+        PostVo detail = communityService.showDetail(postId);
+        if(detail == null) {
+            throw new NoHandlerFoundException("GET", "/community/" + postId, null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(detail);
+
     }
 
     @PostMapping("/write")

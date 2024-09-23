@@ -20,12 +20,16 @@ public class CommunityServiceImp implements CommunityService {
 
     @Override
     public List<PostVo> showList() {
-        return List.of();
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        List<PostVo> list = mapper.findAll();
+        return list;
     }
 
     @Override
-    public PostVo showDetail(int postId) {
-        return null;
+    public PostVo showDetail(Long postId) {
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        PostVo detail = mapper.findDetail(postId);
+        return detail;
     }
 
     @Override
@@ -34,7 +38,7 @@ public class CommunityServiceImp implements CommunityService {
     }
 
     @Override
-    public void updateLike(int postId) {
+    public void updateLike(Long postId) {
 
     }
 
@@ -44,7 +48,7 @@ public class CommunityServiceImp implements CommunityService {
     }
 
     @Override
-    public void delete(int postId) {
+    public void delete(Long postId) {
 
     }
 }
