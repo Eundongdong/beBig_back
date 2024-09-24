@@ -13,6 +13,7 @@ public interface CommunityMapper {
     PostVo findDetail(Long postId);
     List<PostVo> findByPostCategoryAndFinTypeCode(Map<String, Object> params);
     void insert(PostVo post);
+    void insertImage(PostVo post);
     void updateLike(Long postId);
     void update(PostVo post);
     void delete(PostVo post);

@@ -29,11 +29,6 @@ public class CommunityController {
         this.communityService = communityService;
     }
 
-    @GetMapping("")
-    public ResponseEntity<String> list() {
-        log.info("get community list");
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
 
     // 게시글 전체 조회 & 검색 필터 조회
     @GetMapping()
@@ -61,22 +56,11 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public String write( PostVo content) throws AmazonS3UploadException {
+    public ResponseEntity write( PostVo content) throws AmazonS3UploadException {
         log.info("write community");
-//        PostVo content = new PostVo();
-//        content.setPostWriterNo((long) (int) map.get("postWriterNo"));
-//        content.setPostTitle((String) map.get("postTitle"));
-//        content.setPostContent((String) map.get("postContent"));
-//        content.setPostWriterFinTypeCode((int) map.get("postWriterFinTypeCode"));
-//        content.setPostImagePath(map.get("postImagePath").toString());
-//        content.setPostCategory((Integer) map.get("postCategory"));
-//        content.setFile(file);
-
-        //TODO fileList 처리
-//        List<MultipartFile> fileList = (List<MultipartFile>) map.get("fileList");
-        log.info("content",content);
+        log.info("content{}",content);
         communityService.write(content);
-        return "ResponseEntity.ok().build();";
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{postId}/like")

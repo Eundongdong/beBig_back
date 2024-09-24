@@ -36,7 +36,7 @@ public class CommunityServiceImp implements CommunityService {
     private Set<Long> uploadedFileSizes = new HashSet<>();
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private String bucket; // S3
 
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxSizeString;
@@ -77,24 +77,31 @@ public class CommunityServiceImp implements CommunityService {
         PostVo detail = mapper.findDetail(postId);
         return detail;
     }
-
+    
     @Override
+    // 게시글 업로드, 이미지 업로드
     public void write(PostVo post) throws AmazonS3UploadException {
-        //1. s3에 올리기
-        //TODO 여러 사진 올리기 적용 (현재 사진 하나 처리)
-        if(post.getFile() != null ) {
-            String filePath = saveFile(post.getFile());
-            log.info("()()()사진 올리기 완()()()");
-            //2. mapper 연결
-            //postImagePath 설정
-            post.setPostImagePath(filePath);
-        }
+        //1. mapper 연결
         CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        //post Insert
         try{
             communityMapper.insert(post);
         }catch (Exception e){
             log.error(e.getMessage());
             e.printStackTrace();
+        }
+        if(post.getFiles() != null ) {
+            //2. s3에 올리기
+            List<String> filePaths = saveFiles(post.getFiles());
+            log.info("다중 사진 올리기 완료");
+            post.setPostImagePaths(filePaths);
+            //3. image path mapper 연결
+            try{
+                communityMapper.insertImage(post);
+            }catch (Exception e){
+                log.error(e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 

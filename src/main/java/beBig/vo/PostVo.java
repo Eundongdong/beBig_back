@@ -13,8 +13,8 @@ public class PostVo {
     private String postCreatedTime; // 추후 유틸 클래스를 통해 Date로 변환예정
     private String postUpdatedTime; // 추후 유틸 클래스를 통해 Date로 변환예정
     private int postLikeHits;
-    private String postImagePath;
-    private MultipartFile file;
+    private List<String> postImagePaths;
+    private List<MultipartFile> files; //post로 요청받을 때 사용
     private int postCategory;
     private int postWriterFinTypeCode;
 
