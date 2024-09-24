@@ -107,6 +107,12 @@ public class CommunityServiceImp implements CommunityService {
         }
     }
 
+    /**
+     * S3에 여러 사진 올리기
+     * @param files : File List
+     * @return : File Path List
+     * @throws AmazonS3UploadException : upload error
+     */
     public List<String> saveFiles(List<MultipartFile> files) throws AmazonS3UploadException {
         List<String> uploadedUrls = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -117,6 +123,13 @@ public class CommunityServiceImp implements CommunityService {
         return uploadedUrls;
     }
 
+    /**
+     * S3에 사진 각 올리기
+     * metaData 추가됨
+     * @param file : MultipartFile type 파일
+     * @return : filePath
+     * @throws AmazonS3UploadException : upload error
+     */
     public String saveFile(MultipartFile file) throws AmazonS3UploadException {
         String fileName = file.getOriginalFilename();
         ObjectMetadata metadata = new ObjectMetadata();
@@ -132,7 +145,7 @@ public class CommunityServiceImp implements CommunityService {
             throw new AmazonS3UploadException("IOException");
         }
 
-        log.info("File upload completed: " + fileName);
+        log.info("File upload completed: fileName{}", fileName);
 
         return amazonS3.getUrl(bucket, fileName).toString();
 
