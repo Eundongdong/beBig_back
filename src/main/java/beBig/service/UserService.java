@@ -134,4 +134,19 @@ public class UserService {
         return userMapper.isUserIdDuplicated(userId);
     }
 
+    //아이디 찾기
+    public String findUserIdByNameAndEmail(String name, String email) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", name);
+        params.put("email", email);
+
+        String userId = userMapper.findUserIdByNameAndEmail(params);
+
+        if (userId != null && userId.length() > 4) {
+            // 아이디의 마지막 4자리를 별표로 마스킹
+            String maskedUserId = userId.substring(0, userId.length() - 4) + "****";
+            return maskedUserId;
+        }
+        return null; // 사용자 아이디가 없거나 너무 짧은 경우
+    }
 }
