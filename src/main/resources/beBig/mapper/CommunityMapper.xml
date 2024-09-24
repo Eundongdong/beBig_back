@@ -14,4 +14,17 @@
         FROM post
         WHERE post_id = #{postId}
     </select>
+    <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
+        SELECT *
+        FROM post
+        <where>
+            <if test="postCategory != null">
+                post_category = #{postCategory}
+            </if>
+            <if test="postWriterFinTypeCode != null">
+                AND post_writer_fin_type_code = #{postWriterFinTypeCode}
+            </if>
+        </where>
+        ORDER BY post_id DESC
+    </select>
 </mapper>

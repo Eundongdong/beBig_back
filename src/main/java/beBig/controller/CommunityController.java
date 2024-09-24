@@ -1,5 +1,6 @@
 package beBig.controller;
 
+import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import javax.persistence.Access;
-import java.lang.module.FindException;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin("*")
 @Controller
@@ -26,15 +26,22 @@ public class CommunityController {
         this.communityService = communityService;
     }
 
+    // 게시글 전체 조회 & 검색 필터 조회
     @GetMapping()
-    public ResponseEntity<List<PostVo>> list() throws NoHandlerFoundException {
-        List<PostVo> list = communityService.showList();
-        if(list == null || list.isEmpty()) {
-            throw new NoHandlerFoundException("GET", "/community", null);
+    public ResponseEntity<List<PostVo>> list(@RequestParam(value = "category", required = false) Optional<Integer> postCategory,
+                                             @RequestParam(value = "type", required = false) Optional<Integer> postWriterFinTypeCode) {
+        // Optional에서 값이 없을 경우 -1로 처리
+        int category = postCategory.orElse(-1);
+        int type = postWriterFinTypeCode.orElse(-1);
+
+        List<PostVo> list = communityService.showList(category, type);
+        if (list == null || list.isEmpty()) {
+            throw new NoContentFoundException("조회된 게시글이 없습니다.");
         }
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
+    // 게시글 상세조회
     @GetMapping("/{postId}")
     public ResponseEntity<PostVo> detail(@PathVariable Long postId) throws NoHandlerFoundException {
         PostVo detail = communityService.showDetail(postId);
@@ -42,7 +49,6 @@ public class CommunityController {
             throw new NoHandlerFoundException("GET", "/community/" + postId, null);
         }
         return ResponseEntity.status(HttpStatus.OK).body(detail);
-
     }
 
     @PostMapping("/write")
