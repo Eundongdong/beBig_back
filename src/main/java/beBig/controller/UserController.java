@@ -107,13 +107,16 @@ public class UserController {
     }
 
     @PostMapping("/find-id")
-    public ResponseEntity<String> findUserId(@RequestParam String name, @RequestParam String email) {
+    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
+        String name = userForm.getName();
+        String email = userForm.getEmail();
+
         log.info("Received name: {}, email: {}", name, email);
         String maskedUserId = userService.findUserIdByNameAndEmail(name, email);
 
         if (maskedUserId != null) {
             log.info("Found user id: {}", maskedUserId);
-            return ResponseEntity.status(HttpStatus.OK).body("아이디는: " + maskedUserId);
+            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
         } else {
             log.info("No user found with name: {}", name);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
