@@ -17,14 +17,22 @@
             </foreach>
     </insert>
 
+
     <select id="findAll" resultType="PostVo">
         SELECT *
         FROM post
         ORDER BY post_id DESC
     </select>
+
+    <resultMap id="findDetailMap" type="PostVo" autoMapping="true">
+        <id property="postId" column="post_id" />
+        <collection property="postImagePaths" column="image_path" ofType="string" javaType="List" select="">
+        </collection>
+    </resultMap>
+
     <select id="findDetail" resultType="PostVo" parameterType="long">
         SELECT *
-        FROM post
+        FROM post LEFT LEFT OUTER JOIN image ON post.post_id = image.image_post_id
         WHERE post_id = #{postId}
     </select>
     <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
