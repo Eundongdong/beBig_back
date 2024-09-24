@@ -83,13 +83,23 @@ public class UserService {
         params.put("email", email);
         params.put("userPassword", encodedPassword);
 
-        // 비밀번호 업데이트
-        userMapper.updatePasswordByUserIdAndEmail(params);
+        try {
+            // 비밀번호 업데이트
+            int updatedRows = userMapper.updatePasswordByUserIdAndEmail(params);
 
-        // 이메일로 임시 비밀번호 전송
-        sendEmail(email, temporaryPassword);
-        return true;
-
+            // 업데이트가 성공한 경우에만 이메일 전송
+            if (updatedRows > 0) {
+                sendEmail(email, temporaryPassword);
+                return true;
+            } else {
+                // 유효하지 않은 정보일 경우 처리
+                log.info("업데이트 실패");
+                return false; // 실패했음을 나타냄
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // 오류 발생 시 false 반환
+        }
     }
 
     @Value("${mail.smtp.host}") private String smtpHost;
