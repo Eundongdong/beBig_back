@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface CommunityService {
-    public List<PostVo> showList();
+    public List<PostVo> showList(int postCategory, int postWriterFinTypeCode);
     public PostVo showDetail(Long postId);
     public void write(PostVo post) throws AmazonS3UploadException;
     public void updateLike(Long postId);
