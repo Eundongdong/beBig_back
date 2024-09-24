@@ -1,8 +1,10 @@
 package beBig.service;
 
 import beBig.exception.AmazonS3UploadException;
+import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
 import beBig.vo.PostVo;
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -32,8 +35,6 @@ import static org.apache.log4j.NDC.clear;
 @Service
 public class CommunityServiceImp implements CommunityService {
     private final AmazonS3 amazonS3;
-    private Set<String> uploadedFileNames = new HashSet<>();
-    private Set<Long> uploadedFileSizes = new HashSet<>();
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket; // S3
@@ -77,10 +78,11 @@ public class CommunityServiceImp implements CommunityService {
         PostVo detail = mapper.findDetail(postId);
         return detail;
     }
-    
+
+    @Transactional(rollbackFor = {AmazonS3Exception.class,AmazonClientException.class, NoContentFoundException.class})
     @Override
     // 게시글 업로드, 이미지 업로드
-    public void write(PostVo post) throws AmazonS3UploadException {
+    public void write(PostVo post) throws AmazonS3UploadException, AmazonClientException, NoContentFoundException {
         //1. mapper 연결
         CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         //post Insert
@@ -117,21 +119,16 @@ public class CommunityServiceImp implements CommunityService {
 
     public String saveFile(MultipartFile file) throws AmazonS3UploadException {
         String fileName = file.getOriginalFilename();
-        log.info("File upload started : ",fileName);
-
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
         metadata.setContentType(file.getContentType());
         try{
             amazonS3.putObject(bucket,fileName,file.getInputStream(),metadata);
         }catch (AmazonS3Exception e){
-//            log.error("Amazon S3 error while uploading file: " + e.getMessage());
             throw new AmazonS3UploadException("AmazonS3Exception");
         } catch (SdkClientException e) {
-//            log.error("AWS SDK client error while uploading file: " + e.getMessage());
             throw new AmazonS3UploadException("SdkClientException");
         } catch (IOException e) {
-//            log.error("IO error while uploading file: " + e.getMessage());
             throw new AmazonS3UploadException("IOException");
         }
 
