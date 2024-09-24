@@ -8,5 +8,6 @@
     </settings>
     <typeAliases>
         <typeAlias alias="UserVo" type="beBig.vo.UserVo"/>
+        <typeAlias alias="PostVo" type="beBig.vo.PostVo"/>
     </typeAliases>
 </configuration>
