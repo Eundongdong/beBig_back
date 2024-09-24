@@ -2,6 +2,7 @@ package beBig.controller;
 
 import beBig.form.LoginForm;
 import beBig.form.UserForm;
+import beBig.service.CustomUserDetailsService;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
 import beBig.vo.UserVo;
@@ -9,7 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +26,16 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Autowired
-    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider) {
+    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager, CustomUserDetailsService customUserDetailsService) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationManager = authenticationManager;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @PostMapping("/signup")
@@ -58,22 +67,28 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginForm loginForm) {
-        log.info(loginForm.toString());
-
-        // 로그인 성공 여부 확인
-        boolean isLoginSuccessful = userService.login(loginForm.getUserId(), loginForm.getPassword());
-        log.info("로그인 성공 여부: " + isLoginSuccessful);
-
-        if (!isLoginSuccessful) {
-            // 로그인 실패 시
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
-        } else {
-            // 로그인 성공 시 JWT 토큰 생성
-            String token = jwtTokenProvider.generateToken(loginForm.getUserId());
+        try {
+            // AuthenticationManager를 사용하여 사용자 인증
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginForm.getUserId(),
+                            loginForm.getPassword()
+                    )
+            );
+            // 인증된 사용자 정보 로드
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            log.info("로그인 성공: " + loginForm);
+            // JWT 토큰 생성
+            String token = jwtTokenProvider.generateToken(userDetails.getUsername());
             log.info("JWT 토큰 생성: " + token);
 
             // 토큰을 클라이언트로 응답
             return ResponseEntity.status(HttpStatus.OK).body(token);
+
+        } catch (AuthenticationException e) {
+            log.error("로그인 실패: " + loginForm);
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
         }
     }
 
