@@ -1,5 +1,6 @@
 package beBig.controller;
 
+import beBig.exception.AmazonS3UploadException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
@@ -36,19 +37,22 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public ResponseEntity<String> write(@RequestBody Map<String,Object> map) {
+    public String write( PostVo content) throws AmazonS3UploadException {
         log.info("write community");
-        PostVo content = new PostVo();
-        content.setPostWriterNo((long) (int) map.get("postWriterNo"));
-        content.setPostTitle((String) map.get("postTitle"));
-        content.setPostContent((String) map.get("postContent"));
-        content.setPostWriterFinTypeCode((int) map.get("postWriterFinTypeCode"));
-        content.setPostImagePath(map.get("postImagePath").toString());
-        content.setPostCategory((Integer) map.get("postCategory"));
+//        PostVo content = new PostVo();
+//        content.setPostWriterNo((long) (int) map.get("postWriterNo"));
+//        content.setPostTitle((String) map.get("postTitle"));
+//        content.setPostContent((String) map.get("postContent"));
+//        content.setPostWriterFinTypeCode((int) map.get("postWriterFinTypeCode"));
+//        content.setPostImagePath(map.get("postImagePath").toString());
+//        content.setPostCategory((Integer) map.get("postCategory"));
+//        content.setFile(file);
 
+        //TODO fileList 처리
+//        List<MultipartFile> fileList = (List<MultipartFile>) map.get("fileList");
         log.info("content",content);
         communityService.write(content);
-        return ResponseEntity.ok().build();
+        return "ResponseEntity.ok().build();";
     }
 
     @PostMapping("/{postId}/like")
