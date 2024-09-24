@@ -29,7 +29,14 @@ public class CommunityController {
         this.communityService = communityService;
     }
 
-    // 게시글 전체 조회 & 검색 필터 조회
+    /**
+     * 게시글 전체 조회 및 검색 필터 조회
+     *
+     * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
+     * @param postWriterFinTypeCode 유형 필터 (없을 경우 기본값 -1)
+     * @return 필터에 맞는 게시글 목록
+     * @throws NoContentFoundException 필터에 맞는 게시글이 없을 때 예외 발생
+     */
     @GetMapping()
     public ResponseEntity<List<PostVo>> list(@RequestParam(value = "category", required = false) Optional<Integer> postCategory,
                                              @RequestParam(value = "type", required = false) Optional<Integer> postWriterFinTypeCode) {
@@ -44,7 +51,13 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
-    // 게시글 상세조회
+    /**
+     * 게시글 상세 조회
+     *
+     * @param postId 게시글 ID
+     * @return 게시글 상세정보
+     * @throws NoHandlerFoundException 게시글을 찾지 못했을 때 예외 발생
+     */
     @GetMapping("/{postId}")
     public ResponseEntity<PostVo> detail(@PathVariable long postId) throws NoHandlerFoundException {
         PostVo detail = communityService.showDetail(postId);
@@ -59,9 +72,17 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
 
-    // 좋아요/좋아요 취소 처리
+    /**
+     * 게시글 좋아요/좋아요 취소 처리
+     *
+     * @param postId 게시글 ID
+     * @param likeRequestDto 게시글 작성자 번호 정보
+     * @return 처리 결과 메시지
+     * @throws NoHandlerFoundException 잘못된 요청 시 예외 발생
+     */
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> like(@PathVariable long postId, @RequestBody LikeRequestDto likeRequestDto) throws NoHandlerFoundException{
+        // 요청받은 게시글 작성자 번호 추출
         long postWriterNo = likeRequestDto.getPostWriterNo();
         if(postWriterNo < 1) {
             throw new NoHandlerFoundException("POST", "/" + postId + "/like", null);

@@ -23,15 +23,24 @@ public class CommunityServiceImp implements CommunityService {
     }
 
 
+    /**
+     * 게시글 전체 조회 및 검색 필터 조회
+     *
+     * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
+     * @param postWriterFinTypeCode 유형 필터 (없을 경우 기본값 -1)
+     * @return 필터에 맞는 게시글 목록
+     */
     @Override
     public List<PostVo> showList(int postCategory, int postWriterFinTypeCode) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
         if(postCategory != -1){
+            // 카테고리 추가
             params.put("postCategory", postCategory);
         }
         if(postWriterFinTypeCode != -1){
+            // 유형 추가
             params.put("postWriterFinTypeCode", postWriterFinTypeCode);
         }
         // 전체 목록 조회(파라미터에 검색 필터가 없는 경우)
@@ -44,6 +53,12 @@ public class CommunityServiceImp implements CommunityService {
         }
     }
 
+    /**
+     * 게시글 상세 조회
+     *
+     * @param postId 게시글 ID
+     * @return 게시글 상세정보
+     */
     @Override
     public PostVo showDetail(long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
@@ -56,8 +71,12 @@ public class CommunityServiceImp implements CommunityService {
 
     }
 
-    // 좋아요/좋아요 취소 처리
-
+    /**
+     * 좋아요/좋아요 취소 처리
+     *
+     * @param postWriterNo 작성자 번호
+     * @param postId 게시글 ID
+     */
     @Override
     public void updateLike(long postWriterNo, long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
