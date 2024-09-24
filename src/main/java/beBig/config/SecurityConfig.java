@@ -59,6 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     // JWT 필터 추가 및 권한 설정
+    //로그인페이지 설정
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
