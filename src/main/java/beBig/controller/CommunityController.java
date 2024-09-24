@@ -1,6 +1,8 @@
 package beBig.controller;
 
 import beBig.dto.LikeRequestDto;
+import beBig.exception.AmazonS3UploadException;
+import org.apache.ibatis.annotations.Delete;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
@@ -12,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
@@ -68,8 +71,11 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public ResponseEntity<String> write() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity write( PostVo content) throws AmazonS3UploadException {
+        log.info("write community");
+        log.info("content{}",content);
+        communityService.write(content);
+        return ResponseEntity.ok().build();
     }
 
     /**

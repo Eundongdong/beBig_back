@@ -6,7 +6,7 @@ build/
 
 # .gitignore
 application.properties
-
+application-aws.properties
 
 ### IntelliJ IDEA ###
 # 파일 삭제

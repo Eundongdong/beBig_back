@@ -4,6 +4,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="beBig.mapper.CommunityMapper">
+    <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
+        INSERT INTO post (post_writer_no,post_title,post_content, post_category,post_writer_fin_type_code)
+        VALUES (#{postWriterNo},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
+    </insert>
+
+    <insert id="insertImage" parameterType="PostVo">
+        INSERT INTO image(image_post_id,image_path)
+        VALUES
+            <foreach collection="postImagePaths" item="imagePath" separator=",">
+                (#{postId},#{imagePath})
+            </foreach>
+    </insert>
+
     <select id="findAll" resultType="PostVo">
         SELECT *
         FROM post
