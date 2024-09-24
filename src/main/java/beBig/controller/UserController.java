@@ -14,10 +14,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @CrossOrigin("*")
 @Controller
@@ -55,16 +59,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/social-signup/info")
-    public ResponseEntity<String> infoSocialSignup() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
-
-    @PostMapping("/social-signup/register")
-    public ResponseEntity<String> registerSocialSignup() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
-
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginForm loginForm) {
         try {
@@ -92,15 +86,24 @@ public class UserController {
         }
     }
 
-
-    @PostMapping("/social-login")
-    public ResponseEntity<String> socialLogin() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
-
     @GetMapping("/logout")
-    public ResponseEntity<String> logout() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        // SecurityContextHolder에서 현재 인증된 사용자 정보 제거
+        SecurityContextHolder.clearContext();
+
+        // 세션 무효화
+        request.getSession().invalidate();
+
+        // JSESSIONID 쿠키 삭제
+        for (javax.servlet.http.Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals("JSESSIONID")) {
+                cookie.setMaxAge(0);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");
     }
 
     @PostMapping("/find-id")
@@ -128,4 +131,20 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
     }
+
+    @PostMapping("/social-login")
+    public ResponseEntity<String> socialLogin() {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/social-signup/info")
+    public ResponseEntity<String> infoSocialSignup() {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @PostMapping("/social-signup/register")
+    public ResponseEntity<String> registerSocialSignup() {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
 }

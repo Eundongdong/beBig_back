@@ -74,9 +74,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")  // 로그아웃 성공 시 리다이렉트 경로
-                .permitAll();
+                    .logoutUrl("/user/logout")  // 로그아웃을 처리할 URL 설정
+                    .invalidateHttpSession(true)  // 세션 무효화
+                    .deleteCookies("JSESSIONID")  // 쿠키 삭제
+                    .permitAll();
 
         // JWT 필터를 UsernamePasswordAuthenticationFilter 전에 추가
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
