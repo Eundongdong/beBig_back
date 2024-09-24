@@ -5,7 +5,9 @@ import beBig.form.UserForm;
 import beBig.service.CustomUserDetailsService;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
+import beBig.service.oauth.KakaoOauthService;
 import beBig.vo.UserVo;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,14 +16,19 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.List;
 
 @CrossOrigin("*")
 @Controller
@@ -34,12 +41,16 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService customUserDetailsService;
 
+    private final KakaoOauthService kakaoLoginService;
+
     @Autowired
-    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager, CustomUserDetailsService customUserDetailsService) {
+    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
+                          CustomUserDetailsService customUserDetailsService, KakaoOauthService kakaoLoginService) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
         this.customUserDetailsService = customUserDetailsService;
+        this.kakaoLoginService = kakaoLoginService;
     }
 
     @PostMapping("/signup")
@@ -135,10 +146,64 @@ public class UserController {
         }
     }
 
-    @PostMapping("/social-login")
-    public ResponseEntity<String> socialLogin() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    /*
+     * /social-signup/info 로 요청이 오게되면
+     * 정보를 담아서 socialLogin에 보내고,
+     *
+     * 받은정보를 기반으로 프론트에서 RequestBody에 내용을 담아서
+     * /social-signup/register 에게 요청을 보내게되면
+     *
+     * db에 등록하게된다.
+     * */
+
+    @GetMapping("/social-kakao")
+    public String kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) throws Exception {
+
+        //code = 인가코드
+        String accessToken = kakaoLoginService.getAccessToken(code); // accessToken 받아오기
+        JsonObject userInfo = kakaoLoginService.getUserInfo(accessToken); // 받아온 accessToken을 통해서 유저 정보 가져오기
+
+        if (userInfo != null) {
+            // id 필드가 존재하는지 확인
+            String kakaoId = userInfo.has("id") ? userInfo.get("id").getAsString() : null;
+            // email 필드가 존재하는지 확인
+            String email = userInfo.has("email") ? userInfo.get("email").getAsString() : (kakaoId != null ? kakaoId + "@kakao.com" : null);
+            // nickname 필드가 존재하는지 확인
+            String nickname = userInfo.has("nickname") ? userInfo.get("nickname").getAsString() : null;
+
+            if (kakaoId != null && userService.findUserIdByNameAndEmail(nickname, email) == null) {
+                UserForm kakaoUser = new UserForm();
+                kakaoUser.setName(nickname);
+                kakaoUser.setPassword("kakao");
+                kakaoUser.setEmail(email);
+                log.info("Kakao User 정보 저장: {}", kakaoUser);
+                // 세션에 사용자 정보 저장
+                request.getSession().setAttribute("kakaoUser", kakaoUser);
+//                log.info("세션에 저장된 Kakao User 정보: {}", request.getSession().getAttribute("kakaoUser"));  // 로그 추가
+            }
+            return "redirect:/user/social-kakao/data";
+        } else {
+            // 에러 처리
+            return "redirect:/user/social-kakao/data";
+        }
     }
+
+    @GetMapping("/social-kakao/data")
+    public ResponseEntity<UserForm> socialLogin(HttpServletRequest request) {
+        UserForm kakaoUser = (UserForm) request.getSession().getAttribute("kakaoUser");
+
+        log.info("세션에서 가져온 Kakao User: {}", kakaoUser);  // 로그 추가
+
+        if (kakaoUser != null) {
+            // 사용자가 성공적으로 로그인한 경우 처리
+            log.info("Kakao User Info: " + kakaoUser);
+            return ResponseEntity.status(HttpStatus.OK).body(kakaoUser); // UserForm 객체를 직접 반환
+        } else {
+            // 세션에 사용자 정보가 없는 경우
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // 빈 객체 반환
+        }
+    }
+
 
     @GetMapping("/social-signup/info")
     public ResponseEntity<String> infoSocialSignup() {
@@ -148,6 +213,12 @@ public class UserController {
     @PostMapping("/social-signup/register")
     public ResponseEntity<String> registerSocialSignup() {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    }
+
+    @GetMapping("/test")
+    public String test() {
+        // user/index.jsp 페이지로 이동
+        return "/index";
     }
 
 }

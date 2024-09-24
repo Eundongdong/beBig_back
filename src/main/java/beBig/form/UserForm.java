@@ -13,4 +13,5 @@ public class UserForm {
     private String email;
     private boolean gender;      // true = 남성, false = 여성
     private Date birth;
+    private String userLoginType;
 }
