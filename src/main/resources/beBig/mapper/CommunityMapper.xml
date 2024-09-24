@@ -5,8 +5,8 @@
 
 <mapper namespace="beBig.mapper.CommunityMapper">
     <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
-        INSERT INTO post (post_writer_id,post_title,post_content, post_category,post_writer_fin_type_code)
-        VALUES (#{postWriterId},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
+        INSERT INTO post (post_writer_no,post_title,post_content, post_category,post_writer_fin_type_code)
+        VALUES (#{postWriterNo},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
     </insert>
 
     <insert id="insertImage" parameterType="PostVo">
@@ -22,9 +22,16 @@
         FROM post
         ORDER BY post_id DESC
     </select>
-    <select id="findDetail" resultType="PostVo" parameterType="Long">
+
+    <resultMap id="findDetailMap" type="PostVo" autoMapping="true">
+        <id property="postId" column="post_id" />
+        <collection property="postImagePaths" column="image_path" ofType="string" javaType="List" select="">
+        </collection>
+    </resultMap>
+
+    <select id="findDetail" resultType="PostVo" parameterType="long">
         SELECT *
-        FROM post
+        FROM post LEFT LEFT OUTER JOIN image ON post.post_id = image.image_post_id
         WHERE post_id = #{postId}
     </select>
     <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
