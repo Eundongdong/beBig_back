@@ -27,4 +27,29 @@
         </where>
         ORDER BY post_id DESC
     </select>
+    <select id="checkLike" resultType="int" parameterType="map">
+        SELECT COUNT(*)
+        FROM like_hits
+        WHERE like_hits_user_no = #{postWriterNo}
+        AND like_hits_post_id = #{postId}
+    </select>
+    <insert id="addLike" parameterType="map">
+        INSERT INTO like_hits (like_hits_user_no, like_hits_post_id, like_hits_created_time)
+        VALUES (#{postWriterNo}, #{postId}, NOW())
+    </insert>
+    <delete id="removeLike" parameterType="map">
+        DELETE FROM like_hits
+        WHERE like_hits_user_no = #{postWriterNo}
+        AND like_hits_post_id = #{postId}
+    </delete>
+    <update id="updateLikeCnt" parameterType="long">
+        UPDATE post
+        SET post_like_hits = (SELECT COUNT(*) FROM like_hits WHERE like_hits_post_id = #{postId})
+        WHERE post_id = #{postId}
+    </update>
+    <update id="updateLike" parameterType="map">
+        UPDATE post
+        SET post_like_hits = post_like_hits + #{likeCnt}
+        WHERE post_id = #{postId}
+    </update>
 </mapper>
