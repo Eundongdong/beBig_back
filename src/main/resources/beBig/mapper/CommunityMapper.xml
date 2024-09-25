@@ -5,8 +5,8 @@
 
 <mapper namespace="beBig.mapper.CommunityMapper">
     <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
-        INSERT INTO post (post_writer_no,post_title,post_content, post_category,post_writer_fin_type_code)
-        VALUES (#{postWriterNo},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
+        INSERT INTO post (post_writer_id,post_title,post_content, post_category,post_writer_fin_type_code)
+        VALUES (#{postWriterId},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
     </insert>
 
     <insert id="insertImage" parameterType="PostVo">
@@ -22,7 +22,7 @@
         FROM post
         ORDER BY post_id DESC
     </select>
-    <select id="findDetail" resultType="PostVo" parameterType="long">
+    <select id="findDetail" resultType="PostVo" parameterType="Long">
         SELECT *
         FROM post
         WHERE post_id = #{postId}
@@ -43,19 +43,19 @@
     <select id="checkLike" resultType="int" parameterType="map">
         SELECT COUNT(*)
         FROM like_hits
-        WHERE like_hits_user_no = #{postWriterNo}
+        WHERE like_hits_user_no = #{postWriterId}
         AND like_hits_post_id = #{postId}
     </select>
     <insert id="addLike" parameterType="map">
         INSERT INTO like_hits (like_hits_user_no, like_hits_post_id, like_hits_created_time)
-        VALUES (#{postWriterNo}, #{postId}, NOW())
+        VALUES (#{postWriterId}, #{postId}, NOW())
     </insert>
     <delete id="removeLike" parameterType="map">
         DELETE FROM like_hits
-        WHERE like_hits_user_no = #{postWriterNo}
+        WHERE like_hits_user_no = #{postWriterId}
         AND like_hits_post_id = #{postId}
     </delete>
-    <update id="updateLikeCnt" parameterType="long">
+    <update id="updateLikeCnt" parameterType="Long">
         UPDATE post
         SET post_like_hits = (SELECT COUNT(*) FROM like_hits WHERE like_hits_post_id = #{postId})
         WHERE post_id = #{postId}
@@ -63,6 +63,20 @@
     <update id="updateLike" parameterType="map">
         UPDATE post
         SET post_like_hits = post_like_hits + #{likeCnt}
+        WHERE post_id = #{postId}
+    </update>
+    <select id="getPostWriterId" resultType="String" parameterType="Long">
+        SELECT post_writer_id
+        FROM post
+        WHERE post_id = #{postId}
+    </select>
+    <update id="update" parameterType="PostVo">
+        UPDATE post
+        SET
+            post_title = #{postTitle},
+            post_content = #{postContent},
+            post_category = #{postCategory},
+            post_updated_time = NOW()
         WHERE post_id = #{postId}
     </update>
 </mapper>
