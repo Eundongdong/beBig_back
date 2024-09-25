@@ -95,12 +95,19 @@ public class UserServiceImp implements UserService {
         }
     }
 
-    @Value("${mail.smtp.host}") private String smtpHost;
-    @Value("${mail.smtp.port}") private String smtpPort;
-    @Value("${mail.smtp.auth}") private String smtpAuth;
-    @Value("${mail.smtp.starttls.enable}") private String starttlsEnable;
-    @Value("${mail.username}") private String emailUsername;
-    @Value("${mail.password}") private String emailPassword;
+    @Value("${mail.smtp.host}")
+    private String smtpHost;
+    @Value("${mail.smtp.port}")
+    private String smtpPort;
+    @Value("${mail.smtp.auth}")
+    private String smtpAuth;
+    @Value("${mail.smtp.starttls.enable}")
+    private String starttlsEnable;
+    @Value("${mail.username}")
+    private String emailUsername;
+    @Value("${mail.password}")
+    private String emailPassword;
+
     // 이메일 전송
     public void sendEmail(String toEmail, String tempPassword) {
         Properties props = new Properties();
@@ -152,6 +159,13 @@ public class UserServiceImp implements UserService {
             return userId.substring(0, userId.length() - 4) + "****";
         }
         return null;
+    }
+
+    // 소셜 회원가입유무 확인
+    @Override
+    public boolean findByUserIdAndLoginType(String email, String userLoginType) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        return userMapper.findByUserIdAndLoginType(email, userLoginType);
     }
     //    public UserVo findByUserId(String userId) throws Exception {
 //        return userMapper.findByUserId(userId);
