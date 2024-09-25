@@ -1,6 +1,5 @@
 package beBig.service;
 
-import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
@@ -15,19 +14,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.log4j.NDC.clear;
 
@@ -89,7 +84,7 @@ public class CommunityServiceImp implements CommunityService {
      * @return 게시글 상세정보
      */
     @Override
-    public PostVo showDetail(long postId) {
+    public PostVo showDetail(Long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         PostVo detail = mapper.findDetail(postId);
         return detail;
@@ -170,14 +165,14 @@ public class CommunityServiceImp implements CommunityService {
     /**
      * 좋아요/좋아요 취소 처리
      *
-     * @param postWriterNo 작성자 번호
+     * @param postWriterId 작성자 번호
      * @param postId 게시글 ID
      */
     @Override
-    public void updateLike(long postWriterNo, long postId) {
+    public void updateLike(Long postWriterId, Long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         Map<String, Object> params = new HashMap<>();
-        params.put("postWriterNo", postWriterNo);
+        params.put("postWriterId", postWriterId);
         params.put("postId", postId);
 
         // 좋아요 눌렀는지 체크
@@ -199,9 +194,27 @@ public class CommunityServiceImp implements CommunityService {
         mapper.updateLike(params);
     }
 
+    /**
+     * 게시글의 작성자 ID 조회
+     *
+     * @param postId 게시글 ID
+     * @return 게시글 작성자의 user_id
+     */
+    @Override
+    public String getPostWriterId(Long postId) {
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        return mapper.getPostWriterId(postId);
+    }
+
+    /**
+     * 게시글 업데이트
+     *
+     * @param post 업데이트할 게시글 정보
+     */
     @Override
     public void update(PostVo post) {
-
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        mapper.update(post);
     }
 
     @Override

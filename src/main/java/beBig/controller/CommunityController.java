@@ -2,21 +2,19 @@ package beBig.controller;
 
 import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
-import org.apache.ibatis.annotations.Delete;
+import beBig.service.jwt.JwtTokenProvider;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,20 +24,14 @@ import java.util.Optional;
 @Slf4j
 public class CommunityController {
     private CommunityService communityService;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CommunityController(CommunityService communityService) {
+    public CommunityController(CommunityService communityService, JwtTokenProvider jwtTokenProvider) {
         this.communityService = communityService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /**
-     * 게시글 전체 조회 및 검색 필터 조회
-     *
-     * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
-     * @param postWriterFinTypeCode 유형 필터 (없을 경우 기본값 -1)
-     * @return 필터에 맞는 게시글 목록
-     * @throws NoContentFoundException 필터에 맞는 게시글이 없을 때 예외 발생
-     */
     @GetMapping()
     public ResponseEntity<List<PostVo>> list(@RequestParam(value = "category", required = false) Optional<Integer> postCategory,
                                              @RequestParam(value = "type", required = false) Optional<Integer> postWriterFinTypeCode) {
@@ -54,13 +46,6 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
-    /**
-     * 게시글 상세 조회
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 상세정보
-     * @throws NoHandlerFoundException 게시글을 찾지 못했을 때 예외 발생
-     */
     @GetMapping("/{postId}")
     public ResponseEntity<PostVo> detail(@PathVariable long postId) throws NoHandlerFoundException {
         PostVo detail = communityService.showDetail(postId);
@@ -78,28 +63,48 @@ public class CommunityController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 게시글 좋아요/좋아요 취소 처리
-     *
-     * @param postId 게시글 ID
-     * @param likeRequestDto 게시글 작성자 번호 정보
-     * @return 처리 결과 메시지
-     * @throws NoHandlerFoundException 잘못된 요청 시 예외 발생
-     */
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> like(@PathVariable long postId, @RequestBody LikeRequestDto likeRequestDto) throws NoHandlerFoundException{
         // 요청받은 게시글 작성자 번호 추출
-        long postWriterNo = likeRequestDto.getPostWriterNo();
-        if(postWriterNo < 1) {
+        long postWriterId = likeRequestDto.getPostWriterId();
+        if(postWriterId < 1) {
             throw new NoHandlerFoundException("POST", "/" + postId + "/like", null);
         }
-        communityService.updateLike(postWriterNo, postId);
+        communityService.updateLike(postWriterId, postId);
         return ResponseEntity.status(HttpStatus.OK).body("Like status updated successfully!");
     }
 
-    @PostMapping("/{postId}/update")
-    public ResponseEntity<String> update(@PathVariable Long postId) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    @PutMapping("/{postId}/update")
+    public ResponseEntity update(@PathVariable Long postId, @RequestBody PostVo postVo, HttpServletRequest request){
+        // 헤더에서 JWT 토큰 추출
+        String token = resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 실패");
+        }
+
+        // JWT에서 사용자 ID 추출
+        String loginUserId = jwtTokenProvider.getUserIdFromJWT(token);
+        // 게시글 작성자의 user_id 확인
+        String postWriterId = communityService.getPostWriterId(postId);
+
+        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
+        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
+        if (!loginUserId.equals(postWriterId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("is not writer");
+        }
+
+        // 작성자 검증 통과 후 게시글 업데이트
+        communityService.update(postVo);
+        return ResponseEntity.status(HttpStatus.OK).body("successfully update");
+    }
+
+    // JWT 토큰을 Request 헤더에서 추출하는 메소드
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);  // "Bearer " 제거
+        }
+        return null;
     }
 
     @DeleteMapping("/{postId}/delete")

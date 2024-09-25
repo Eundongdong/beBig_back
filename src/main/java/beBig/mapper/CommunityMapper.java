@@ -22,8 +22,9 @@ public interface CommunityMapper {
     // 좋아요 수 없데이트 매퍼
     void updateLike(Map<String, Object> params);
     // 좋아요 수 업데이트
-    void updateLikeCnt(long postId);
+    void updateLikeCnt(Long postId);
     void insertImage(PostVo post);
+    String getPostWriterId(Long postId);
     void update(PostVo post);
-    void delete(PostVo post);
+    void delete(Long postId);
 }

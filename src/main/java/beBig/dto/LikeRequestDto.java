@@ -8,5 +8,5 @@ import lombok.*;
 @Setter
 @ToString
 public class LikeRequestDto {
-    private long postWriterNo;
+    private long postWriterId;
 }
