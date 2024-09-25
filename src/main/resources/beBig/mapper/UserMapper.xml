@@ -85,4 +85,11 @@
         WHERE user_id = #{userId}
           AND user_login_type = #{loginType}
     </select>
+
+    <!-- 약관 데이터를 조회하는 쿼리 -->
+    <select id="getUtilTerms" resultType="beBig.vo.UtilVo">
+        SELECT util_id AS utilId, util_title AS utilTitle, util_content AS utilContent
+        FROM util
+    </select>
+
 </mapper>

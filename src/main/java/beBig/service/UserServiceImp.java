@@ -3,6 +3,7 @@ package beBig.service;
 import beBig.form.UserForm;
 import beBig.mapper.UserMapper;
 import beBig.vo.UserVo;
+import beBig.vo.UtilVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -167,6 +165,15 @@ public class UserServiceImp implements UserService {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.findByUserIdAndLoginType(email, userLoginType);
     }
+
+    // 약관 조회 메서드 구현
+    @Override
+    public List<UtilVo> getUtilTerms() {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        return userMapper.getUtilTerms();
+    }
+
+
     //    public UserVo findByUserId(String userId) throws Exception {
 //        return userMapper.findByUserId(userId);
 //    }

@@ -1,7 +1,10 @@
 package beBig.service;
 
 import beBig.form.UserForm;
+import beBig.vo.UtilVo;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 public interface UserService {
     void registerUser(UserForm userForm) throws Exception;
@@ -9,4 +12,5 @@ public interface UserService {
     boolean isUserIdDuplicated(String userId);
     String findUserIdByNameAndEmail(String name, String email);
     boolean findByUserIdAndLoginType(String email, String userLoginType);
+    List<UtilVo> getUtilTerms(); // 약관조회
 }

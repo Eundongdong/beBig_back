@@ -1,9 +1,12 @@
 package beBig.mapper;
 
 import beBig.vo.UserVo;
+import beBig.vo.UtilVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -20,4 +23,6 @@ public interface UserMapper {
     int updatePasswordByUserIdAndEmail(Map<String, Object> params);
 
     boolean findByUserIdAndLoginType(@Param("userId") String userId, @Param("loginType") String loginType);
+
+    List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 }
