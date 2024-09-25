@@ -8,4 +8,5 @@ public interface UserService {
     boolean updatePasswordByEmail(String userId, String name, String email);
     boolean isUserIdDuplicated(String userId);
     String findUserIdByNameAndEmail(String name, String email);
+    boolean findByUserIdAndLoginType(String email, String userLoginType);
 }

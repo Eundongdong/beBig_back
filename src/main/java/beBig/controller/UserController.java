@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.Map;
+
+
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/user")
@@ -139,61 +142,70 @@ public class UserController {
         }
     }
 
-    /*
-     * /social-signup/info 로 요청이 오게되면
-     * 정보를 담아서 socialLogin에 보내고,
-     *
-     * 받은정보를 기반으로 프론트에서 RequestBody에 내용을 담아서
-     * /social-signup/register 에게 요청을 보내게되면
-     *
-     * db에 등록하게된다.
-     * */
-
     @GetMapping("/social-kakao")
-    public String kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) throws Exception {
+    public ResponseEntity<?> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) {
+        try {
+            // 인가코드를 통해 AccessToken 획득
+            String accessToken = kakaoLoginService.getAccessToken(code);
 
-        //code = 인가코드
-        String accessToken = kakaoLoginService.getAccessToken(code); // accessToken 받아오기
-        JsonObject userInfo = kakaoLoginService.getUserInfo(accessToken); // 받아온 accessToken을 통해서 유저 정보 가져오기
+            // AccessToken으로 유저 정보 획득
+            JsonObject userInfo = kakaoLoginService.getUserInfo(accessToken);
 
-        if (userInfo != null) {
-            // id 필드가 존재하는지 확인
+            if (userInfo == null) {
+                // 유저 정보를 가져오지 못한 경우
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유저 정보를 가져올 수 없습니다.");
+            }
+
+            // 필드 존재 여부에 따라 값 할당
             String kakaoId = userInfo.has("id") ? userInfo.get("id").getAsString() : null;
-            // email 필드가 존재하는지 확인
             String email = userInfo.has("email") ? userInfo.get("email").getAsString() : (kakaoId != null ? kakaoId + "@kakao.com" : null);
-            // nickname 필드가 존재하는지 확인
             String nickname = userInfo.has("nickname") ? userInfo.get("nickname").getAsString() : null;
 
-            if (kakaoId != null && userService.findUserIdByNameAndEmail(nickname, email) == null) {
+            // 이메일과 loginType으로 사용자 존재 여부 확인
+            boolean existingUser = userService.findByUserIdAndLoginType(kakaoId + "@kakao.com", "kakao");
+            log.info("existingUser : {}", existingUser);
+
+            // 사용자가 존재하지 않을 경우 (회원가입 필요)
+            if (!existingUser) {
+                // UserForm 객체 생성 및 값 설정
                 UserForm kakaoUser = new UserForm();
                 kakaoUser.setName(nickname);
-                kakaoUser.setPassword("kakao");
+                kakaoUser.setPassword("kakao"); // 소셜 로그인 사용자의 비밀번호는 'kakao'로 설정 (별도 처리 필요)
                 kakaoUser.setEmail(email);
-                log.info("Kakao User 정보 저장: {}", kakaoUser);
-                // 세션에 사용자 정보 저장
+                kakaoUser.setUserLoginType("kakao");
+
+                log.info("Kakao User 정보: {}", kakaoUser);
+
+                // 세션에 사용자 정보 저장 (회원가입 페이지로 이동할 수 있게 정보 전달)
                 request.getSession().setAttribute("kakaoUser", kakaoUser);
-//                log.info("세션에 저장된 Kakao User 정보: {}", request.getSession().getAttribute("kakaoUser"));  // 로그 추가
+
+                // existingUser = false와 UserForm 객체를 프론트로 전달
+                return ResponseEntity.ok().body(Map.of(
+                        "existingUser", false,
+                        "user", kakaoUser
+                ));
             }
-            return "redirect:/user/social-kakao/data";
-        } else {
-            // 에러 처리
-            return "redirect:/user/social-kakao/data";
-        }
-    }
 
-    @GetMapping("/social-kakao/data")
-    public ResponseEntity<UserForm> socialLogin(HttpServletRequest request) {
-        UserForm kakaoUser = (UserForm) request.getSession().getAttribute("kakaoUser");
+            // 사용자가 존재할 경우 로그인 처리
+            else {
+                LoginForm loginForm = new LoginForm();
+                loginForm.setUserId(kakaoId + "@kakao.com"); // Kakao 로그인 시 사용자 ID로 email 사용
+                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
 
-        log.info("세션에서 가져온 Kakao User: {}", kakaoUser);  // 로그 추가
+                // 로그인 처리
+                String token = jwtTokenProvider.generateToken(kakaoId);
+                log.info("JWT 토큰 생성: {}", token);
 
-        if (kakaoUser != null) {
-            // 사용자가 성공적으로 로그인한 경우 처리
-            log.info("Kakao User Info: " + kakaoUser);
-            return ResponseEntity.status(HttpStatus.OK).body(kakaoUser); // UserForm 객체를 직접 반환
-        } else {
-            // 세션에 사용자 정보가 없는 경우
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // 빈 객체 반환
+                // existingUser = true와 JWT 토큰을 프론트로 전달
+                return ResponseEntity.ok().body(Map.of(
+                        "existingUser", true,
+                        "token", token
+                ));
+            }
+
+        } catch (Exception e) {
+            log.error("카카오 로그인 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("카카오 로그인 중 오류가 발생했습니다.");
         }
     }
 
