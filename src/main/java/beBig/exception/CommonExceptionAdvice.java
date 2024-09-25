@@ -25,4 +25,12 @@ public class CommonExceptionAdvice {
     public String handle404(NoHandlerFoundException ex) {
         return "custom404";
     }
+
+    //게시글 조회 리스트가 없을 경우
+    @ExceptionHandler(NoContentFoundException.class)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public String handleNoContent(NoContentFoundException ex, Model model) {
+        model.addAttribute("custom204", ex.getMessage());
+        return "custom204";
+    }
 }

@@ -1,6 +1,7 @@
 package beBig.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Configuration
+@ComponentScan(basePackages = "beBig")
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     @Override
