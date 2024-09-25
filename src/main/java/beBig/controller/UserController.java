@@ -6,6 +6,7 @@ import beBig.service.CustomUserDetailsService;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
 import beBig.service.oauth.KakaoOauthService;
+import beBig.vo.UtilVo;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -209,6 +211,11 @@ public class UserController {
         }
     }
 
+    @GetMapping("/terms")
+    public ResponseEntity<List<UtilVo>> getTerms() {
+        List<UtilVo> terms = userService.getUtilTerms();
+        return ResponseEntity.ok(terms);
+    }
 
     @GetMapping("/social-signup/info")
     public ResponseEntity<String> infoSocialSignup() {
