@@ -49,6 +49,7 @@ public class UserService {
         user.setUserBirth(userForm.getBirth());
         user.setUserFinTypeCode(0);
         user.setUserBadgeCode(0);
+        user.setUserLoginType(userForm.getUserLoginType());
         // 사용자 정보 저장
         userMapper.insert(user);
         log.info("user 저장성공");
@@ -102,12 +103,19 @@ public class UserService {
         }
     }
 
-    @Value("${mail.smtp.host}") private String smtpHost;
-    @Value("${mail.smtp.port}") private String smtpPort;
-    @Value("${mail.smtp.auth}") private String smtpAuth;
-    @Value("${mail.smtp.starttls.enable}") private String starttlsEnable;
-    @Value("${mail.username}") private String emailUsername;
-    @Value("${mail.password}") private String emailPassword;
+    @Value("${mail.smtp.host}")
+    private String smtpHost;
+    @Value("${mail.smtp.port}")
+    private String smtpPort;
+    @Value("${mail.smtp.auth}")
+    private String smtpAuth;
+    @Value("${mail.smtp.starttls.enable}")
+    private String starttlsEnable;
+    @Value("${mail.username}")
+    private String emailUsername;
+    @Value("${mail.password}")
+    private String emailPassword;
+
     // 이메일 전송
     public void sendEmail(String toEmail, String tempPassword) {
         Properties props = new Properties();
@@ -157,6 +165,10 @@ public class UserService {
             return maskedUserId;
         }
         return null; // 사용자 아이디가 없거나 너무 짧은 경우
+    }
+
+    public boolean findByUserIdAndLoginType(String email, String userLoginType) {
+        return userMapper.findByUserIdAndLoginType(email, userLoginType);
     }
 
 //    public UserVo findByUserId(String userId) throws Exception {
