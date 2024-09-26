@@ -2,6 +2,7 @@ package beBig.controller;
 
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtTokenProvider;
+import beBig.vo.AccountVo;
 import beBig.vo.UserVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 
 @CrossOrigin("*")
 @Controller
@@ -21,31 +23,18 @@ public class HomeController {
 
     private final HomeService homeService;
     private final JwtTokenProvider jwtTokenProvider; // JWT 토큰 제공자 주입
-
-    @GetMapping("/info")
-    public ResponseEntity<HashMap<String, Object>> getMyInfo(@RequestHeader("Authorization") String authorizationHeader) throws Exception {
-        // Authorization 헤더에서 JWT 토큰 추출
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Unauthorized
-        }
-
-        String token = authorizationHeader.substring(7); // "Bearer " 이후 부분 추출
-
-        // JWT 토큰 검증 : 추후 토큰 처리 관련 일괄 수정 필요
-        if (!jwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Unauthorized
-        }
-
-        String username = jwtTokenProvider.getUsername(token); // 사용자 이름 추출
-        UserVo userInfo = homeService.getUserInfo(username);
+    @PostMapping("/info")
+    public ResponseEntity<HashMap<String, Object>> getMyInfo(@RequestBody Long userId) throws Exception {
+        UserVo userInfo = homeService.getUserInfo(userId);
 
         if (userInfo == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         HashMap<String, Object> response = new HashMap<>();
         response.put("userName", userInfo.getUserName());
         response.put("finType", userInfo.getFinType());
+
         return ResponseEntity.ok(response);
     }
 
@@ -69,7 +58,6 @@ public class HomeController {
 //
 //    @PostMapping("/account/add")
 //    public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token) {
-//        Long userNo = extractUserNoFromToken(token);
 //        return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
 //    }
 //
@@ -79,11 +67,14 @@ public class HomeController {
 //        return ResponseEntity.status(HttpStatus.OK).body("미션 목록 조회");
 //    }
 //
-//    @GetMapping("/account/list")
-//    public ResponseEntity<String> accountList(@RequestHeader("Authorization") String token) {
-//        Long userNo = extractUserNoFromToken(token);
-//        return ResponseEntity.status(HttpStatus.OK).body("계좌 목록 조회");
-//    }
+@PostMapping("/account/list")
+public ResponseEntity<List<AccountVo>> accountList(@RequestBody Long userId) throws Exception {
+
+    List<AccountVo> accountList = homeService.showMyAccount(userId);
+
+    // 계좌 목록을 응답
+    return ResponseEntity.ok(accountList);
+}
 //
 //    @GetMapping("/account/{accountNum}/detail")
 //    public ResponseEntity<String> transactionList(@PathVariable String accountNum,
