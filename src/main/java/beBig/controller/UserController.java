@@ -167,10 +167,8 @@ public class UserController {
 
             // 인가코드를 통해 AccessToken 획득
             String accessToken = kakaoLoginService.getAccessToken(code);
-
             // AccessToken으로 유저 정보 획득
             JsonObject userInfo = kakaoLoginService.getUserInfo(accessToken);
-
             if (userInfo == null) {
                 // 유저 정보를 가져오지 못한 경우
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유저 정보를 가져올 수 없습니다.");
@@ -184,7 +182,6 @@ public class UserController {
             // 이메일과 loginType으로 사용자 존재 여부 확인
             boolean existingUser = userService.findByEmailAndLoginType(email, "kakao");
             log.info("existingUser : {}", existingUser);
-
             // 사용자가 존재하지 않을 경우 (회원가입 필요)
             if (!existingUser) {
                 // UserForm 객체 생성 및 값 설정

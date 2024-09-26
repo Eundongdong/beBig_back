@@ -80,7 +80,7 @@
     </update>
 
     <!-- 이메일과 LoginType으로 사용자 검색 후 있는지 여부를 리턴 -->
-    <select id="findByEmailAndLoginType" parameterType="map" resultType="UserVo">
+    <select id="findByEmailAndLoginType" parameterType="map" resultType="boolean">
         SELECT COUNT(*)
         FROM user
         WHERE user_email = #{email}
