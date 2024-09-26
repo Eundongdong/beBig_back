@@ -16,7 +16,7 @@ public class KakaoOauthService {
     private String REST_API_KEY = "f8156e1595fd76d2b241ad4b4f3c4ca6";
 
     // 카카오 로그인 후 리다이렉트될 URI
-    private String REDIRECT_URI = "http://localhost:8080/user/social-kakao";
+    private String REDIRECT_URI = "http://localhost:5173/user";
 
     public String getAccessToken(String authorize_code) {
         String access_Token = ""; // 엑세스 토큰을 저장할 변수

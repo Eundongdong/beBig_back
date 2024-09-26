@@ -52,11 +52,24 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserForm userForm) throws Exception {
-        log.info(String.valueOf(userForm));
-        userService.registerUser(userForm);
-        return ResponseEntity.status(HttpStatus.OK).body("유저등록완료!");
+    public ResponseEntity<String> signup(@RequestBody UserForm userForm) {
+        log.info("회원가입 요청: {}", userForm);
+        try {
+            // 필수 필드 확인 예시 (예: 이메일이 없으면 에러 반환)
+            if (userForm.getEmail() == null || userForm.getEmail().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일은 필수 항목입니다.");
+            }
+            // 사용자 등록 로직 호출
+            userService.registerUser(userForm);
+            // 성공 응답
+            return ResponseEntity.status(HttpStatus.OK).body("유저 등록 완료!");
+        } catch (Exception e) {
+            // 기타 예외 처리
+            log.error("회원가입 처리 중 오류 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류로 회원가입에 실패했습니다.");
+        }
     }
+
 
     @GetMapping("/login/{userId}")
     public ResponseEntity<String> idDuplicateCheck(@PathVariable String userId) {
@@ -145,8 +158,10 @@ public class UserController {
     }
 
     @GetMapping("/social-kakao")
-    public ResponseEntity<?> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) {
+    public ResponseEntity<?> kakaoLogin(@RequestParam("code") String code) {
         try {
+            log.info("code : " + code);
+
             // 인가코드를 통해 AccessToken 획득
             String accessToken = kakaoLoginService.getAccessToken(code);
 
@@ -164,7 +179,7 @@ public class UserController {
             String nickname = userInfo.has("nickname") ? userInfo.get("nickname").getAsString() : null;
 
             // 이메일과 loginType으로 사용자 존재 여부 확인
-            boolean existingUser = userService.findByUserIdAndLoginType(kakaoId + "@kakao.com", "kakao");
+            boolean existingUser = userService.findByEmailAndLoginType(email, "kakao");
             log.info("existingUser : {}", existingUser);
 
             // 사용자가 존재하지 않을 경우 (회원가입 필요)
@@ -172,14 +187,12 @@ public class UserController {
                 // UserForm 객체 생성 및 값 설정
                 UserForm kakaoUser = new UserForm();
                 kakaoUser.setName(nickname);
+                kakaoUser.setUserId(kakaoId);
                 kakaoUser.setPassword("kakao"); // 소셜 로그인 사용자의 비밀번호는 'kakao'로 설정 (별도 처리 필요)
                 kakaoUser.setEmail(email);
                 kakaoUser.setUserLoginType("kakao");
 
                 log.info("Kakao User 정보: {}", kakaoUser);
-
-                // 세션에 사용자 정보 저장 (회원가입 페이지로 이동할 수 있게 정보 전달)
-                request.getSession().setAttribute("kakaoUser", kakaoUser);
 
                 // existingUser = false와 UserForm 객체를 프론트로 전달
                 return ResponseEntity.ok().body(Map.of(

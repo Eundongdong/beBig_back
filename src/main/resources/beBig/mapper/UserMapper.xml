@@ -79,10 +79,10 @@
     </update>
 
     <!-- 이메일과 LoginType으로 사용자 검색 후 있는지 여부를 리턴 -->
-    <select id="findByUserIdAndLoginType" parameterType="map" resultType="boolean">
+    <select id="findByEmailAndLoginType" parameterType="map" resultType="boolean">
         SELECT COUNT(*)
         FROM user
-        WHERE user_id = #{userId}
+        WHERE user_email = #{email}
           AND user_login_type = #{loginType}
     </select>
 
