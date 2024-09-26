@@ -180,10 +180,10 @@ public class CommunityServiceImp implements CommunityService {
      * @param postId 게시글 ID
      */
     @Override
-    public void updateLike(Long postWriterId, Long postId) {
+    public void updateLike(Long userId,Long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         Map<String, Object> params = new HashMap<>();
-        params.put("postWriterId", postWriterId);
+        params.put("userId", userId);
         params.put("postId", postId);
 
         // 좋아요 눌렀는지 체크
@@ -203,18 +203,6 @@ public class CommunityServiceImp implements CommunityService {
         }
         // 좋아요 수 없데이트
         mapper.updateLike(params);
-    }
-
-    /**
-     * 게시글의 작성자 ID 조회
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 작성자의 user_id
-     */
-    @Override
-    public String getPostWriterId(Long postId) {
-        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
-        return mapper.getPostWriterId(postId);
     }
 
     /**
