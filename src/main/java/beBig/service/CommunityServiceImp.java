@@ -215,12 +215,12 @@ public class CommunityServiceImp implements CommunityService {
     /**
      * 게시글 업데이트
      *
-     * @param post 업데이트할 게시글 정보
+     * @param content 업데이트할 게시글 정보
      */
     @Override
-    public void update(PostVo post) {
+    public void update(PostVo content) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
-        mapper.update(post);
+        mapper.update(content);
     }
 
     @Override

@@ -75,36 +75,11 @@ public class CommunityController {
     }
 
     @PutMapping("/{postId}/update")
-    public ResponseEntity update(@PathVariable Long postId, @RequestBody PostVo postVo, HttpServletRequest request){
-        // 헤더에서 JWT 토큰 추출
-        String token = resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 실패");
-        }
-
-        // JWT에서 사용자 ID 추출
-        String loginUserId = jwtTokenProvider.getUserIdFromJWT(token);
-        // 게시글 작성자의 user_id 확인
-        String postWriterId = communityService.getPostWriterId(postId);
-
-        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
-        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
-        if (!loginUserId.equals(postWriterId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("is not writer");
-        }
-
-        // 작성자 검증 통과 후 게시글 업데이트
-        communityService.update(postVo);
+    public ResponseEntity<String> update(@PathVariable Long postId, @RequestBody PostVo content){
+        // 게시글 업데이트
+        log.info("postId : " + postId);
+        communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");
-    }
-
-    // JWT 토큰을 Request 헤더에서 추출하는 메소드
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);  // "Bearer " 제거
-        }
-        return null;
     }
 
     @DeleteMapping("/{postId}/delete")
