@@ -7,10 +7,10 @@ import java.util.List;
 
 @Data
 public class UserVo {
-    private Long userNo;
+    private Long userId;
     private int userFinTypeCode;
     private int userBadgeCode;
-    private String userId;
+    private String userLoginId;
     private String userName;
     private String userNickname;
     private String userPassword;

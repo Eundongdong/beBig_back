@@ -8,6 +8,7 @@ import beBig.service.jwt.JwtTokenProvider;
 import beBig.service.oauth.KakaoOauthService;
 import beBig.vo.UtilVo;
 import com.google.gson.JsonObject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,14 +33,14 @@ import java.util.Map;
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/user")
+//@RequiredArgsConstructor
 @Slf4j
 public class UserController {
 
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
-    private final CustomUserDetailsService customUserDetailsService;
-
+    private final UserDetailsService customUserDetailsService;
     private final KakaoOauthService kakaoLoginService;
 
     @Autowired
@@ -71,9 +73,9 @@ public class UserController {
     }
 
 
-    @GetMapping("/login/{userId}")
-    public ResponseEntity<String> idDuplicateCheck(@PathVariable String userId) {
-        boolean isDuplicated = userService.isUserIdDuplicated(userId);
+    @GetMapping("/login/{loginUserId}")
+    public ResponseEntity<String> idDuplicateCheck(@PathVariable String loginUserId) {
+        boolean isDuplicated = userService.isUserLoginIdDuplicated(loginUserId);
         if (isDuplicated) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("중복된 아이디입니다.");
         } else {
@@ -87,7 +89,7 @@ public class UserController {
             // AuthenticationManager를 사용하여 사용자 인증
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginForm.getUserId(),
+                            loginForm.getUserLoginId(),
                             loginForm.getPassword()
                     )
             );
@@ -128,27 +130,28 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");
     }
 
-    @PostMapping("/find-id")
-    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
-        String name = userForm.getName();
-        String email = userForm.getEmail();
-
-        log.info("Received name: {}, email: {}", name, email);
-        String maskedUserId = userService.findUserIdByNameAndEmail(name, email);
-
-        if (maskedUserId != null) {
-            log.info("Found user id: {}", maskedUserId);
-            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
-        } else {
-            log.info("No user found with name: {}", name);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
-        }
-    }
+    //승아오면물어보기
+//    @PostMapping("/find-id")
+//    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
+//        String name = userForm.getName();
+//        String email = userForm.getEmail();
+//
+//        log.info("Received name: {}, email: {}", name, email);
+//        String maskedUserId = userService.findByEmailAndLoginType(name, email);
+//
+//        if (maskedUserId != null) {
+//            log.info("Found user id: {}", maskedUserId);
+//            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
+//        } else {
+//            log.info("No user found with name: {}", name);
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
+//        }
+//    }
 
     // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
     public ResponseEntity<String> findPassword(@RequestBody UserForm userForm) {
-        boolean isUpdated = userService.updatePasswordByEmail(userForm.getUserId(), userForm.getName(), userForm.getEmail());
+        boolean isUpdated = userService.updatePasswordByEmail(userForm.getUserLoginId(), userForm.getName(), userForm.getEmail());
 
         if (isUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body("Temporary password sent to your email!");
@@ -187,7 +190,7 @@ public class UserController {
                 // UserForm 객체 생성 및 값 설정
                 UserForm kakaoUser = new UserForm();
                 kakaoUser.setName(nickname);
-                kakaoUser.setUserId(kakaoId);
+                kakaoUser.setUserLoginId(kakaoId);
                 kakaoUser.setPassword("kakao"); // 소셜 로그인 사용자의 비밀번호는 'kakao'로 설정 (별도 처리 필요)
                 kakaoUser.setEmail(email);
                 kakaoUser.setUserLoginType("kakao");
@@ -203,10 +206,9 @@ public class UserController {
 
             // 사용자가 존재할 경우 로그인 처리
             else {
-                LoginForm loginForm = new LoginForm();
-                loginForm.setUserId(kakaoId + "@kakao.com"); // Kakao 로그인 시 사용자 ID로 email 사용
-                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
-
+//                LoginForm loginForm = new LoginForm();
+//                loginForm.setUserLoginId(kakaoId); // Kakao 로그인 시 사용자 ID로 email 사용
+//                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
                 // 로그인 처리
                 String token = jwtTokenProvider.generateToken(kakaoId);
                 log.info("JWT 토큰 생성: {}", token);
@@ -230,20 +232,20 @@ public class UserController {
         return ResponseEntity.ok(terms);
     }
 
-    @GetMapping("/social-signup/info")
-    public ResponseEntity<String> infoSocialSignup() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
-
-    @PostMapping("/social-signup/register")
-    public ResponseEntity<String> registerSocialSignup() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        // user/index.jsp 페이지로 이동
-        return "/index";
-    }
+//    @GetMapping("/social-signup/info")
+//    public ResponseEntity<String> infoSocialSignup() {
+//        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+//    }
+//
+//    @PostMapping("/social-signup/register")
+//    public ResponseEntity<String> registerSocialSignup() {
+//        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+//    }
+//
+//    @GetMapping("/test")
+//    public String test() {
+//        // user/index.jsp 페이지로 이동
+//        return "/index";
+//    }
 
 }
