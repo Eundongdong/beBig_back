@@ -2,7 +2,6 @@ package beBig.controller;
 
 import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
-import beBig.service.jwt.JwtTokenProvider;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,12 +22,10 @@ import java.util.Optional;
 @Slf4j
 public class CommunityController {
     private CommunityService communityService;
-    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CommunityController(CommunityService communityService, JwtTokenProvider jwtTokenProvider) {
+    public CommunityController(CommunityService communityService) {
         this.communityService = communityService;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @GetMapping()
@@ -75,36 +71,23 @@ public class CommunityController {
     }
 
     @PutMapping("/{postId}/update")
-    public ResponseEntity update(@PathVariable Long postId, @RequestBody PostVo postVo, HttpServletRequest request){
-        // 헤더에서 JWT 토큰 추출
-        String token = resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 실패");
+    public ResponseEntity<String> update(@PathVariable Long postId, @RequestBody PostVo content){
+        // 게시글이 존재하는지 확인
+        PostVo existPost = communityService.showDetail(postId);
+        if(existPost == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
         }
 
-        // JWT에서 사용자 ID 추출
-        String loginUserId = jwtTokenProvider.getUserIdFromJWT(token);
-        // 게시글 작성자의 user_id 확인
-        String postWriterId = communityService.getPostWriterId(postId);
-
-        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
-        // 게시글 작성자와 현재 로그인한 사용자가 일치하는지 확인
-        if (!loginUserId.equals(postWriterId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("is not writer");
+        // 게시글 내용 검증
+        if (content.getPostTitle() == null || content.getPostTitle().trim().isEmpty() ||
+        content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
         }
-
-        // 작성자 검증 통과 후 게시글 업데이트
-        communityService.update(postVo);
+        // 게시글 번호 확인
+        log.info("postId : " + postId);
+        // 게시글 업데이트
+        communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");
-    }
-
-    // JWT 토큰을 Request 헤더에서 추출하는 메소드
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);  // "Bearer " 제거
-        }
-        return null;
     }
 
     @DeleteMapping("/{postId}/delete")

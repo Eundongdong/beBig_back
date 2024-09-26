@@ -26,6 +26,6 @@ public interface CommunityMapper {
     void updateLikeCnt(Long postId);
     void insertImage(PostVo post);
     String getPostWriterId(Long postId);
-    void update(PostVo post);
+    void update(PostVo content);
     void delete(Long postId);
 }

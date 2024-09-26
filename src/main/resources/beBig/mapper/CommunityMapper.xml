@@ -106,8 +106,7 @@
     <!-- 게시글 수정 -->
     <update id="update" parameterType="PostVo">
         UPDATE post
-        SET
-            post_title = #{postTitle},
+        SET post_title = #{postTitle},
             post_content = #{postContent},
             post_category = #{postCategory},
             post_updated_time = NOW()
