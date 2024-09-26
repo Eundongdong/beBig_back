@@ -12,7 +12,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
-@ComponentScan(basePackages = "beBig")
+@ComponentScan(basePackages = {"beBig.controller", "beBig.exception", "beBig.service","beBig.config"})
 public class ServletConfig implements WebMvcConfigurer {
 
     @Override
