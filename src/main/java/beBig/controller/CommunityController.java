@@ -108,7 +108,12 @@ public class CommunityController {
     }
 
     @DeleteMapping("/{postId}/delete")
-    public ResponseEntity<String> delete(@PathVariable Long postId) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    public ResponseEntity delete(@PathVariable Long postId) {
+        if(postId ==null){
+            throw new NoContentFoundException("No content found for the given filters.");
+        }
+        log.info("delete community");
+        communityService.delete(postId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

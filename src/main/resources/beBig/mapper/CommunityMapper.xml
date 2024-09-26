@@ -4,25 +4,29 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="beBig.mapper.CommunityMapper">
+    <!-- 게시글을 post 테이블에 삽입하는 쿼리 -->
     <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
         INSERT INTO post (user_id,post_title,post_content, post_category)
         VALUES (#{userId},#{postTitle},#{postContent},#{postCategory});
     </insert>
 
+    <!-- 게시글에 첨부된 이미지를 image 테이블에 첨부하는 쿼리 -->
     <insert id="insertImage" parameterType="PostVo">
-        INSERT INTO image(image_post_id,image_path)
+        INSERT INTO image(post_id,image_path)
         VALUES
         <foreach collection="postImagePaths" item="imagePath" separator=",">
             (#{postId},#{imagePath})
         </foreach>
     </insert>
 
+    <!-- 게시글 목록을 전부 조회하는 쿼리 -->
     <select id="findAll" resultType="PostVo">
         SELECT *
         FROM post
         ORDER BY post_id DESC
     </select>
 
+    <!-- 게시글 세부 페이지를 받아오는 ResultMap -->
     <resultMap id="findDetailMap" type="PostVo" autoMapping="false">
         <id property="postId" column="post_id" />
         <result property="userId" column="user_id" />
@@ -35,6 +39,8 @@
         </collection>
     </resultMap>
 
+    <!-- postId를 기준으로 게시글 상세페이지를 조회하는 쿼리 -->
+    <!-- 이미지 테이블과 조인 -->
     <select id="findDetail" resultMap="findDetailMap" parameterType="long">
         SELECT post.post_id, post.user_id,post.post_title, post.post_content,
                post.post_created_time,post.post_category,
@@ -43,6 +49,8 @@
                  LEFT JOIN image ON post.post_id = image.post_id
         WHERE post.post_id = #{postId}
     </select>
+
+    <!-- PostCategory와 FinTypeCode를 기준으로 게시글을 조회하는 쿼리  -->
     <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
         SELECT *
         FROM post
@@ -57,6 +65,7 @@
         ORDER BY post_id DESC
     </select>
 
+    <!-- PostId의 좋아요 갯수를 조회하는 쿼리 -->
     <select id="findLikeHitsByPostId" resultType="int">
         SELECT COUNT(*)
         FROM like_hits
@@ -93,6 +102,8 @@
         FROM post
         WHERE post_id = #{postId}
     </select>
+
+    <!-- 게시글 수정 -->
     <update id="update" parameterType="PostVo">
         UPDATE post
         SET
@@ -102,4 +113,10 @@
             post_updated_time = NOW()
         WHERE post_id = #{postId}
     </update>
+
+    <!-- 게시글 삭제-->
+    <!-- On Cascade로 연관 image, like 함꼐 삭제됨-->
+    <delete id="delete" parameterType="long">
+        DELETE FROM post where post_id = #{postId}
+    </delete>
 </mapper>

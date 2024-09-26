@@ -228,8 +228,15 @@ public class CommunityServiceImp implements CommunityService {
         mapper.update(post);
     }
 
+    /**
+     * post삭제
+     * ON DELETE CASCADE : image, like_hits
+     * @param postId : 게시글 아이디
+     */
     @Override
     public void delete(Long postId) {
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        mapper.delete(postId);
 
     }
 }
