@@ -12,11 +12,10 @@
     <insert id="insertImage" parameterType="PostVo">
         INSERT INTO image(image_post_id,image_path)
         VALUES
-            <foreach collection="postImagePaths" item="imagePath" separator=",">
-                (#{postId},#{imagePath})
-            </foreach>
+        <foreach collection="postImagePaths" item="imagePath" separator=",">
+            (#{postId},#{imagePath})
+        </foreach>
     </insert>
-
 
     <select id="findAll" resultType="PostVo">
         SELECT *
@@ -48,4 +47,43 @@
         </where>
         ORDER BY post_id DESC
     </select>
+    <select id="checkLike" resultType="int" parameterType="map">
+        SELECT COUNT(*)
+        FROM like_hits
+        WHERE like_hits_user_no = #{postWriterId}
+          AND like_hits_post_id = #{postId}
+    </select>
+    <insert id="addLike" parameterType="map">
+        INSERT INTO like_hits (like_hits_user_no, like_hits_post_id, like_hits_created_time)
+        VALUES (#{postWriterId}, #{postId}, NOW())
+    </insert>
+    <delete id="removeLike" parameterType="map">
+        DELETE FROM like_hits
+        WHERE like_hits_user_no = #{postWriterId}
+          AND like_hits_post_id = #{postId}
+    </delete>
+    <update id="updateLikeCnt" parameterType="Long">
+        UPDATE post
+        SET post_like_hits = (SELECT COUNT(*) FROM like_hits WHERE like_hits_post_id = #{postId})
+        WHERE post_id = #{postId}
+    </update>
+    <update id="updateLike" parameterType="map">
+        UPDATE post
+        SET post_like_hits = post_like_hits + #{likeCnt}
+        WHERE post_id = #{postId}
+    </update>
+    <select id="getPostWriterId" resultType="String" parameterType="Long">
+        SELECT post_writer_id
+        FROM post
+        WHERE post_id = #{postId}
+    </select>
+    <update id="update" parameterType="PostVo">
+        UPDATE post
+        SET
+            post_title = #{postTitle},
+            post_content = #{postContent},
+            post_category = #{postCategory},
+            post_updated_time = NOW()
+        WHERE post_id = #{postId}
+    </update>
 </mapper>
