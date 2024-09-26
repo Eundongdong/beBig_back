@@ -11,6 +11,6 @@ public interface UserService {
     boolean updatePasswordByEmail(String userId, String name, String email);
     boolean isUserIdDuplicated(String userId);
     String findUserIdByNameAndEmail(String name, String email);
-    boolean findByUserIdAndLoginType(String email, String userLoginType);
+    boolean findByEmailAndLoginType(String email, String userLoginType);
     List<UtilVo> getUtilTerms(); // 약관조회
 }

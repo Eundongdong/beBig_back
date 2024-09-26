@@ -45,6 +45,7 @@ public class UserServiceImp implements UserService {
         user.setUserBirth(userForm.getBirth());
         user.setUserFinTypeCode(0);
         user.setUserBadgeCode(0);
+        user.setUserLoginType(userForm.getUserLoginType());
         // 사용자 정보 저장
         userMapper.insert(user);
         log.info("user 저장성공: {}", user.getUserName());
@@ -161,9 +162,9 @@ public class UserServiceImp implements UserService {
 
     // 소셜 회원가입유무 확인
     @Override
-    public boolean findByUserIdAndLoginType(String email, String userLoginType) {
+    public boolean findByEmailAndLoginType(String email, String userLoginType) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        return userMapper.findByUserIdAndLoginType(email, userLoginType);
+        return userMapper.findByEmailAndLoginType(email, userLoginType);
     }
 
     // 약관 조회 메서드 구현

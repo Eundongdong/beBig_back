@@ -22,7 +22,7 @@ public interface UserMapper {
 
     int updatePasswordByUserIdAndEmail(Map<String, Object> params);
 
-    boolean findByUserIdAndLoginType(@Param("userId") String userId, @Param("loginType") String loginType);
+    boolean findByEmailAndLoginType(@Param("email") String email, @Param("loginType") String loginType);
 
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 }
