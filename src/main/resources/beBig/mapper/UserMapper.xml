@@ -7,35 +7,35 @@
 
     <!-- userId로 사용자 정보를 조회하는 쿼리 -->
     <!--아이디 비밀번호 확인-->
-    <select id="findByUserId" resultType="UserVo">
+    <select id="findByUserLoginId" resultType="UserVo">
         SELECT *
         FROM user
-        WHERE user_id = #{userId}
+        WHERE user_login_id = #{userLoginId}
     </select>
 
     <!-- 사용자 정보를 users 테이블에 삽입하는 쿼리 -->
-    <insert id="insert" parameterType="beBig.vo.UserVo">
-        INSERT INTO user (user_no,
-                           user_fin_type_code,
-                           user_badge_code,
-                           user_id,
-                           user_name,
-                           user_nickname,
-                           user_password,
-                           user_email,
-                           user_gender,
-                           user_birth,
-                           user_age_range,
-                           user_login_type,
-                           user_mission_current_month_score,
-                           user_mission_last_month_score,
-                           user_connected_id,
-                           user_intro,
-                           user_salary)
-        VALUES (#{userNo},
+    <insert id="insert" parameterType="UserVo">
+        INSERT INTO user (user_Id,
+                          user_fin_type_code,
+                          user_badge_code,
+                          user_login_id,
+                          user_name,
+                          user_nickname,
+                          user_password,
+                          user_email,
+                          user_gender,
+                          user_birth,
+                          user_age_range,
+                          user_login_type,
+                          user_mission_current_month_score,
+                          user_mission_last_month_score,
+                          user_connected_id,
+                          user_intro,
+                          user_salary)
+        VALUES (#{userId},
                 #{userFinTypeCode},
                 #{userBadgeCode},
-                #{userId},
+                #{userLoginId},
                 #{userName},
                 #{userNickname},
                 #{userPassword},
@@ -52,25 +52,26 @@
     </insert>
 
     <!--아이디 중복체크-->
-    <select id="isUserIdDuplicated" resultType="boolean" parameterType="string">
+    <select id="isUserLoginIdDuplicated" resultType="boolean" parameterType="string">
         SELECT COUNT(*) > 0
         FROM user
-        WHERE user_id = #{userId}
+        WHERE user_login_id = #{userLoginId}
     </select>
 
     <!--아이디 찾기-->
-    <select id="findUserIdByNameAndEmail" resultType="string" parameterType="map">
-        SELECT user_id
+    <select id="findUserLoginIdByNameAndEmail" resultType="string" parameterType="map">
+        SELECT user_login_id
         FROM user
-        WHERE user_name = #{name} AND user_email = #{email}
+        WHERE user_name = #{name}
+          AND user_email = #{email}
     </select>
 
     <!-- 이메일과 이름으로 사용자 검색 후 비밀번호 업데이트 -->
-    <update id="updatePasswordByUserIdAndEmail" parameterType="map">
+    <update id="updatePasswordByUserLoginIdAndEmail" parameterType="map">
         UPDATE user
         SET user_password = #{userPassword}
-        WHERE user_id = (
-            SELECT user_id
+        WHERE user_login_id = (
+            SELECT user_login_id
             FROM user
             WHERE user_name = #{name}
               AND user_email = #{email}
@@ -79,7 +80,7 @@
     </update>
 
     <!-- 이메일과 LoginType으로 사용자 검색 후 있는지 여부를 리턴 -->
-    <select id="findByEmailAndLoginType" parameterType="map" resultType="boolean">
+    <select id="findByEmailAndLoginType" parameterType="map" resultType="UserVo">
         SELECT COUNT(*)
         FROM user
         WHERE user_email = #{email}
