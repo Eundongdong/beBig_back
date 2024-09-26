@@ -20,7 +20,7 @@ public class HomeServiceImp implements HomeService {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
 
         // userId로 사용자 정보를 가져옴
-        UserVo userInfo = userMapper.findByUserId(userId);
+        UserVo userInfo = userMapper.findByUserLoginId(userId);
 
         if (userInfo == null) {
             log.warn("사용자 정보를 찾을 수 없습니다: {}", userId);

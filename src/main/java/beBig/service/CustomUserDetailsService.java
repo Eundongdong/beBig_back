@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // UserVo 객체를 DB에서 조회
-        UserVo user = userMapper.findByUserId(username);
+        UserVo user = userMapper.findByUserLoginId(username);
 
         if (user == null) {
             throw new UsernameNotFoundException("유저를 찾지 못했습니다: " + username);
@@ -35,7 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // UserDetails를 반환하는 org.springframework.security.core.userdetails.User 객체 생성
         return new org.springframework.security.core.userdetails.User(
-                user.getUserId(),
+                user.getUserLoginId(),
                 user.getUserPassword(),
                 authorities            // 사용자 권한
         );
