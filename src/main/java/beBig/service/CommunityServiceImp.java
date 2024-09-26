@@ -180,7 +180,7 @@ public class CommunityServiceImp implements CommunityService {
      * @param postId 게시글 ID
      */
     @Override
-    public void updateLike(Long userId,Long postId) {
+    public void updateLike(long userId,long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);

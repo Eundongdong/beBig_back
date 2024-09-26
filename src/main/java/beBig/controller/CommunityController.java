@@ -60,7 +60,7 @@ public class CommunityController {
     }
 
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> like(@PathVariable long postId,long userId) throws NoHandlerFoundException{
+    public ResponseEntity<String> like(@PathVariable long postId,@RequestBody long userId) throws NoHandlerFoundException{
         // 요청받은 게시글 작성자 번호 추출
         if(userId < 1) {
             throw new NoHandlerFoundException("POST", "/" + postId + "/like", null);
