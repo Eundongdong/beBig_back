@@ -31,10 +31,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // JWT 토큰이 유효한지 확인
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            String username = jwtTokenProvider.getUsername(token);
+            Long userId = jwtTokenProvider.getUserIdFromJWT(token);
 
             // 유효한 토큰일 경우 사용자 정보 로드 후 SecurityContext에 인증 설정
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
