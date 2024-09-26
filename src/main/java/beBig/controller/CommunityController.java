@@ -2,7 +2,6 @@ package beBig.controller;
 
 import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
-import beBig.service.jwt.JwtTokenProvider;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.vo.PostVo;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,12 +22,10 @@ import java.util.Optional;
 @Slf4j
 public class CommunityController {
     private CommunityService communityService;
-    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CommunityController(CommunityService communityService, JwtTokenProvider jwtTokenProvider) {
+    public CommunityController(CommunityService communityService) {
         this.communityService = communityService;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @GetMapping()
@@ -76,8 +72,20 @@ public class CommunityController {
 
     @PutMapping("/{postId}/update")
     public ResponseEntity<String> update(@PathVariable Long postId, @RequestBody PostVo content){
-        // 게시글 업데이트
+        // 게시글이 존재하는지 확인
+        PostVo existPost = communityService.showDetail(postId);
+        if(existPost == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
+        }
+
+        // 게시글 내용 검증
+        if (content.getPostTitle() == null || content.getPostTitle().trim().isEmpty() ||
+        content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
+        }
+        // 게시글 번호 확인
         log.info("postId : " + postId);
+        // 게시글 업데이트
         communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");
     }
