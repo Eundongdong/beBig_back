@@ -16,7 +16,7 @@ public class PostVo {
     private List<String> postImagePaths;
     private List<MultipartFile> files; //DTO : post로 요청받을 때 사용
     private int postCategory;
-    private int postWriterFinTypeCode; // DTO
+    private int finTypeCode; // DTO
 
     private List<LikeHitsVo> likeHits;  // DTO : 게시글에 달린 좋아요 목록
 
