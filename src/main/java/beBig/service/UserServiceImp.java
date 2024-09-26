@@ -38,7 +38,7 @@ public class UserServiceImp implements UserService {
         UserVo user = new UserVo();
         user.setUserName(userForm.getName());
         user.setUserNickname(userForm.getNickname());
-        user.setUserId(userForm.getUserId());
+        user.setUserLoginId(userForm.getUserLoginId());
         user.setUserPassword(encryptedPassword); // 비밀번호 암호화 필요
         user.setUserEmail(userForm.getEmail());
         user.setUserGender(userForm.isGender());
@@ -67,19 +67,19 @@ public class UserServiceImp implements UserService {
 
     // 임시 비밀번호로 사용자 비밀번호 업데이트
     @Override
-    public boolean updatePasswordByEmail(String userId, String name, String email) {
+    public boolean updatePasswordByEmail(String userLoginId, String name, String email) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         String temporaryPassword = generateTemporaryPassword();
         String encodedPassword = passwordEncoder.encode(temporaryPassword);
 
         Map<String, Object> params = new HashMap<>();
-        params.put("userId", userId);
+        params.put("userLoginId", userLoginId);
         params.put("name", name);
         params.put("email", email);
         params.put("userPassword", encodedPassword);
 
         try {
-            int updatedRows = userMapper.updatePasswordByUserIdAndEmail(params);
+            int updatedRows = userMapper.updatePasswordByUserLoginIdAndEmail(params);
             // 업데이트가 성공한 경우에만 이메일 전송
             if (updatedRows > 0) {
                 sendEmail(email, temporaryPassword);
@@ -139,20 +139,20 @@ public class UserServiceImp implements UserService {
 
     //아이디 중복체크
     @Override
-    public boolean isUserIdDuplicated(String userId) {
+    public boolean isUserLoginIdDuplicated(String userLoginId) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        return userMapper.isUserIdDuplicated(userId);
+        return userMapper.isUserLoginIdDuplicated(userLoginId);
     }
 
     //아이디 찾기
     @Override
-    public String findUserIdByNameAndEmail(String name, String email) {
+    public String findUserLoginIdByNameAndEmail(String name, String email) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("email", email);
 
-        String userId = userMapper.findUserIdByNameAndEmail(params);
+        String userId = userMapper.findUserLoginIdByNameAndEmail(params);
 
         if (userId != null && userId.length() > 4) {
             return userId.substring(0, userId.length() - 4) + "****";

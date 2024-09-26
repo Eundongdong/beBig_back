@@ -5,8 +5,8 @@
 
 <mapper namespace="beBig.mapper.CommunityMapper">
     <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
-        INSERT INTO post (post_writer_no,post_title,post_content, post_category,post_writer_fin_type_code)
-        VALUES (#{postWriterNo},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
+        INSERT INTO post (user_id,post_title,post_content, post_category)
+        VALUES (#{userId},#{postTitle},#{postContent},#{postCategory});
     </insert>
 
     <insert id="insertImage" parameterType="PostVo">

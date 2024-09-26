@@ -14,13 +14,15 @@ import java.util.Map;
 public interface UserMapper {
     void insert(UserVo userVo);
 
-    UserVo findByUserId(String userId);
+    UserVo findByUserId(long userId);
 
-    boolean isUserIdDuplicated(String userId); //아이디 중복체크
+    UserVo findByUserLoginId(String userLoginId);
 
-    String findUserIdByNameAndEmail(Map<String, Object> params); // 아이디 찾기
+    boolean isUserLoginIdDuplicated(String userLoginId); //아이디 중복체크
 
-    int updatePasswordByUserIdAndEmail(Map<String, Object> params);
+    String findUserLoginIdByNameAndEmail(Map<String, Object> params); // 아이디 찾기
+
+    int updatePasswordByUserLoginIdAndEmail(Map<String, Object> params);
 
     boolean findByEmailAndLoginType(@Param("email") String email, @Param("loginType") String loginType);
 

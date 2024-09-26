@@ -3,6 +3,7 @@ package beBig.service;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
+import beBig.mapper.UserMapper;
 import beBig.vo.PostVo;
 import beBig.vo.UserVo;
 import com.amazonaws.AmazonClientException;
@@ -102,6 +103,10 @@ public class CommunityServiceImp implements CommunityService {
     public void write(PostVo post) throws AmazonS3UploadException, AmazonClientException, NoContentFoundException {
         //1. mapper 연결
         CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        //fintype 찾아오기
+        UserVo user = userMapper.findByUserId(post.getUserId());
+        post.setFinTypeCode(user.getUserFinTypeCode());
         //post Insert
         try{
             communityMapper.insert(post);
