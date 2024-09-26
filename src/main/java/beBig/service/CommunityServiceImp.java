@@ -4,6 +4,7 @@ import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
 import beBig.vo.PostVo;
+import beBig.vo.UserVo;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -79,14 +80,19 @@ public class CommunityServiceImp implements CommunityService {
 
     /**
      * 게시글 상세 조회
-     *
+     * - post, image, like 테이블 조회
      * @param postId 게시글 ID
      * @return 게시글 상세정보
      */
     @Override
     public PostVo showDetail(Long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        log.info("Post table get");
         PostVo detail = mapper.findDetail(postId);
+        log.info("Like table get");
+        detail.setPostLikeHits(mapper.findLikeHitsByPostId(postId));
+        log.info("detail{}",detail);
+
         return detail;
     }
 
