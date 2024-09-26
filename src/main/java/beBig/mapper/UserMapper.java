@@ -14,6 +14,8 @@ import java.util.Map;
 public interface UserMapper {
     void insert(UserVo userVo);
 
+    UserVo findByUserId(long userId);
+
     UserVo findByUserLoginId(String userLoginId);
 
     boolean isUserLoginIdDuplicated(String userLoginId); //아이디 중복체크
