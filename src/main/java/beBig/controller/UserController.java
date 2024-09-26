@@ -33,7 +33,7 @@ import java.util.Map;
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/user")
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class UserController {
 
@@ -43,15 +43,15 @@ public class UserController {
     private final UserDetailsService customUserDetailsService;
     private final KakaoOauthService kakaoLoginService;
 
-    @Autowired
-    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
-                          CustomUserDetailsService customUserDetailsService, KakaoOauthService kakaoLoginService) {
-        this.userService = userService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.authenticationManager = authenticationManager;
-        this.customUserDetailsService = customUserDetailsService;
-        this.kakaoLoginService = kakaoLoginService;
-    }
+//    @Autowired
+//    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
+//                          CustomUserDetailsService customUserDetailsService, KakaoOauthService kakaoLoginService) {
+//        this.userService = userService;
+//        this.jwtTokenProvider = jwtTokenProvider;
+//        this.authenticationManager = authenticationManager;
+//        this.customUserDetailsService = customUserDetailsService;
+//        this.kakaoLoginService = kakaoLoginService;
+//    }
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserForm userForm) {

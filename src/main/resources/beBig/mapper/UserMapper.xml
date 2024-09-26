@@ -16,8 +16,8 @@
     <!-- 사용자 정보를 users 테이블에 삽입하는 쿼리 -->
     <insert id="insert" parameterType="UserVo">
         INSERT INTO user (user_Id,
-                          user_fin_type_code,
-                          user_badge_code,
+                          fin_type_code,
+                          badge_code,
                           user_login_id,
                           user_name,
                           user_nickname,
