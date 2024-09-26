@@ -5,12 +5,12 @@
 
 <mapper namespace="beBig.mapper.CommunityMapper">
     <insert id="insert" parameterType="PostVo" useGeneratedKeys="true" keyProperty="postId">
-        INSERT INTO post (post_writer_no,post_title,post_content, post_category,post_writer_fin_type_code)
-        VALUES (#{postWriterNo},#{postTitle},#{postContent},#{postCategory},#{postWriterFinTypeCode});
+        INSERT INTO post (user_id,post_title,post_content, post_category,fin_type_code)
+        VALUES (#{userId},#{postTitle},#{postContent},#{postCategory},#{finTypeCode});
     </insert>
 
     <insert id="insertImage" parameterType="PostVo">
-        INSERT INTO image(image_post_id,image_path)
+        INSERT INTO image(post_id,image_path)
         VALUES
         <foreach collection="postImagePaths" item="imagePath" separator=",">
             (#{postId},#{imagePath})
@@ -102,4 +102,8 @@
             post_updated_time = NOW()
         WHERE post_id = #{postId}
     </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM post where post_id = #{postId}
+    </delete>
 </mapper>

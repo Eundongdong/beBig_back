@@ -225,6 +225,8 @@ public class CommunityServiceImp implements CommunityService {
 
     @Override
     public void delete(Long postId) {
+        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        mapper.delete(postId);
 
     }
 }
