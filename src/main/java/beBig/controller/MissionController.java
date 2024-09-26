@@ -1,5 +1,7 @@
 package beBig.controller;
 
+import beBig.service.MissionService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,25 +15,17 @@ import java.util.Map;
 @Controller
 @RequestMapping("/mission")
 @Slf4j
+@RequiredArgsConstructor
 public class MissionController {
+
+    //private final MissionService missionService;
+
+
 
     @GetMapping("/{userNo}")
     public ResponseEntity<String> mission(@PathVariable Long userNo) {
         return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
     }
-//    public ResponseEntity<Map<String, Object>> mission(@RequestHeader("Authorization") String token,
-//                                                       @RequestBody Map<String, Object> map,
-//                                                       @PathVariable Long id) {
-//        // id를 통해 userMission 조회 후 반환 (로직 추가 필요)
-//        // 예: missionService.findUserMissionById(id);
-//
-//        // 예시 응답
-//        Map<String, Object> response = new HashMap<>();
-//        response.put("msg", "HelloWorld !");
-//        response.put("id", id.toString());
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
 
     @PostMapping("/{userNo}")
     public ResponseEntity<String> postMission(@PathVariable Long userNo) {
