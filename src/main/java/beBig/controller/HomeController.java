@@ -30,6 +30,7 @@ public class HomeController {
     @GetMapping("/info")
     public ResponseEntity<HashMap<String, Object>> getMyInfo(@RequestHeader("Authorization") String token) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
+
         UserVo userInfo = homeService.getUserInfo(userId);
 
         if (userInfo == null) {
