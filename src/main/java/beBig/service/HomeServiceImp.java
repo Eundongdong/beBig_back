@@ -16,11 +16,11 @@ public class HomeServiceImp implements HomeService {
     }
     // 사용자 정보 불러오기
     @Override
-    public UserVo getUserInfo(String userId) throws Exception {
+    public UserVo getUserInfo(Long userId) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
 
         // userId로 사용자 정보를 가져옴
-        UserVo userInfo = userMapper.findByUserLoginId(userId);
+        UserVo userInfo = userMapper.findByUserId(userId);
 
         if (userInfo == null) {
             log.warn("사용자 정보를 찾을 수 없습니다: {}", userId);
