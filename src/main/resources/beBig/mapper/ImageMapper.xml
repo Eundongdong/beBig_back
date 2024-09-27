@@ -30,4 +30,9 @@
         WHERE image_path =#{image_path}
     </delete>
 
+    <!-- 게시글 번호로 이미지 모두 삭제 -->
+    <delete id="deleteByPostId">
+        DELETE FROM image
+        WHERE post_id=#{post_id}
+    </delete>
 </mapper>

@@ -20,4 +20,5 @@ public interface ImageMapper {
     // 이미지 경로로 이미지 삭제
     void deleteByImagePath(String imagePath);
 
+    void deleteByPostId(Long postId);
 }

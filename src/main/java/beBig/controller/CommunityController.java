@@ -73,19 +73,27 @@ public class CommunityController {
 
     @PutMapping("/{postId}/update")
     public ResponseEntity<String> update(
-            @RequestParam(value = "postTitle") String postTitle, @RequestParam(value = "postContent") String postContent,
-            @RequestParam(value = "finTypeCode") Optional<Integer>  finTypeCode,
-            @RequestParam(value = "postCategory") Optional<Integer>  postCategory
-            ,@PathVariable long postId) throws AmazonS3UploadException {
-        // 게시글이 존재하는지 확인
-        PostVo existPost = communityService.showDetail(postId);
+            @RequestPart(value = "postTitle", required = true) String postTitle,
+            @RequestPart(value = "postContent", required = true) String postContent,
+            @RequestPart(value = "finTypeCode", required = false) Optional<Integer> finTypeCode,
+            @RequestPart(value = "postCategory", required = false) Optional<Integer> postCategory,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,  // MultipartFile 처리 추가
+            @PathVariable long postId
+    ) throws AmazonS3UploadException {
+        // 2. 게시글 객체 생성 및 데이터 설정
         PostVo content = new PostVo();
         content.setPostId(postId);
         content.setPostTitle(postTitle);
         content.setPostContent(postContent);
         content.setFinTypeCode(finTypeCode.orElse(-1));
         content.setPostCategory(postCategory.orElse(-1));
+        content.setFiles(files);
+
+
         log.info("content{}",content);
+
+        // 게시글이 존재하는지 확인
+        PostVo existPost = communityService.showDetail(postId);
         if(existPost == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
         }
@@ -97,7 +105,7 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
         }
         // 게시글 번호 확인
-        log.info("postId : " + postId);
+//        log.info("postId : " + postId);
         // 게시글 업데이트
         communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");

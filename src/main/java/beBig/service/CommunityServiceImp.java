@@ -144,7 +144,7 @@ public class CommunityServiceImp implements CommunityService {
 
     /**
      * 게시글 업데이트
-     *
+     * 게시글 번호에 해당하는 이미지 모두 삭제 -> 게시글 업데이트
      * @param content 업데이트할 게시글 정보
      */
     @Override
@@ -152,13 +152,23 @@ public class CommunityServiceImp implements CommunityService {
         CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         ImageMapper imageMapper = sqlSessionTemplate.getMapper(ImageMapper.class);
 
+        // DB, S3에 들어있는 이미지 경로 가져오기
+        List<String> existingImagePaths = imageMapper.findByPostId(content.getPostId());
+
+        //DB의 S3 삭제하기
+        for(String existingImageUrl : existingImagePaths){
+            imageService.deleteFile(existingImageUrl);
+        }
+        imageMapper.deleteByPostId(content.getPostId());
+
         // 매개변수로 들어온 이미지
         List<MultipartFile> allImagePaths = content.getFiles() ;//.stream().map(MultipartFile::getOriginalFilename).toList();
         List<String> allImageUrls = allImagePaths.stream().map(MultipartFile::getOriginalFilename).map(one -> "https://s3.ap-southeast-2.amazonaws.com/"+ bucket+ "/" + one).toList();
 
+
+
+
         log.info("allImageUrls{}",allImageUrls);
-        // DB, S3에 들어있는 이미지 경로 가져오기
-        List<String> existingImagePaths = imageMapper.findByPostId(content.getPostId());
 
         // 새로 들어온 이미지만 업로드
         List<String> addImagePaths = allImagePaths.stream()
@@ -173,24 +183,24 @@ public class CommunityServiceImp implements CommunityService {
                 .toList();
 
 
+//
+//        // 삭제된 이미지 목록
+//        List<String> deletedImagePaths = existingImagePaths.stream()
+//                .filter(path ->!allImageUrls.contains(path))
+//                .toList();
 
-        // 삭제된 이미지 목록
-        List<String> deletedImagePaths = existingImagePaths.stream()
-                .filter(path ->!allImageUrls.contains(path))
-                .toList();
-
-
-        //4. 삭제된 이미지 처리
-        for (String deletedImagePath : deletedImagePaths) {
-            String imagePath = imageMapper.findByImagePath(deletedImagePath);
-            imageMapper.deleteByImagePath(imagePath);  // DB에서 이미지 삭제
-            imageService.deleteFile(imagePath);
-        }
-        // 5. 새로 추가된 이미지 처리
-        for (String addImagePath : addImagePaths) {
-            long postId = content.getPostId();
-            imageMapper.insertImage(postId,addImagePath);
-        }
+//
+//        //4. 삭제된 이미지 처리
+//        for (String deletedImagePath : deletedImagePaths) {
+//            String imagePath = imageMapper.findByImagePath(deletedImagePath);
+//            imageMapper.deleteByImagePath(imagePath);  // DB에서 이미지 삭제
+//            imageService.deleteFile(imagePath);
+//        }
+//        // 5. 새로 추가된 이미지 처리
+//        for (String addImagePath : addImagePaths) {
+//            long postId = content.getPostId();
+//            imageMapper.insertImage(postId,addImagePath);
+//        }
 
         communityMapper.update(content);
     }
@@ -198,7 +208,7 @@ public class CommunityServiceImp implements CommunityService {
     /**
      * 좋아요/좋아요 취소 처리
      *
-     * @param postWriterId 작성자 번호
+     * @param userId 작성자 번호
      * @param postId 게시글 ID
      */
     @Override
@@ -227,17 +237,17 @@ public class CommunityServiceImp implements CommunityService {
         mapper.updateLike(params);
     }
 
-    /**
-     * 게시글의 작성자 ID 조회
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 작성자의 user_id
-     */
-    @Override
-    public String getPostWriterId(Long postId) {
-        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
-        return mapper.getPostWriterId(postId);
-    }
+//    /**
+//     * 게시글의 작성자 ID 조회
+//     *
+//     * @param postId 게시글 ID
+//     * @return 게시글 작성자의 user_id
+//     */
+//    @Override
+//    public String getPostWriterId(Long postId) {
+//        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+//        return mapper.getPostWriterId(postId);
+//    }
 
     /**
      * post삭제
