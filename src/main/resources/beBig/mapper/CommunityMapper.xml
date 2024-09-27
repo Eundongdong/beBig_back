@@ -55,7 +55,7 @@
     <!-- PostCategory와 FinTypeCode를 기준으로 게시글을 조회하는 쿼리  -->
     <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
         SELECT p.post_id, p.user_id, p.post_title, p.post_content, p.post_created_time,
-                p.post_like_hits, p.post_category, u.fin_type_code
+                p.post_like_hits, p.post_category, u.fin_type_code AS finTypeCode
         FROM post p
         JOIN user u ON p.user_id = u.user_id
         <where>
