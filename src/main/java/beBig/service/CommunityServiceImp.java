@@ -92,8 +92,6 @@ public class CommunityServiceImp implements CommunityService {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         log.info("Post table get");
         PostVo detail = mapper.findDetail(postId);
-        log.info("Like table get");
-        detail.setPostLikeHits(mapper.findLikeHitsByPostId(postId));
         log.info("detail{}",detail);
 
         return detail;
