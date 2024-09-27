@@ -1,5 +1,7 @@
 package beBig.service;
 
+import beBig.form.AccountForm;
+import beBig.form.CodefResponseForm;
 import beBig.mapper.AccountMapper;
 import beBig.mapper.UserMapper;
 import beBig.vo.AccountVo;
@@ -37,10 +39,53 @@ public class HomeServiceImp implements HomeService {
 
         return userInfo;
     }
+    // 0927 codefAPI start ------------------------------------------------
+
+    @Override
+    public List<CodefResponseForm> getUserAccount(Long userId, AccountForm accountForm) throws Exception {
+        // 사용자의 정보 및 기존 커넥티드 아이디 확인
+        UserVo userInfo = getUserInfo(userId);
+
+        // 기존 커넥티드 아이디가 존재하는 경우
+        if (userInfo.getUserConnectedId() != null) {
+            List<CodefResponseForm> tempResult = addAccountWithExistingConnectedId(userInfo.getUserConnectedId(), accountForm);
+        } else {
+            // 새로운 커넥티드 아이디를 생성하고 계좌 등록 요청
+            List<CodefResponseForm> tempResult = createConnectedIdAndAddAccount(userId, accountForm);
+        }
+        return null;
+    }
+
+    private List<CodefResponseForm> addAccountWithExistingConnectedId(String connectedId, AccountForm accountForm) {
+        // 기존 커넥티드 아이디를 사용하여 계좌 정보를 가져오는 로직
+        // API 요청 등을 통해 계좌 리스트를 반환
+        return List.of(); // 실제 구현 로직으로 교체
+    }
+
+    private List<CodefResponseForm> createConnectedIdAndAddAccount(Long userId, AccountForm accountForm) {
+        // 새로운 커넥티드 아이디를 생성하고, 해당 아이디를 통해 계좌 정보를 가져오는 로직
+        // API 요청 등을 통해 계좌 리스트를 반환
+        return List.of(); // 실제 구현 로직으로 교체
+    }
+
+
+    @Override
+    public boolean addAccount(Long userId, List<CodefResponseForm> codefResponseFormList) {
+        // CodefResponseForm 리스트를 순회하며 각 계좌를 DB에 저장
+        for (CodefResponseForm accountInfo : codefResponseFormList) {
+            // DB에 계좌 추가 로직
+            // 계좌 정보는 accountInfo를 통해 접근할 수 있음
+            // 예: saveAccountToDatabase(userId, accountInfo);
+        }
+
+        // 모든 계좌가 정상적으로 추가되었는지 확인 후 반환
+        return true; // 또는 false로 변경
+    }
+
+    // 0927 end ------------------------------------------------
 
     @Override
     public List<AccountVo> showMyAccount(Long userId) throws Exception {
-        // UserVo 조회
         UserVo userInfo = getUserInfo(userId); // 사용자 정보 조회
 
         // UserVo가 null인 경우 예외 처리
