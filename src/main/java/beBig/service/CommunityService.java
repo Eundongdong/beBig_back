@@ -10,9 +10,8 @@ import java.util.List;
 public interface CommunityService {
     public List<PostVo> showList(int postCategory, int finTypeCode);
     public PostVo showDetail(Long postId);
-    public void updateLike(Long userId, Long postId);
+    public void updateLike(long userId, long postId);
     public void write(PostVo post) throws AmazonS3UploadException;
-    public String getPostWriterId(Long postId);
     public void update(PostVo post);
     public void delete(Long postId);
 }

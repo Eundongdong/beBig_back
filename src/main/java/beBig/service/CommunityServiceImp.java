@@ -3,14 +3,13 @@ package beBig.service;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
+import beBig.mapper.ImageMapper;
 import beBig.mapper.UserMapper;
 import beBig.vo.PostVo;
 import beBig.vo.UserVo;
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -20,13 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.log4j.NDC.clear;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,6 +36,9 @@ public class CommunityServiceImp implements CommunityService {
     private String maxSizeString;
 
     private SqlSessionTemplate sqlSessionTemplate;
+
+    @Autowired
+    private ImageService imageService;
 
     @Autowired
     private CommunityServiceImp(SqlSessionTemplate sqlSessionTemplate, AmazonS3 amazonS3) {
@@ -116,7 +114,7 @@ public class CommunityServiceImp implements CommunityService {
         }
         if(post.getFiles() != null ) {
             //2. s3에 올리기
-            List<String> filePaths = saveFiles(post.getFiles());
+            List<String> filePaths = imageService.saveFiles(post.getFiles());
             log.info("다중 사진 올리기 완료");
             post.setPostImagePaths(filePaths);
             //3. image path mapper 연결
@@ -129,61 +127,66 @@ public class CommunityServiceImp implements CommunityService {
         }
     }
 
-    /**
-     * S3에 여러 사진 올리기
-     * @param files : File List
-     * @return : File Path List
-     * @throws AmazonS3UploadException : upload error
-     */
-    public List<String> saveFiles(List<MultipartFile> files) throws AmazonS3UploadException {
-        List<String> uploadedUrls = new ArrayList<>();
-        for (MultipartFile file : files) {
-            String uploadedUrl = saveFile(file);
-            uploadedUrls.add(uploadedUrl);
-        }
-        clear();
-        return uploadedUrls;
+
+    private boolean isExistingImage(MultipartFile file,List<String> existingImageUrls) {
+        // 예를 들어 파일 이름을 비교하거나 파일의 해시 값을 비교하는 로직
+        String fileName = file.getOriginalFilename();
+        return existingImageUrls.stream().anyMatch(url -> url.contains(fileName));  // 파일명이 이미 DB에 있는지 확인
     }
 
     /**
-     * S3에 사진 각 올리기
-     * metaData 추가됨
-     * @param file : MultipartFile type 파일
-     * @return : filePath
-     * @throws AmazonS3UploadException : upload error
+     * 게시글 업데이트
+     * 게시글 번호에 해당하는 이미지 모두 삭제 -> 게시글 업데이트
+     * @param content 업데이트할 게시글 정보
      */
-    public String saveFile(MultipartFile file) throws AmazonS3UploadException {
-        String fileName = file.getOriginalFilename();
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(file.getSize());
-        metadata.setContentType(file.getContentType());
-        try{
-            amazonS3.putObject(bucket,fileName,file.getInputStream(),metadata);
-        }catch (AmazonS3Exception e){
-            throw new AmazonS3UploadException("AmazonS3Exception");
-        } catch (SdkClientException e) {
-            throw new AmazonS3UploadException("SdkClientException");
-        } catch (IOException e) {
-            throw new AmazonS3UploadException("IOException");
+    @Override
+    public void update(PostVo content) {
+        CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        ImageMapper imageMapper = sqlSessionTemplate.getMapper(ImageMapper.class);
+
+        // DB 에 들어있는 이미지 경로 가져오고 삭제(DB, S3)
+        List<String> existingImagePaths = imageMapper.findByPostId(content.getPostId());
+        for(String existingImageUrl : existingImagePaths){
+            imageService.deleteFile(existingImageUrl);
+        }
+        log.info("existingImagePaths 완료");
+        imageMapper.deleteByPostId(content.getPostId());
+
+        // 매개변수로 들어온 이미지
+        List<MultipartFile> allImagePaths = content.getFiles() ;//.stream().map(MultipartFile::getOriginalFilename).toList();
+        if(allImagePaths != null){
+            List<String> allImageUrls = allImagePaths.stream().map(MultipartFile::getOriginalFilename).map(one -> "https://s3.ap-southeast-2.amazonaws.com/"+ bucket+ "/" + one).toList();
+            log.info("allImageUrls{}",allImageUrls);
+            // 새로 들어온 이미지만 업로드
+            List<String> addImagePaths = allImagePaths.stream()
+                    .filter(file -> !isExistingImage(file, existingImagePaths))  // 기존 이미지와 비교
+                    .map(file -> {
+                        try {
+                            return imageService.saveFile(file);  // 새 이미지인 경우에만 업로드
+                        }catch (AmazonS3UploadException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+            log.info("addImagePaths{}",addImagePaths);
+            content.setPostImagePaths(addImagePaths);
+            communityMapper.insertImage(content);
         }
 
-        log.info("File upload completed: fileName{}", fileName);
-
-        return amazonS3.getUrl(bucket, fileName).toString();
-
+        communityMapper.update(content);
     }
 
     /**
      * 좋아요/좋아요 취소 처리
      *
-     * @param postWriterId 작성자 번호
+     * @param userId 작성자 번호
      * @param postId 게시글 ID
      */
     @Override
-    public void updateLike(Long postWriterId, Long postId) {
+    public void updateLike(long userId,long postId) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         Map<String, Object> params = new HashMap<>();
-        params.put("postWriterId", postWriterId);
+        params.put("userId", userId);
         params.put("postId", postId);
 
         // 좋아요 눌렀는지 체크
@@ -205,28 +208,17 @@ public class CommunityServiceImp implements CommunityService {
         mapper.updateLike(params);
     }
 
-    /**
-     * 게시글의 작성자 ID 조회
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 작성자의 user_id
-     */
-    @Override
-    public String getPostWriterId(Long postId) {
-        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
-        return mapper.getPostWriterId(postId);
-    }
-
-    /**
-     * 게시글 업데이트
-     *
-     * @param content 업데이트할 게시글 정보
-     */
-    @Override
-    public void update(PostVo content) {
-        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
-        mapper.update(content);
-    }
+//    /**
+//     * 게시글의 작성자 ID 조회
+//     *
+//     * @param postId 게시글 ID
+//     * @return 게시글 작성자의 user_id
+//     */
+//    @Override
+//    public String getPostWriterId(Long postId) {
+//        CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+//        return mapper.getPostWriterId(postId);
+//    }
 
     /**
      * post삭제

@@ -25,7 +25,6 @@ public interface CommunityMapper {
     // 좋아요 수 업데이트
     void updateLikeCnt(Long postId);
     void insertImage(PostVo post);
-    String getPostWriterId(Long postId);
-    void update(PostVo content);
+    void update(PostVo post);
     void delete(Long postId);
 }

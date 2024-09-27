@@ -1,6 +1,5 @@
 package beBig.controller;
 
-import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
@@ -54,7 +53,7 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public ResponseEntity write( PostVo content) throws AmazonS3UploadException {
+    public ResponseEntity write(PostVo content) throws AmazonS3UploadException {
         log.info("write community");
         log.info("content{}",content);
         communityService.write(content);
@@ -62,32 +61,31 @@ public class CommunityController {
     }
 
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> like(@PathVariable long postId, @RequestBody LikeRequestDto likeRequestDto) throws NoHandlerFoundException{
+    public ResponseEntity<String> like(@PathVariable long postId,@RequestBody long userId) throws NoHandlerFoundException{
         // 요청받은 게시글 작성자 번호 추출
-        long postWriterId = likeRequestDto.getPostWriterId();
-        if(postWriterId < 1) {
+        if(userId < 1) {
             throw new NoHandlerFoundException("POST", "/" + postId + "/like", null);
         }
-        communityService.updateLike(postWriterId, postId);
+        communityService.updateLike(userId, postId);
         return ResponseEntity.status(HttpStatus.OK).body("Like status updated successfully!");
     }
 
-    @PutMapping("/{postId}/update")
-    public ResponseEntity<String> update(@PathVariable Long postId, @RequestBody PostVo content){
+    @PostMapping("/{postId}/update")
+    public ResponseEntity<String> update(@ModelAttribute PostVo content, @PathVariable long postId) throws AmazonS3UploadException {
         // 게시글이 존재하는지 확인
-        PostVo existPost = communityService.showDetail(postId);
+        PostVo existPost = communityService.showDetail(content.getPostId());
         if(existPost == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
         }
 
         // 게시글 내용 검증
         if (content.getPostTitle() == null || content.getPostTitle().trim().isEmpty() ||
-        content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
+                content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
         }
         // 게시글 번호 확인
         log.info("postId : " + postId);
-        // 게시글 업데이트
+         //게시글 업데이트
         communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");
     }
