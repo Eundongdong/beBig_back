@@ -37,9 +37,12 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Not Found
         }
 
+        log.info("사용자 finTypeCode: {}", userInfo.getFinTypeCode());
+
+
         HashMap<String, Object> response = new HashMap<>();
         response.put("userName", userInfo.getUserName());
-        response.put("finType", userInfo.getFinType());
+        response.put("finTypeCode", userInfo.getFinTypeCode());
         return ResponseEntity.ok(response);
     }
 

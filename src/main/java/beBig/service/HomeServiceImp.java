@@ -32,7 +32,9 @@ public class HomeServiceImp implements HomeService {
             throw new Exception("사용자 정보를 찾을 수 없습니다.");
         }
 
+        log.info("사용자 ID: {}, finTypeCode: {}", userId, userInfo.getFinTypeCode());
         log.info("사용자 정보 조회 성공: {}", userInfo.getUserName());
+
         return userInfo;
     }
 

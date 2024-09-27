@@ -40,7 +40,7 @@
                           user_intro,
                           user_salary)
         VALUES (#{userId},
-                #{userFinTypeCode},
+                #{finTypeCode},
                 #{userBadgeCode},
                 #{userLoginId},
                 #{userName},
