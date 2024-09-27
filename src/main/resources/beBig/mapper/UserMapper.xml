@@ -5,9 +5,16 @@
 
 <mapper namespace="beBig.mapper.UserMapper">
 
-    <!-- userId로 사용자 정보를 조회하는 쿼리 -->
+    <!--userId로 사용자 정보로 조회하는 쿼리-->
+    <select id="findByUserId" parameterType="Long" resultType="UserVo">
+        SELECT *
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- userLoginId로 사용자 정보를 조회하는 쿼리 -->
     <!--아이디 비밀번호 확인-->
-    <select id="findByUserLoginId" resultType="UserVo">
+    <select id="findByUserLoginId" parameterType="String" resultType="UserVo" >
         SELECT *
         FROM user
         WHERE user_login_id = #{userLoginId}
@@ -15,7 +22,7 @@
 
     <!-- 사용자 정보를 users 테이블에 삽입하는 쿼리 -->
     <insert id="insert" parameterType="UserVo">
-        INSERT INTO user (user_Id,
+        INSERT INTO user (user_id,
                           fin_type_code,
                           badge_code,
                           user_login_id,
@@ -33,7 +40,7 @@
                           user_intro,
                           user_salary)
         VALUES (#{userId},
-                #{userFinTypeCode},
+                #{finTypeCode},
                 #{userBadgeCode},
                 #{userLoginId},
                 #{userName},

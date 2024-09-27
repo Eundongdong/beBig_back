@@ -43,7 +43,7 @@ public class UserServiceImp implements UserService {
         user.setUserEmail(userForm.getEmail());
         user.setUserGender(userForm.isGender());
         user.setUserBirth(userForm.getBirth());
-        user.setUserFinTypeCode(0);
+        user.setFinTypeCode(0);
         user.setUserBadgeCode(0);
         user.setUserLoginType(userForm.getUserLoginType());
         // 사용자 정보 저장
