@@ -130,23 +130,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");
     }
 
-    //승아오면물어보기
-//    @PostMapping("/find-id")
-//    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
-//        String name = userForm.getName();
-//        String email = userForm.getEmail();
-//
-//        log.info("Received name: {}, email: {}", name, email);
-//        String maskedUserId = userService.findByEmailAndLoginType(name, email);
-//
-//        if (maskedUserId != null) {
-//            log.info("Found user id: {}", maskedUserId);
-//            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
-//        } else {
-//            log.info("No user found with name: {}", name);
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
-//        }
-//    }
+    @PostMapping("/find-id")
+    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
+        String name = userForm.getName();
+        String email = userForm.getEmail();
+
+        log.info("Received name: {}, email: {}", name, email);
+        String maskedUserId = userService.findUserLoginIdByNameAndEmail(name, email);
+
+        if (maskedUserId != null) {
+            log.info("Found user id: {}", maskedUserId);
+            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
+        } else {
+            log.info("No user found with name: {}", name);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
+        }
+    }
 
     // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
@@ -213,7 +212,8 @@ public class UserController {
                 // existingUser = true와 JWT 토큰을 프론트로 전달
                 return ResponseEntity.ok().body(Map.of(
                         "existingUser", true,
-                        "token", token
+                        "token", token,
+                        "userId", kakaoId
                 ));
             }
 

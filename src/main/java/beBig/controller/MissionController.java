@@ -1,5 +1,7 @@
 package beBig.controller;
 
+import beBig.dto.response.DailyMissionResponseDto;
+import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.service.MissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.event.WindowFocusListener;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin("*")
@@ -18,28 +22,29 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MissionController {
 
-    //private final MissionService missionService;
+    private final MissionService missionService;
 
-
-
-    @GetMapping("/{userNo}")
-    public ResponseEntity<String> mission(@PathVariable Long userNo) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    @GetMapping("/{userId}/monthly")
+    public ResponseEntity<String> monthlyMission(@PathVariable Long userId) {
+        MonthlyMissionResponseDto dto = missionService.showMonthlyMission(userId);
+        log.info(dto.toString());
+        return ResponseEntity.status(HttpStatus.OK).body(dto.toString());
     }
 
-    @PostMapping("/{userNo}")
-    public ResponseEntity<String> postMission(@PathVariable Long userNo) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+    @GetMapping("/{userId}/daily")
+    public ResponseEntity<String> dailyMission(@PathVariable Long userId) {
+        List<DailyMissionResponseDto> dto = missionService.showDailyMission(userId);
+        log.info(dto.toString());
+        return ResponseEntity.status(HttpStatus.OK).body(dto.toString());
     }
 
-//    @PostMapping("/{userNo}")
-//    public ResponseEntity<Map<String, Object>> updateMission(@PathVariable Long id, @RequestBody Map<String, Object> map) {
-//        //id와 missionType을 통해 해당 type에 맞는 미션점수 설정하기
-//        Map<String, Object> response = new HashMap<>();
-//        response.put("msg", "HelloWorld !");
-//        response.put("id", id.toString());
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
+    @PostMapping("/{userId}/complete")
+    public ResponseEntity<String> completeMission(@PathVariable Long userId,
+                                                  @RequestParam Long personalMissionId,
+                                                  @RequestParam int missionType) {
+        if(missionType == 1) missionService.completeMonthlyMission(personalMissionId);
+        else if(missionType == 2) missionService.completeDailyMission(personalMissionId);
+        return ResponseEntity.status(HttpStatus.OK).body("complete sucess");
+    }
 
 }

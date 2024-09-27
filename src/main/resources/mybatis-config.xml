@@ -9,5 +9,11 @@
     <typeAliases>
         <typeAlias alias="UserVo" type="beBig.vo.UserVo"/>
         <typeAlias alias="PostVo" type="beBig.vo.PostVo"/>
+        <typeAlias alias="PersonalMonthlyMissionVo" type="beBig.vo.PersonalMonthlyMissionVo"/>
+        <typeAlias alias="PersonalDailyMissionVo" type="beBig.vo.PersonalDailyMissionVo"/>
+        <typeAlias alias="MissionVo" type="beBig.vo.MissionVo"></typeAlias>
+        <typeAlias alias="MonthlyMissionResponseDto" type="beBig.dto.response.MonthlyMissionResponseDto"></typeAlias>
+        <typeAlias alias="DailyMissionResponseDto" type="beBig.dto.response.DailyMissionResponseDto"></typeAlias>
+
     </typeAliases>
 </configuration>
