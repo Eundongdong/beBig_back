@@ -1,6 +1,5 @@
 package beBig.controller;
 
-import beBig.dto.LikeRequestDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
@@ -11,11 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin("*")
@@ -71,33 +68,13 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.OK).body("Like status updated successfully!");
     }
 
-    @PutMapping("/{postId}/update")
-    public ResponseEntity<String> update(
-            @RequestPart(value = "postTitle", required = true) String postTitle,
-            @RequestPart(value = "postContent", required = true) String postContent,
-            @RequestPart(value = "finTypeCode", required = false) Optional<Integer> finTypeCode,
-            @RequestPart(value = "postCategory", required = false) Optional<Integer> postCategory,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files,  // MultipartFile 처리 추가
-            @PathVariable long postId
-    ) throws AmazonS3UploadException {
-        // 2. 게시글 객체 생성 및 데이터 설정
-        PostVo content = new PostVo();
-        content.setPostId(postId);
-        content.setPostTitle(postTitle);
-        content.setPostContent(postContent);
-        content.setFinTypeCode(finTypeCode.orElse(-1));
-        content.setPostCategory(postCategory.orElse(-1));
-        content.setFiles(files);
-
-
-        log.info("content{}",content);
-
+    @PostMapping("/{postId}/update")
+    public ResponseEntity<String> update(@ModelAttribute PostVo content, @PathVariable long postId) throws AmazonS3UploadException {
         // 게시글이 존재하는지 확인
-        PostVo existPost = communityService.showDetail(postId);
+        PostVo existPost = communityService.showDetail(content.getPostId());
         if(existPost == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
         }
-        log.info("들어온 content{}",content);
 
         // 게시글 내용 검증
         if (content.getPostTitle() == null || content.getPostTitle().trim().isEmpty() ||
@@ -105,8 +82,8 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
         }
         // 게시글 번호 확인
-//        log.info("postId : " + postId);
-        // 게시글 업데이트
+        log.info("postId : " + postId);
+         //게시글 업데이트
         communityService.update(content);
         return ResponseEntity.status(HttpStatus.OK).body("successfully update");
     }

@@ -1,8 +1,6 @@
 package beBig.mapper;
 
-import beBig.vo.ImageVo;
 import org.apache.ibatis.annotations.Mapper;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

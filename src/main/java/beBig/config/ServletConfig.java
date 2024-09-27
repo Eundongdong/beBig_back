@@ -35,7 +35,7 @@ public class ServletConfig implements WebMvcConfigurer {
         registry.viewResolver(bean);
     }
     @Bean
-    public MultipartResolver multipartResolver() {
+    public CommonsMultipartResolver multipartResolver() {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setDefaultEncoding("UTF-8");
         multipartResolver.setMaxUploadSize(10485760); // 10MB

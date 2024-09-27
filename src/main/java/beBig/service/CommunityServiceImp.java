@@ -5,14 +5,11 @@ import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
 import beBig.mapper.ImageMapper;
 import beBig.mapper.UserMapper;
-import beBig.vo.ImageVo;
 import beBig.vo.PostVo;
 import beBig.vo.UserVo;
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -22,14 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.apache.log4j.NDC.clear;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -152,55 +144,34 @@ public class CommunityServiceImp implements CommunityService {
         CommunityMapper communityMapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
         ImageMapper imageMapper = sqlSessionTemplate.getMapper(ImageMapper.class);
 
-        // DB, S3에 들어있는 이미지 경로 가져오기
+        // DB 에 들어있는 이미지 경로 가져오고 삭제(DB, S3)
         List<String> existingImagePaths = imageMapper.findByPostId(content.getPostId());
-
-        //DB의 S3 삭제하기
         for(String existingImageUrl : existingImagePaths){
             imageService.deleteFile(existingImageUrl);
         }
+        log.info("existingImagePaths 완료");
         imageMapper.deleteByPostId(content.getPostId());
 
         // 매개변수로 들어온 이미지
         List<MultipartFile> allImagePaths = content.getFiles() ;//.stream().map(MultipartFile::getOriginalFilename).toList();
-        List<String> allImageUrls = allImagePaths.stream().map(MultipartFile::getOriginalFilename).map(one -> "https://s3.ap-southeast-2.amazonaws.com/"+ bucket+ "/" + one).toList();
-
-
-
-
-        log.info("allImageUrls{}",allImageUrls);
-
-        // 새로 들어온 이미지만 업로드
-        List<String> addImagePaths = allImagePaths.stream()
-                .filter(file -> !isExistingImage(file, existingImagePaths))  // 기존 이미지와 비교
-                .map(file -> {
-                    try {
-                        return imageService.saveFile(file);  // 새 이미지인 경우에만 업로드
-                    }catch (AmazonS3UploadException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .toList();
-
-
-//
-//        // 삭제된 이미지 목록
-//        List<String> deletedImagePaths = existingImagePaths.stream()
-//                .filter(path ->!allImageUrls.contains(path))
-//                .toList();
-
-//
-//        //4. 삭제된 이미지 처리
-//        for (String deletedImagePath : deletedImagePaths) {
-//            String imagePath = imageMapper.findByImagePath(deletedImagePath);
-//            imageMapper.deleteByImagePath(imagePath);  // DB에서 이미지 삭제
-//            imageService.deleteFile(imagePath);
-//        }
-//        // 5. 새로 추가된 이미지 처리
-//        for (String addImagePath : addImagePaths) {
-//            long postId = content.getPostId();
-//            imageMapper.insertImage(postId,addImagePath);
-//        }
+        if(allImagePaths != null){
+            List<String> allImageUrls = allImagePaths.stream().map(MultipartFile::getOriginalFilename).map(one -> "https://s3.ap-southeast-2.amazonaws.com/"+ bucket+ "/" + one).toList();
+            log.info("allImageUrls{}",allImageUrls);
+            // 새로 들어온 이미지만 업로드
+            List<String> addImagePaths = allImagePaths.stream()
+                    .filter(file -> !isExistingImage(file, existingImagePaths))  // 기존 이미지와 비교
+                    .map(file -> {
+                        try {
+                            return imageService.saveFile(file);  // 새 이미지인 경우에만 업로드
+                        }catch (AmazonS3UploadException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+            log.info("addImagePaths{}",addImagePaths);
+            content.setPostImagePaths(addImagePaths);
+            communityMapper.insertImage(content);
+        }
 
         communityMapper.update(content);
     }
