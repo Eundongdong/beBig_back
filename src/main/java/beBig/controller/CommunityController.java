@@ -28,16 +28,18 @@ public class CommunityController {
         this.communityService = communityService;
     }
 
-    @GetMapping()
+    @PostMapping()
     public ResponseEntity<List<PostVo>> list(@RequestParam(value = "category", required = false) Optional<Integer> postCategory,
-                                             @RequestParam(value = "type", required = false) Optional<Integer> postWriterFinTypeCode) {
+                                             @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode) {
         // Optional에서 값이 없을 경우 -1로 처리
         int category = postCategory.orElse(-1);
-        int type = postWriterFinTypeCode.orElse(-1);
+        log.info("category: " + category);
+        int type = finTypeCode.orElse(-1);
+        log.info("type: " + type);
 
         List<PostVo> list = communityService.showList(category, type);
         if (list == null || list.isEmpty()) {
-            throw new NoContentFoundException("No content found for the given filters.");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(list);
     }

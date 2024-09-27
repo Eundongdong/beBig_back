@@ -53,21 +53,23 @@ public class CommunityServiceImp implements CommunityService {
      * 게시글 전체 조회 및 검색 필터 조회
      *
      * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
-     * @param postWriterFinTypeCode 유형 필터 (없을 경우 기본값 -1)
+     * @param finTypeCode 유형 필터 (없을 경우 기본값 -1)
      * @return 필터에 맞는 게시글 목록
      */
     @Override
-    public List<PostVo> showList(int postCategory, int postWriterFinTypeCode) {
+    public List<PostVo> showList(int postCategory, int finTypeCode) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
         if(postCategory != -1){
             // 카테고리 추가
+            log.info("service category: " + postCategory);
             params.put("postCategory", postCategory);
         }
-        if(postWriterFinTypeCode != -1){
+        if(finTypeCode != -1){
             // 유형 추가
-            params.put("postWriterFinTypeCode", postWriterFinTypeCode);
+            log.info("service finTypeCode: " + finTypeCode);
+            params.put("finTypeCode", finTypeCode);
         }
         // 전체 목록 조회(파라미터에 검색 필터가 없는 경우)
         if (params.isEmpty()) {
