@@ -11,9 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin("*")
@@ -52,7 +54,7 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public ResponseEntity write( PostVo content) throws AmazonS3UploadException {
+    public ResponseEntity write(PostVo content) throws AmazonS3UploadException {
         log.info("write community");
         log.info("content{}",content);
         communityService.write(content);
@@ -71,16 +73,28 @@ public class CommunityController {
     }
 
     @PutMapping("/{postId}/update")
-    public ResponseEntity<String> update(@PathVariable Long postId, @RequestBody PostVo content){
+    public ResponseEntity<String> update(
+            @RequestParam(value = "postTitle") String postTitle, @RequestParam(value = "postContent") String postContent,
+            @RequestParam(value = "finTypeCode") Optional<Integer>  finTypeCode,
+            @RequestParam(value = "postCategory") Optional<Integer>  postCategory
+            ,@PathVariable long postId) throws AmazonS3UploadException {
         // 게시글이 존재하는지 확인
         PostVo existPost = communityService.showDetail(postId);
+        PostVo content = new PostVo();
+        content.setPostId(postId);
+        content.setPostTitle(postTitle);
+        content.setPostContent(postContent);
+        content.setFinTypeCode(finTypeCode.orElse(-1));
+        content.setPostCategory(postCategory.orElse(-1));
+        log.info("content{}",content);
         if(existPost == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No content found for the given filters.");
         }
+        log.info("들어온 content{}",content);
 
         // 게시글 내용 검증
         if (content.getPostTitle() == null || content.getPostTitle().trim().isEmpty() ||
-        content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
+                content.getPostContent() == null || content.getPostContent().trim().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("input the title or content");
         }
         // 게시글 번호 확인
