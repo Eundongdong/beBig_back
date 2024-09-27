@@ -6,7 +6,7 @@
 <mapper namespace="beBig.mapper.UserMapper">
 
     <!--userId로 사용자 정보로 조회하는 쿼리-->
-    <select id="findByUserId" parameterType="long" resultType="UserVo">
+    <select id="findByUserId" parameterType="Long" resultType="UserVo">
         SELECT *
         FROM user
         WHERE user_id = #{userId}
@@ -14,7 +14,7 @@
 
     <!-- userLoginId로 사용자 정보를 조회하는 쿼리 -->
     <!--아이디 비밀번호 확인-->
-    <select id="findByUserLoginId" resultType="UserVo">
+    <select id="findByUserLoginId" resultType="UserVo" parameterType="String">
         SELECT *
         FROM user
         WHERE user_login_id = #{userLoginId}

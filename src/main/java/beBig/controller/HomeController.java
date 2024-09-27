@@ -36,8 +36,8 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Unauthorized
         }
 
-        String username = jwtTokenProvider.getUsername(token); // 사용자 이름 추출
-        UserVo userInfo = homeService.getUserInfo(username);
+        Long userId = jwtTokenProvider.getUserIdFromJWT(token); // 사용자 이름 추출
+        UserVo userInfo = homeService.getUserInfo(userId);
 
         if (userInfo == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Not Found
