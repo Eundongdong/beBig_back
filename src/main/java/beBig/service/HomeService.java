@@ -10,6 +10,6 @@ import java.util.List;
 public interface HomeService {
     UserVo getUserInfo(Long userId) throws Exception;
     List<CodefResponseForm> getUserAccount(Long userId, AccountForm accountForm) throws Exception;
-    boolean addAccount(Long userId, List<CodefResponseForm> codefResponseFormList);
+    boolean addAccountToDB(Long userId, List<CodefResponseForm> codefResponseFormList);
     List<AccountVo> showMyAccount(Long userId) throws Exception;
 }

@@ -4,8 +4,10 @@ import beBig.form.AccountForm;
 import beBig.form.CodefResponseForm;
 import beBig.mapper.AccountMapper;
 import beBig.mapper.UserMapper;
+import beBig.service.codef.CodefApiRequester;
 import beBig.vo.AccountVo;
 import beBig.vo.UserVo;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Service;
@@ -14,12 +16,10 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class HomeServiceImp implements HomeService {
     private final SqlSessionTemplate sqlSessionTemplate;
-
-    public HomeServiceImp(SqlSessionTemplate sqlSessionTemplate) {
-        this.sqlSessionTemplate = sqlSessionTemplate;
-    }
+    private final CodefApiRequester codefApiRequester;
 
     // 사용자 정보 불러오기
     @Override
@@ -48,11 +48,16 @@ public class HomeServiceImp implements HomeService {
 
         // 기존 커넥티드 아이디가 존재하는 경우
         if (userInfo.getUserConnectedId() != null) {
-            List<CodefResponseForm> tempResult = addAccountWithExistingConnectedId(userInfo.getUserConnectedId(), accountForm);
+            //connectedId 와 accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
+            //    CodefApiRequester로 넘겨서 https://development.codef.io/v1/account/add 여기로 요청
+            // addConnectedId(String requestBody)
         } else {
-            // 새로운 커넥티드 아이디를 생성하고 계좌 등록 요청
-            List<CodefResponseForm> tempResult = createConnectedIdAndAddAccount(userId, accountForm);
+            // 없다면, accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
+            //   CodefApiRequester로 넘겨서 https://development.codef.io/v1/account/create 여기로 요청
+            // registerConnectedId(String requestBody)
         }
+
+
         return null;
     }
 
@@ -70,7 +75,7 @@ public class HomeServiceImp implements HomeService {
 
 
     @Override
-    public boolean addAccount(Long userId, List<CodefResponseForm> codefResponseFormList) {
+    public boolean addAccountToDB(Long userId, List<CodefResponseForm> codefResponseFormList) {
         // CodefResponseForm 리스트를 순회하며 각 계좌를 DB에 저장
         for (CodefResponseForm accountInfo : codefResponseFormList) {
             // DB에 계좌 추가 로직
@@ -95,7 +100,7 @@ public class HomeServiceImp implements HomeService {
 
         String connectedId = userInfo.getUserConnectedId(); // connectedId 가져오기
 
-        // *********** 후에 Codef API 연결여부에 따라 확인해야함 ******************
+        // *********** Codef API 연결여부에 따라 확인해야함 ******************
 
         // AccountMapper 호출하여 connectedId로 계좌 정보 조회
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);

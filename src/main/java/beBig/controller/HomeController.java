@@ -96,7 +96,7 @@ public class HomeController {
         Long userId = jwtUtil.extractUserIdFromToken(token);
 
         // 계좌를 데이터베이스에 추가
-        boolean isAdded = homeService.addAccount(userId, codefResponseFormList);
+        boolean isAdded = homeService.addAccountToDB(userId, codefResponseFormList);
 
         if (isAdded) {
             return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
