@@ -218,13 +218,35 @@ public class UserController {
                 return ResponseEntity.ok().body(Map.of(
                         "existingUser", true,
                         "token", token,
-                        "userId", kakaoId
+                        "userId", kakaoId,
+                        "accessToken", accessToken
                 ));
             }
 
         } catch (Exception e) {
             log.error("카카오 로그인 중 예외 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("카카오 로그인 중 오류가 발생했습니다.");
+        }
+    }
+
+    @PostMapping("/social-kakao-logout")
+    public ResponseEntity<?> kakaoLogout(HttpServletRequest request) {
+        try {
+            String token = request.getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7); // "Bearer " 이후의 실제 토큰 부분 추출
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("token is null");
+            }
+            log.info("로그아웃 토큰 : {}", token);
+            Long result = kakaoLoginService.kakaoLogout(token);
+
+            log.info("result : {}", result);
+            if (result != -1L) return ResponseEntity.ok("kakao Logout Success");
+            else return ResponseEntity.status(HttpStatus.NOT_FOUND).body("kakao logout error");
+        } catch (Exception e) {
+            log.error("카카오 로그인 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("kakao logout error");
         }
     }
 
