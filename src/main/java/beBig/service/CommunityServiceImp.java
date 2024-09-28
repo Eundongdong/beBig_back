@@ -111,6 +111,7 @@ public class CommunityServiceImp implements CommunityService {
         postResponseDto.setPostLikeHits(post.getPostLikeHits());
         postResponseDto.setPostCategory(post.getPostCategory());
         postResponseDto.setFinTypeCode(post.getFinTypeCode());
+        postResponseDto.setPostImagePaths(post.getPostImagePaths());
         postResponseDto.setUser(isUserId);
         return postResponseDto;
     }
