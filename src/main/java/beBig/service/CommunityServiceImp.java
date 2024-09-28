@@ -16,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -108,6 +111,7 @@ public class CommunityServiceImp implements CommunityService {
         postResponseDto.setPostLikeHits(post.getPostLikeHits());
         postResponseDto.setPostCategory(post.getPostCategory());
         postResponseDto.setFinTypeCode(post.getFinTypeCode());
+        postResponseDto.setPostImagePaths(post.getPostImagePaths());
         postResponseDto.setUser(isUserId);
         return postResponseDto;
     }
@@ -243,8 +247,16 @@ public class CommunityServiceImp implements CommunityService {
      * @param postId : 게시글 아이디
      */
     @Override
-    public void delete(Long postId) {
+    public void delete(long userId, long postId){
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
+        PostVo post = mapper.findDetail(postId);
+
+        // 게시글 작성자의 userId와 로그인(요청) userId 비교
+        if (!post.getUserId().equals(userId)) {
+            throw new AccessDeniedException("not matched user");
+        }
+
+        log.info("userId" + userId);
         mapper.delete(postId);
 
     }

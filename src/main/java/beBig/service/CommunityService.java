@@ -14,7 +14,7 @@ public interface CommunityService {
     public void updateLike(long userId, long postId);
     public void write(PostVo post) throws AmazonS3UploadException;
     public void update(PostVo post);
-    public void delete(Long postId);
+    public void delete(long userId, long postId);
 
     PostResponseDto convertToDto(PostVo post, boolean isUserId);
 }
