@@ -64,7 +64,12 @@ public class CommunityController {
     }
 
     @PostMapping("/write")
-    public ResponseEntity write(PostVo content) throws AmazonS3UploadException {
+    public ResponseEntity write(@RequestHeader("Authorization") String token,
+                                PostVo content) throws AmazonS3UploadException {
+        // JWT 토큰에서 userId 추출
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+        content.setUserId(userId);
+        
         log.info("write community");
         log.info("content{}",content);
         communityService.write(content);
