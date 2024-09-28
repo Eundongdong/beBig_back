@@ -14,7 +14,7 @@ import java.util.Map;
 public interface UserMapper {
     void insert(UserVo userVo);
 
-    UserVo findByUserId(long userId);
+    UserVo findByUserId(Long userId);
 
     UserVo findByUserLoginId(String userLoginId);
 

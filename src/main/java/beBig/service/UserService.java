@@ -10,7 +10,7 @@ import java.util.List;
 public interface UserService {
     void registerUser(UserForm userForm) throws Exception;
 
-    boolean updatePasswordByEmail(String userId, String name, String email);
+    boolean updatePasswordByEmail(String userLoginId, String name, String email);
 
     boolean isUserLoginIdDuplicated(String userId);
 
