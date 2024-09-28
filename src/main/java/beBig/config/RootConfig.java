@@ -61,10 +61,4 @@ public class RootConfig {
         HikariDataSource dataSource = new HikariDataSource(config);
         return dataSource;
     }
-//    @Bean
-//    public CommonsMultipartResolver multipartResolver() {
-//        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-//        resolver.setMaxUploadSize(10485760);  // 최대 파일 크기 10MB 설정
-//        return resolver;
-//    }
 }
