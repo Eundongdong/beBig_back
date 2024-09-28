@@ -27,4 +27,6 @@ public interface UserMapper {
     boolean findByEmailAndLoginType(@Param("email") String email, @Param("loginType") String loginType);
 
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
+
+    Long getUserIdByKaKaoId(String userLoginId);
 }
