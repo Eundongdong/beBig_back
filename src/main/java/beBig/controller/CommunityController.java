@@ -6,6 +6,7 @@ import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.PostVo;
+import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,7 @@ public class CommunityController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponseDto> detail(@RequestHeader("Authorization") String token,
                                          @PathVariable long postId) throws NoHandlerFoundException {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
+        long userId = jwtUtil.extractUserIdFromToken(token);
 
         PostVo detail = communityService.showDetail(postId);
         if(detail == null) {
@@ -67,7 +68,7 @@ public class CommunityController {
     public ResponseEntity write(@RequestHeader("Authorization") String token,
                                 PostVo content) throws AmazonS3UploadException {
         // JWT 토큰에서 userId 추출
-        Long userId = jwtUtil.extractUserIdFromToken(token);
+        long userId = jwtUtil.extractUserIdFromToken(token);
         content.setUserId(userId);
         
         log.info("write community");
@@ -77,7 +78,11 @@ public class CommunityController {
     }
 
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> like(@PathVariable long postId,@RequestBody long userId) throws NoHandlerFoundException{
+    public ResponseEntity<String> like(@RequestHeader("Authorization") String token,
+                                       @PathVariable long postId) throws NoHandlerFoundException{
+        // JWT 토큰에서 userId 추출
+        long userId = jwtUtil.extractUserIdFromToken(token);
+
         // 요청받은 게시글 작성자 번호 추출
         if(userId < 1) {
             throw new NoHandlerFoundException("POST", "/" + postId + "/like", null);
@@ -87,7 +92,13 @@ public class CommunityController {
     }
 
     @PostMapping("/{postId}/update")
-    public ResponseEntity<String> update(@ModelAttribute PostVo content, @PathVariable long postId) throws AmazonS3UploadException {
+    public ResponseEntity<String> update(@RequestHeader("Authorization") String token,
+                                         @ModelAttribute PostVo content,
+                                         @PathVariable long postId) throws AmazonS3UploadException {
+        // JWT 토큰에서 userId 추출
+        long userId = jwtUtil.extractUserIdFromToken(token);
+        content.setUserId(userId);
+
         // 게시글이 존재하는지 확인
         PostVo existPost = communityService.showDetail(content.getPostId());
         if(existPost == null) {
@@ -107,12 +118,16 @@ public class CommunityController {
     }
 
     @DeleteMapping("/{postId}/delete")
-    public ResponseEntity delete(@PathVariable Long postId) {
+    public ResponseEntity delete(@RequestHeader("Authorization") String token,
+                                 @PathVariable Long postId) {
+        // JWT 토큰에서 userId 추출
+        long userId = jwtUtil.extractUserIdFromToken(token);
+
         if(postId ==null){
             throw new NoContentFoundException("No content found for the given filters.");
         }
         log.info("delete community");
-        communityService.delete(postId);
+        communityService.delete(userId, postId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
