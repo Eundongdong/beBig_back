@@ -3,12 +3,14 @@ package beBig.service;
 import beBig.mapper.UserMapper;
 import beBig.vo.UserVo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,28 +18,24 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserMapper userMapper;  // DB에서 사용자 정보 조회
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // UserVo 객체를 DB에서 조회
-        UserVo user = userMapper.findByUserLoginId(username);
+    public CustomUserDetails loadUserByUsername(String userLoginId) throws UsernameNotFoundException {
+        UserVo user = userMapper.findByUserLoginId(userLoginId);
+        log.info("loadUserByUsername: {}", user);
 
         if (user == null) {
-            throw new UsernameNotFoundException("유저를 찾지 못했습니다: " + username);
+            throw new UsernameNotFoundException("유저를 찾지 못했습니다: " + userLoginId);
         }
 
-        // 사용자의 권한 설정 (예시: ROLE_USER로 기본 권한을 부여)
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
-        // UserDetails를 반환하는 org.springframework.security.core.userdetails.User 객체 생성
-        return new org.springframework.security.core.userdetails.User(
+        return new CustomUserDetails(
+                user.getUserId(),
                 user.getUserLoginId(),
-                user.getUserPassword(),
-                authorities            // 사용자 권한
+                user.getUserPassword() // 데이터베이스에서 조회된 인코딩된 비밀번호
         );
     }
 }

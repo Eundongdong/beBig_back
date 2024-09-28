@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class UserVo {
     private Long userId;
-    private int userFinTypeCode;
+    private int finTypeCode;
     private int userBadgeCode;
     private String userLoginId;
     private String userName;
