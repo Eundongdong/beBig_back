@@ -14,7 +14,7 @@
 
     <!-- userLoginId로 사용자 정보를 조회하는 쿼리 -->
     <!--아이디 비밀번호 확인-->
-    <select id="findByUserLoginId" parameterType="String" resultType="UserVo" >
+    <select id="findByUserLoginId" parameterType="String" resultType="UserVo">
         SELECT *
         FROM user
         WHERE user_login_id = #{userLoginId}
@@ -77,12 +77,10 @@
     <update id="updatePasswordByUserLoginIdAndEmail" parameterType="map">
         UPDATE user
         SET user_password = #{userPassword}
-        WHERE user_login_id = (
-            SELECT user_login_id
-            FROM user
-            WHERE user_name = #{name}
-              AND user_email = #{email}
-        )
+        WHERE user_login_id = (SELECT user_login_id
+                               FROM user
+                               WHERE user_name = #{name}
+                                 AND user_email = #{email})
           AND user_login_id = #{userLoginId}
     </update>
 
@@ -99,5 +97,12 @@
         SELECT util_id AS utilId, util_title AS utilTitle, util_content AS utilContent
         FROM util
     </select>
+
+    <select id="getUserIdByKaKaoId" resultType="Long" parameterType="string">
+        SELECT user_id
+        FROM user
+        where user_login_id = #{userLoginId}
+    </select>
+
 
 </mapper>

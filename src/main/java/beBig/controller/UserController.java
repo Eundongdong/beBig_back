@@ -211,14 +211,15 @@ public class UserController {
 //                loginForm.setUserLoginId(kakaoId); // Kakao 로그인 시 사용자 ID로 email 사용
 //                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
                 // 로그인 처리
-                String token = jwtTokenProvider.generateToken(Long.valueOf(kakaoId));
+                Long userId = userService.findUserIdByKakaoId(kakaoId);
+                String token = jwtTokenProvider.generateToken(userId);
                 log.info("JWT 토큰 생성: {}", token);
-
+                log.info("userId : {}", userId);
                 // existingUser = true와 JWT 토큰을 프론트로 전달
                 return ResponseEntity.ok().body(Map.of(
                         "existingUser", true,
                         "token", token,
-                        "userId", kakaoId,
+                        "userId", userId,
                         "accessToken", accessToken
                 ));
             }
@@ -255,6 +256,7 @@ public class UserController {
         List<UtilVo> terms = userService.getUtilTerms();
         return ResponseEntity.ok(terms);
     }
+
 
 //    @GetMapping("/social-signup/info")
 //    public ResponseEntity<String> infoSocialSignup() {
