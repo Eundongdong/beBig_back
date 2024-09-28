@@ -1,6 +1,7 @@
 package beBig.service;
 
 import beBig.dto.LikeRequestDto;
+import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.vo.PostVo;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,4 +15,6 @@ public interface CommunityService {
     public void write(PostVo post) throws AmazonS3UploadException;
     public void update(PostVo post);
     public void delete(Long postId);
+
+    PostResponseDto convertToDto(PostVo post, boolean isUserId);
 }

@@ -1,5 +1,6 @@
 package beBig.service;
 
+import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.mapper.CommunityMapper;
@@ -95,6 +96,22 @@ public class CommunityServiceImp implements CommunityService {
         return detail;
     }
 
+    @Override
+    public PostResponseDto convertToDto(PostVo post, boolean isUserId) {
+        PostResponseDto postResponseDto = new PostResponseDto();
+        postResponseDto.setPostId(post.getPostId());
+        postResponseDto.setUserId(post.getUserId());
+        postResponseDto.setPostTitle(post.getPostTitle());
+        postResponseDto.setPostContent(post.getPostContent());
+        postResponseDto.setPostCreatedTime(post.getPostCreatedTime());
+        postResponseDto.setPostUpdatedTime(post.getPostUpdatedTime());
+        postResponseDto.setPostLikeHits(post.getPostLikeHits());
+        postResponseDto.setPostCategory(post.getPostCategory());
+        postResponseDto.setFinTypeCode(post.getFinTypeCode());
+        postResponseDto.setUser(isUserId);
+        return postResponseDto;
+    }
+
     @Transactional(rollbackFor = {AmazonS3Exception.class,AmazonClientException.class, NoContentFoundException.class})
     @Override
     // 게시글 업로드, 이미지 업로드
@@ -104,7 +121,7 @@ public class CommunityServiceImp implements CommunityService {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         //fintype 찾아오기
         UserVo user = userMapper.findByUserId(post.getUserId());
-        post.setFinTypeCode(user.getUserFinTypeCode());
+        post.setFinTypeCode(user.getFinTypeCode());
         //post Insert
         try{
             communityMapper.insert(post);

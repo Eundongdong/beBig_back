@@ -1,8 +1,10 @@
 package beBig.controller;
 
+import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
+import beBig.service.jwt.JwtUtil;
 import beBig.vo.PostVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,12 @@ import java.util.Optional;
 @Slf4j
 public class CommunityController {
     private CommunityService communityService;
+    private JwtUtil jwtUtil;
 
     @Autowired
-    public CommunityController(CommunityService communityService) {
+    public CommunityController(CommunityService communityService, JwtUtil jwtUtil) {
         this.communityService = communityService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping()
@@ -44,12 +48,19 @@ public class CommunityController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostVo> detail(@PathVariable long postId) throws NoHandlerFoundException {
+    public ResponseEntity<PostResponseDto> detail(@RequestHeader("Authorization") String token,
+                                         @PathVariable long postId) throws NoHandlerFoundException {
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+
         PostVo detail = communityService.showDetail(postId);
         if(detail == null) {
             throw new NoHandlerFoundException("GET", "/community/" + postId, null);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(detail);
+
+        boolean isUserId = detail.getUserId().equals(userId);
+
+        PostResponseDto responseDto = communityService.convertToDto(detail, isUserId);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @PostMapping("/write")
