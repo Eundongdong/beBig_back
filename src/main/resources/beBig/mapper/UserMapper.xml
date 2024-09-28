@@ -83,7 +83,7 @@
             WHERE user_name = #{name}
               AND user_email = #{email}
         )
-          AND user_id = #{userId}
+          AND user_login_id = #{userLoginId}
     </update>
 
     <!-- 이메일과 LoginType으로 사용자 검색 후 있는지 여부를 리턴 -->
