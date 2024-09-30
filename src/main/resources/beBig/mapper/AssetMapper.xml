@@ -19,4 +19,11 @@
         WHERE transaction.account_num = #{accountNum}
         AND transaction.transaction_type='출금'
     </select>
+
+    <!-- userId의 연령대와 같은 연령대의 사람들의 총 자산을 가져오는 쿼리-->
+    <select id="findTotalAssetsByAge" resultType="UserTotalAssetsDto">
+        SELECT
+        FROM transaction
+    </select>
+
 </mapper>

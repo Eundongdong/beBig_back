@@ -1,8 +1,11 @@
 package beBig.service;
 
+import beBig.dto.response.AgeComparisonResponseDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.mapper.AssetMapper;
+import beBig.mapper.UserMapper;
 import beBig.vo.TransactionVo;
+import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,5 +126,17 @@ public class AssetServiceImp implements AssetService {
 
         // DTO로 결과 반환
         return new SpendingPatternsResponseDto(monthlySumList, monthlyAverage, previousMonthDiff);
+    }
+
+    @Override
+    public AgeComparisonResponseDto showAgeComparison(long userId) {
+        AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        //userId와 ageRange 같은 유저 가져오기
+        List<UserVo> sameAgeUserList = userMapper.findBySameAgeRange(userId);
+        log.info("sameAgeUserList{}",sameAgeUserList);
+        //UserId별로 총자산 가져오기
+
+        return null;
     }
 }

@@ -29,4 +29,6 @@ public interface UserMapper {
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 
     Long getUserIdByKaKaoId(String userLoginId);
+
+    List<UserVo> findBySameAgeRange(long userId);
 }
