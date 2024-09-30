@@ -101,7 +101,7 @@
     </select>
 
     <update id="updateUserConnectedId">
-        UPDATE users
+        UPDATE user
         SET user_connected_id = #{connectedId}
         WHERE user_id = #{userId}
     </update>

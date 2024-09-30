@@ -34,7 +34,7 @@ public class CodefApiRequester {
     public String registerConnectedId(AccountForm accountForm) throws Exception {
         // 토큰이 유효한지 확인하고,
         String accessToken = codefTokenManager.getAccessToken();
-        String requestUrl = "https://api.codef.io/v1/account/create";
+        String requestUrl = "https://development.codef.io/v1/account/create";
 
         // 계정 등록 요청 바디 생성 (accountForm 활용)
         String requestBody = buildRequestBody(accountForm);
@@ -167,7 +167,7 @@ public class CodefApiRequester {
                 codefResponseForm.setMessage(message);
 
                 AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-                codefResponseForm.setResAccountBank(accountMapper.getBankNameByCode(accountForm.getBank()));
+                codefResponseForm.setBankVo(accountMapper.getBankByCode(accountForm.getBank()));
 
                 accountList.add(codefResponseForm);
             }
