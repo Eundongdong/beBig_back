@@ -1,7 +1,7 @@
 package beBig.service;
 
-import beBig.form.AccountForm;
-import beBig.form.CodefResponseForm;
+import beBig.dto.AccountDto;
+import beBig.dto.CodefResponseDto;
 import beBig.mapper.AccountMapper;
 import beBig.mapper.UserMapper;
 import beBig.service.codef.CodefApiRequester;
@@ -45,12 +45,12 @@ public class HomeServiceImp implements HomeService {
      * 사용자의 커넥티드아이디를 통해 해당 은행의 계좌 정보 요청
      *
      * @param userId
-     * @param accountForm
+     * @param accountDto
      * @return
      * @throws Exception
      */
     @Override
-    public List<CodefResponseForm> getUserAccount(Long userId, AccountForm accountForm) throws Exception {
+    public List<CodefResponseDto> getUserAccount(Long userId, AccountDto accountDto) throws Exception {
         // 사용자의 정보 및 기존 커넥티드 아이디 확인
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         UserVo userInfo = userMapper.findByUserId(userId);
@@ -60,30 +60,31 @@ public class HomeServiceImp implements HomeService {
         if (connectedId != null) {
             // connectedId 와 accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
             // CodefApiRequester로 넘겨서 요청
-            connectedId = codefApiRequester.addConnectedId(connectedId, accountForm);
+            connectedId = codefApiRequester.addConnectedId(connectedId, accountDto);
         } else {
             // 없다면, accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
             // CodefApiRequester로 넘겨서 요청
-            connectedId = codefApiRequester.registerConnectedId(accountForm);
+            connectedId = codefApiRequester.registerConnectedId(accountDto);
 
             // UserMapper로 connectedId 업데이트
             userMapper.updateUserConnectedId(userId, connectedId); // 여기에 데이터베이스 업데이트 호출
         }
 
         // Codef API로부터 계좌 정보 요청
-        return codefApiRequester.getAccountInfo(accountForm, connectedId);
+        return codefApiRequester.getAccountInfo(accountDto, connectedId);
     }
 
 
     @Override
-    public boolean addAccountToDB(Long userId, List<CodefResponseForm> codefResponseFormList) {
+    public boolean addAccountToDB(Long userId, List<CodefResponseDto> codefResponseDtoList) {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
         // CodefResponseForm 리스트를 순회하며 각 계좌를 DB에 저장
-        for (CodefResponseForm accountInfo : codefResponseFormList) {
+        for (CodefResponseDto accountInfo : codefResponseDtoList) {
             AccountVo accountVo = new AccountVo();
             accountVo.setAccountNum(accountInfo.getResAccount());
             accountVo.setBankId(accountInfo.getBankVo().getBankId()); // 은행명 대신 은행 ID 사용
             accountVo.setAccountName(accountInfo.getResAccountName());
+            accountVo.setAccountType(accountInfo.getResAccountDeposit());
             accountVo.setUserId(userId);
 
             // DB에 계좌 추가

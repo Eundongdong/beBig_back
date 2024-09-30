@@ -1,6 +1,6 @@
 package beBig.service;
 
-import beBig.form.UserForm;
+import beBig.dto.UserDto;
 import beBig.mapper.UserMapper;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
@@ -31,21 +31,21 @@ public class UserServiceImp implements UserService {
 
     // 유저 등록(회원가입)
     @Override
-    public void registerUser(UserForm userForm) throws Exception {
+    public void registerUser(UserDto userDto) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        String encryptedPassword = passwordEncoder.encode(userForm.getPassword());
+        String encryptedPassword = passwordEncoder.encode(userDto.getPassword());
         // 새로운 사용자 객체 생성
         UserVo user = new UserVo();
-        user.setUserName(userForm.getName());
-        user.setUserNickname(userForm.getNickname());
-        user.setUserLoginId(userForm.getUserLoginId());
+        user.setUserName(userDto.getName());
+        user.setUserNickname(userDto.getNickname());
+        user.setUserLoginId(userDto.getUserLoginId());
         user.setUserPassword(encryptedPassword); // 비밀번호 암호화 필요
-        user.setUserEmail(userForm.getEmail());
-        user.setUserGender(userForm.isGender());
-        user.setUserBirth(userForm.getBirth());
+        user.setUserEmail(userDto.getEmail());
+        user.setUserGender(userDto.isGender());
+        user.setUserBirth(userDto.getBirth());
         user.setFinTypeCode(0);
         user.setUserBadgeCode(0);
-        user.setUserLoginType(userForm.getUserLoginType());
+        user.setUserLoginType(userDto.getUserLoginType());
         // 사용자 정보 저장
         userMapper.insert(user);
         log.info("user 저장성공: {}", user.getUserName());
