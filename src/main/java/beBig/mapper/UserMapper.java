@@ -28,5 +28,5 @@ public interface UserMapper {
 
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 
-    void updateUserConnectedId(Long userId, String connectedId);
+    void updateUserConnectedId(@Param("userId") Long userId, @Param("connectedId") String connectedId);
 }
