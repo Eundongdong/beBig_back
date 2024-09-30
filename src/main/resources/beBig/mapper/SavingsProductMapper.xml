@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.SavingsProductMapper">
+
+    <insert id="insertSavingsProduct" parameterType="beBig.dto.SavingsProductDto">
+        INSERT INTO savings_product (savings_product_code, bank_id, savings_product_name, savings_product_type, savings_product_term, savings_product_rate, savings_product_max_rate)
+        VALUES (#{savingsProductCode}, #{bankId}, #{savingsProductName}, #{savingsProductType}, #{savingsProductTerm}, #{savingsProductRate}, #{savingsProductMaxRate})
+    </insert>
+
+</mapper>
