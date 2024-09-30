@@ -10,5 +10,5 @@ public class AccountVo {
     private int bankId;
     private String accountName;
     private Long userId;
-
+    private String accountType;
 }

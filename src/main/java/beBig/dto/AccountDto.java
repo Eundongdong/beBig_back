@@ -1,9 +1,9 @@
-package beBig.form;
+package beBig.dto;
 
 import lombok.Data;
 
 @Data
-public class AccountForm {
+public class AccountDto {
     private String bank;
     private String userBankId;
     private String bankPassword;
