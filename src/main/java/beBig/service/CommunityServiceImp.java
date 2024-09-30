@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +57,14 @@ public class CommunityServiceImp implements CommunityService {
      * @return 필터에 맞는 게시글 목록
      */
     @Override
-    public List<PostVo> showList(int postCategory, int finTypeCode) {
+    public List<PostVo> showList(int postCategory, int finTypeCode, int page,int pageSize) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
+        //pageable 값 추가
+        params.put("limit", pageSize);
+        params.put("offset",page *pageSize);
+
         if(postCategory != -1){
             // 카테고리 추가
             log.info("service category: " + postCategory);
