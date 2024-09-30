@@ -6,6 +6,7 @@ import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.PostVo;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class CommunityController {
         this.jwtUtil = jwtUtil;
     }
 
+    @ApiOperation(value = "게시글 페이지 단위로 불러오기")
     @PostMapping()
     public ResponseEntity<List<PostVo>> list(@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit,
                                              @RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset,

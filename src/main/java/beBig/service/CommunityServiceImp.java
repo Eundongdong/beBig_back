@@ -54,6 +54,8 @@ public class CommunityServiceImp implements CommunityService {
      *
      * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
      * @param finTypeCode 유형 필터 (없을 경우 기본값 -1)
+     * @param page 페이지 번호
+     * @param pageSize 몇 개 가져오는지
      * @return 필터에 맞는 게시글 목록
      */
     @Override
