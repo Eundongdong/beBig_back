@@ -1,9 +1,11 @@
 package beBig.controller;
 
+import beBig.dto.request.MissionCompleteRequestDto;
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.dto.response.TotalMissionResponseDto;
 import beBig.service.MissionService;
+import beBig.service.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HTTP;
@@ -28,10 +30,12 @@ import java.util.List;
 public class MissionController {
 
     private final MissionService missionService;
+    private final JwtUtil jwtUtil;
 
-    @GetMapping("/{userId}/total")
-    public ResponseEntity<?> monthlyMissionTotal(@PathVariable long userId) {
+    @GetMapping("/total")
+    public ResponseEntity<?> monthlyMissionTotal(@RequestHeader("Authorization") String token) {
         try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
             int restDays = getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
@@ -44,9 +48,10 @@ public class MissionController {
     }
 
 
-    @GetMapping("/{userId}/monthly")
-    public ResponseEntity<?> monthlyMission(@PathVariable Long userId) {
+    @GetMapping("/monthly")
+    public ResponseEntity<?> monthlyMission(@RequestHeader("Authorization") String token) {
         try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
             MonthlyMissionResponseDto dto = missionService.showMonthlyMission(userId);
             int salary = missionService.findSalary(userId);
             double rate = missionService.findRate(userId, dto.getMissionId());
@@ -55,30 +60,34 @@ public class MissionController {
             return ResponseEntity.status(HttpStatus.OK).body(dto);
 
         } catch (Exception e) {
-            log.error("사용자 ID: {}의 월간 미션 조회 중 오류 발생", userId, e);
+            log.error("월간 미션 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Monthly mission check error occurs");
         }
     }
 
-    @GetMapping("/{userId}/daily")
-    public ResponseEntity<?> dailyMission(@PathVariable Long userId) {
+    @GetMapping("/daily")
+    public ResponseEntity<?> dailyMission(@RequestHeader("Authorization") String token) {
         try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
             List<DailyMissionResponseDto> dto = missionService.showDailyMission(userId);
             log.info("사용자 ID: {}의 일일 미션 조회 성공: {}", userId, dto);
             return ResponseEntity.status(HttpStatus.OK).body(dto);
         } catch (Exception e) {
-            log.error("사용자 ID: {}의 일일 미션 조회 중 오류 발생", userId, e);
+            log.error("일간 미션 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Daily mission check error occurs");
         }
     }
 
-    @PostMapping("/{userId}/complete")
-    public ResponseEntity<?> completeMission(@PathVariable Long userId,
-                                             @RequestParam Long personalMissionId,
-                                             @RequestParam int missionType) {
+    @PostMapping("/complete")
+    public ResponseEntity<?> completeMission(@RequestHeader("Authorization") String token,
+                                             @RequestBody MissionCompleteRequestDto requestDto) {
         try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            int missionType = requestDto.getMissionType();
+            long personalMissionId = requestDto.getPersonalMissionId();
+
             if (missionType == 1) {
                 //미션타입 확인하고 점수계산 - 일간
                 int totalDays = getDaysInCurrentMonth();
@@ -101,7 +110,7 @@ public class MissionController {
             }
             return ResponseEntity.status(HttpStatus.OK).body("success");
         } catch (Exception e) {
-            log.error("사용자 ID: {}의 미션 완료 중 오류 발생: 미션 ID: {}", userId, personalMissionId, e);
+            log.error("미션 완료 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error occurs During mission complete.");
         }
