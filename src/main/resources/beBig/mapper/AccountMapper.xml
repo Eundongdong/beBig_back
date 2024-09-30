@@ -6,11 +6,16 @@
     <select id="findAccountById" parameterType="String" resultType="AccountVo">
         SELECT *
         FROM account
-        WHERE account_connected_id = #{connectedId}
+        WHERE user_id = #{userId}
     </select>
 
-    <select id="getBankNameByCode" resultType="String">
-        SELECT bank_name
+    <insert id="insertAccount" parameterType="beBig.vo.AccountVo">
+        INSERT INTO account(account_num, bank_id, account_name, user_id)
+        VALUES (#{accountNum}, #{bankId}, #{accountName}, #{userId})
+    </insert>
+
+    <select id="getBankByCode" resultType="beBig.vo.BankVo">
+        SELECT *
         FROM bank
         WHERE bank_code_codef = #{bankCode}
     </select>

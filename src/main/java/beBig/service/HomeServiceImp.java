@@ -77,39 +77,33 @@ public class HomeServiceImp implements HomeService {
 
     @Override
     public boolean addAccountToDB(Long userId, List<CodefResponseForm> codefResponseFormList) {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
         // CodefResponseForm 리스트를 순회하며 각 계좌를 DB에 저장
         for (CodefResponseForm accountInfo : codefResponseFormList) {
-            // DB에 계좌 추가 로직
-            // 계좌 정보는 accountInfo를 통해 접근할 수 있음
-            // 예: saveAccountToDatabase(userId, accountInfo);
-        }
+            AccountVo accountVo = new AccountVo();
+            accountVo.setAccountNum(accountInfo.getResAccount());
+            accountVo.setBankId(accountInfo.getBankVo().getBankId()); // 은행명 대신 은행 ID 사용
+            accountVo.setAccountName(accountInfo.getResAccountName());
+            accountVo.setUserId(userId);
 
-        // 모든 계좌가 정상적으로 추가되었는지 확인 후 반환
-        return true; // 또는 false로 변경
+            // DB에 계좌 추가
+            accountMapper.insertAccount(accountVo);
+            log.info("addition complete" + accountVo.getAccountNum());
+        }
+        return true;
     }
 
     // 0927 end ------------------------------------------------
 
     @Override
     public List<AccountVo> showMyAccount(Long userId) throws Exception {
-        UserVo userInfo = getUserInfo(userId); // 사용자 정보 조회
-
-        // UserVo가 null인 경우 예외 처리
-        if (userInfo == null) {
-            throw new Exception("사용자 정보를 찾을 수 없습니다.");
-        }
-
-        String connectedId = userInfo.getUserConnectedId(); // connectedId 가져오기
-
-        // *********** Codef API 연결여부에 따라 확인해야함 ******************
-
-        // AccountMapper 호출하여 connectedId로 계좌 정보 조회
+        // AccountMapper 호출하여 userId로 계좌 정보 조회
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-        List<AccountVo> accountList = accountMapper.findAccountById(connectedId);
+        List<AccountVo> accountList = accountMapper.findAccountById(userId);
 
         // 계좌 정보가 없는 경우 예외 처리
         if (accountList == null || accountList.isEmpty()) {
-            log.warn("사용자와 연결된 계좌가 없습니다: {}", connectedId);
+            log.warn("사용자와 연결된 계좌가 없습니다: {}", userId);
             throw new Exception("사용자와 연결된 계좌가 없습니다.");
         }
 
