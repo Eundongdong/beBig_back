@@ -1,13 +1,10 @@
-package beBig.form;
+package beBig.dto;
 
-import beBig.vo.AccountVo;
 import beBig.vo.BankVo;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-public class CodefResponseForm {
+public class CodefResponseDto {
     private String resAccountBalance;        // 현재잔액
     private String resAccount;               // 계좌번호
     private String resAccountDeposit;        // 예금구분

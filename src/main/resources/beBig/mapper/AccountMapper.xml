@@ -9,12 +9,12 @@
         WHERE user_id = #{userId}
     </select>
 
-    <insert id="insertAccount" parameterType="beBig.vo.AccountVo">
-        INSERT INTO account(account_num, bank_id, account_name, user_id)
-        VALUES (#{accountNum}, #{bankId}, #{accountName}, #{userId})
+    <insert id="insertAccount" parameterType="AccountVo">
+        INSERT INTO account(account_num, bank_id, account_name, user_id, account_type)
+        VALUES (#{accountNum}, #{bankId}, #{accountName}, #{userId}, #{accountType})
     </insert>
 
-    <select id="getBankByCode" resultType="beBig.vo.BankVo">
+    <select id="getBankByCode" resultType="BankVo">
         SELECT *
         FROM bank
         WHERE bank_code_codef = #{bankCode}
