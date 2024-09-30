@@ -8,4 +8,6 @@ import java.util.List;
 @Mapper
 public interface AccountMapper {
     List<AccountVo> findAccountById(String connectedId);
+
+    String getBankNameByCode(String bankCode);
 }

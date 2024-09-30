@@ -9,4 +9,9 @@
         WHERE account_connected_id = #{connectedId}
     </select>
 
+    <select id="getBankNameByCode" resultType="String">
+        SELECT bank_name
+        FROM bank
+        WHERE bank_code_codef = #{bankCode}
+    </select>
 </mapper>

@@ -41,36 +41,37 @@ public class HomeServiceImp implements HomeService {
     }
     // 0927 codefAPI start ------------------------------------------------
 
+    /**
+     * 사용자의 커넥티드아이디를 통해 해당 은행의 계좌 정보 요청
+     *
+     * @param userId
+     * @param accountForm
+     * @return
+     * @throws Exception
+     */
     @Override
     public List<CodefResponseForm> getUserAccount(Long userId, AccountForm accountForm) throws Exception {
         // 사용자의 정보 및 기존 커넥티드 아이디 확인
-        UserVo userInfo = getUserInfo(userId);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        UserVo userInfo = userMapper.findByUserId(userId);
+        String connectedId = userInfo.getUserConnectedId();
 
         // 기존 커넥티드 아이디가 존재하는 경우
-        if (userInfo.getUserConnectedId() != null) {
-            //connectedId 와 accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
-            //    CodefApiRequester로 넘겨서 https://development.codef.io/v1/account/add 여기로 요청
-            // addConnectedId(String requestBody)
+        if (connectedId != null) {
+            // connectedId 와 accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
+            // CodefApiRequester로 넘겨서 요청
+            connectedId = codefApiRequester.addConnectedId(connectedId, accountForm);
         } else {
             // 없다면, accountList(은행, id, pw + 국가코드, 업무구분, 고객구분, 로그인방식 포함해서)
-            //   CodefApiRequester로 넘겨서 https://development.codef.io/v1/account/create 여기로 요청
-            // registerConnectedId(String requestBody)
+            // CodefApiRequester로 넘겨서 요청
+            connectedId = codefApiRequester.registerConnectedId(accountForm);
+
+            // UserMapper로 connectedId 업데이트
+            userMapper.updateUserConnectedId(userId, connectedId); // 여기에 데이터베이스 업데이트 호출
         }
 
-
-        return null;
-    }
-
-    private List<CodefResponseForm> addAccountWithExistingConnectedId(String connectedId, AccountForm accountForm) {
-        // 기존 커넥티드 아이디를 사용하여 계좌 정보를 가져오는 로직
-        // API 요청 등을 통해 계좌 리스트를 반환
-        return List.of(); // 실제 구현 로직으로 교체
-    }
-
-    private List<CodefResponseForm> createConnectedIdAndAddAccount(Long userId, AccountForm accountForm) {
-        // 새로운 커넥티드 아이디를 생성하고, 해당 아이디를 통해 계좌 정보를 가져오는 로직
-        // API 요청 등을 통해 계좌 리스트를 반환
-        return List.of(); // 실제 구현 로직으로 교체
+        // Codef API로부터 계좌 정보 요청
+        return codefApiRequester.getAccountInfo(accountForm, connectedId);
     }
 
 

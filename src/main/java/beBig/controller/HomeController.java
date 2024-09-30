@@ -78,8 +78,11 @@ public class HomeController {
                                                               @RequestBody AccountForm accountForm) throws Exception {
         // JWT 토큰에서 userId 추출
         Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<CodefResponseForm> tempRequest = homeService.getUserAccount(userId, accountForm);
-        return null;
+
+        // 사용자의 계좌 정보 가져오기
+        List<CodefResponseForm> accountList = homeService.getUserAccount(userId, accountForm);
+
+        return ResponseEntity.ok(accountList);
     }
 
     /**
