@@ -174,6 +174,12 @@ public class UserServiceImp implements UserService {
         return userMapper.getUtilTerms();
     }
 
+    @Override
+    public Long findUserIdByKakaoId(String kakaoId) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        return userMapper.getUserIdByKaKaoId(kakaoId);
+    }
+
 
     //    public UserVo findByUserId(String userId) throws Exception {
 //        return userMapper.findByUserId(userId);

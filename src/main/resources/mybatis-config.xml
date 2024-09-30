@@ -16,5 +16,6 @@
         <typeAlias alias="DailyMissionResponseDto" type="beBig.dto.response.DailyMissionResponseDto"></typeAlias>
         <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"></typeAlias>
         <typeAlias alias="DepositProductVo" type="beBig.vo.DepositProductVo"></typeAlias>
+        <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
     </typeAliases>
 </configuration>

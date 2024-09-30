@@ -19,4 +19,6 @@ public interface UserService {
     boolean findByEmailAndLoginType(String email, String userLoginType);
 
     List<UtilVo> getUtilTerms(); // 약관조회
+
+    Long findUserIdByKakaoId(String kakaoId);
 }

@@ -13,6 +13,7 @@ public interface CommunityMapper {
     PostVo findDetail(Long postId);
     List<PostVo> findByPostCategoryAndFinTypeCode(Map<String, Object> params);
     void insert(PostVo post);
+    int findLikeHitsByPostId(Long postId);
     // 좋아요가 이미 눌린 상태인지 확인
     int checkLike(Map<String, Object> params);
     // 좋아요 추가
@@ -24,7 +25,6 @@ public interface CommunityMapper {
     // 좋아요 수 업데이트
     void updateLikeCnt(Long postId);
     void insertImage(PostVo post);
-    String getPostWriterId(Long postId);
     void update(PostVo post);
     void delete(Long postId);
 }
