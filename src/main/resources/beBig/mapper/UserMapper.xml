@@ -100,4 +100,9 @@
         FROM util
     </select>
 
+    <update id="updateUserConnectedId">
+        UPDATE users
+        SET user_connected_id = #{connectedId}
+        WHERE user_id = #{userId}
+    </update>
 </mapper>

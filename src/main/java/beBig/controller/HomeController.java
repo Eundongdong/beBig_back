@@ -1,5 +1,7 @@
 package beBig.controller;
 
+import beBig.form.AccountForm;
+import beBig.form.CodefResponseForm;
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtTokenProvider;
 import beBig.service.jwt.JwtUtil;
@@ -65,27 +67,63 @@ public class HomeController {
 //    }
 //
 
+    /**
+     *
+     * @param token
+     * @param accountForm : codef api요청에 필요한 데이터
+     * @return codef api 요청으로부터 받은 은행정보
+     */
+    @PostMapping("/account")
+    public ResponseEntity<List<CodefResponseForm>> getAccount(@RequestHeader("Authorization") String token,
+                                                              @RequestBody AccountForm accountForm) throws Exception {
+        // JWT 토큰에서 userId 추출
+        Long userId = jwtUtil.extractUserIdFromToken(token);
 
-    @PostMapping("/account/add")
-    public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
+        // 사용자의 계좌 정보 가져오기
+        List<CodefResponseForm> accountList = homeService.getUserAccount(userId, accountForm);
+
+        return ResponseEntity.ok(accountList);
     }
-//
+
+    /**
+     * 프론트에서 계좌를 선택해서 보낸 데이터
+     * @param token
+     * @param codefResponseFormList
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/account/add")
+    public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token,
+                                             @RequestBody List<CodefResponseForm> codefResponseFormList) throws Exception {
+        // JWT 토큰에서 userId 추출
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+
+        // 계좌를 데이터베이스에 추가
+        boolean isAdded = homeService.addAccountToDB(userId, codefResponseFormList);
+
+        if (isAdded) {
+            return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 추가 실패");
+        }
+    }
+
 //    @GetMapping("/mission")
 //    public ResponseEntity<String> missionList(@RequestHeader("Authorization") String token) {
 //        Long userNo = extractUserNoFromToken(token);
 //        return ResponseEntity.status(HttpStatus.OK).body("미션 목록 조회");
 //    }
-//
+
+    //
 // 계좌 목록 불러오기
-@GetMapping("/account/list")
-public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
+    @GetMapping("/account/list")
+    public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
 
-    Long userId = jwtUtil.extractUserIdFromToken(token);
-    List<AccountVo> accountList = homeService.showMyAccount(userId);
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+        List<AccountVo> accountList = homeService.showMyAccount(userId);
 
-    return ResponseEntity.ok(accountList);
-}
+        return ResponseEntity.ok(accountList);
+    }
 
 //
 //    @GetMapping("/account/{accountNum}/detail")
