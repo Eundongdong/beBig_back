@@ -3,7 +3,7 @@
 
 <mapper namespace="beBig.mapper.AccountMapper">
 
-    <select id="findAccountById" parameterType="String" resultType="AccountVo">
+    <select id="findAccountById" parameterType="Long" resultType="AccountVo">
         SELECT *
         FROM account
         WHERE user_id = #{userId}
