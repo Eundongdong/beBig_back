@@ -27,6 +27,12 @@ public class AssetServiceImp implements AssetService {
         this.sqlSessionTemplate = sqlSessionTemplate;
     }
 
+    /**
+     * TransactionVo에서 DTO 만드는 코드 
+     * @param userId toekn으로 받아온 UserId
+     * @param year : 조회할 년도
+     * @return : 월별 누적합, 월평균, 현재 월과 이전 월 차이
+     */
     @Override
     public SpendingPatternsResponseDto showSpendingPatterns(long userId,int year) {
         AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
@@ -40,14 +46,11 @@ public class AssetServiceImp implements AssetService {
             List<TransactionVo> tmpTransactionVoList = assetMapper.findTransactionsByAccountNum(accountNum);
             transactionVoList.addAll(tmpTransactionVoList);
         }
-
         log.info("transactionVoList{}",transactionVoList);
 
         // Dto로 만들기
         SpendingPatternsResponseDto spendingPatternsResponseDto = calculateSpendingPatterns(transactionVoList,year);
         log.info("spendingPatternsResponseDto{}",spendingPatternsResponseDto);
-
-
 
         return spendingPatternsResponseDto;
     }

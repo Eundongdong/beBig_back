@@ -4,12 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="beBig.mapper.AssetMapper">
+    <!-- userId로 계좌 정보를 조회하는 쿼리  -->
     <select id="findAccountNumByUserId" resultType="string">
         SELECT account_num
         FROM account JOIN user ON account.user_id = user.user_id
         WHERE account.user_id = #{userId}
     </select>
 
+    <!-- accountNum으로 Transaction 출금 정보를 조회하는 쿼리 -->
     <!-- 출금만 가져옴-->
     <select id="findTransactionsByAccountNum" resultType="TransactionVo">
         SELECT *
