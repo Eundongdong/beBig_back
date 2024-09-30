@@ -62,16 +62,16 @@ public class MissionController {
         try {
             if (missionType == 1) {
                 missionService.completeMonthlyMission(personalMissionId);
-                log.info("사용자 ID: {}의 월간 미션 완료: 미션 ID: {}", userId, personalMissionId);
+                log.info("사용자 ID: {}의 월간 미션 변경: 미션 ID: {}", userId, personalMissionId);
             } else if (missionType == 2) {
                 missionService.completeDailyMission(personalMissionId);
-                log.info("사용자 ID: {}의 일일 미션 완료: 미션 ID: {}", userId, personalMissionId);
+                log.info("사용자 ID: {}의 일일 미션 변경: 미션 ID: {}", userId, personalMissionId);
             } else {
                 log.warn("잘못된 미션 타입: {} (사용자 ID: {})", missionType, userId);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Wrong mission type error.");
             }
-            return ResponseEntity.status(HttpStatus.OK).body("미션 완료 처리 성공");
+            return ResponseEntity.status(HttpStatus.OK).body("success");
         } catch (Exception e) {
             log.error("사용자 ID: {}의 미션 완료 중 오류 발생: 미션 ID: {}", userId, personalMissionId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
