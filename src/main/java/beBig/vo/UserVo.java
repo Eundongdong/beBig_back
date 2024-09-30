@@ -24,6 +24,7 @@ public class UserVo {
     private String userConnectedId;
     private String userIntro;
     private int userSalary;
+    private int userVisibility; // 0 = 비공개 , 1 = 공개
 
     private FinTypeVo finType;    // fin_type_code
     private BadgeVo badge;        // badge_code
