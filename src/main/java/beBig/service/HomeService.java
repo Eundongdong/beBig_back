@@ -15,4 +15,6 @@ public interface HomeService {
     List<FinTestVo> findMission();
 
     FinInfoResponseDto findFinTypeByUserId(Long userId);
+
+    void saveUserFinType(Long userId, int userFinType);
 }
