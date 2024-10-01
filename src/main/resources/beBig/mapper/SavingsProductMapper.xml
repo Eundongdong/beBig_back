@@ -7,5 +7,19 @@
         INSERT INTO savings_product (savings_product_code, bank_id, savings_product_name, savings_product_type, savings_product_term, savings_product_rate, savings_product_max_rate)
         VALUES (#{savingsProductCode}, #{bankId}, #{savingsProductName}, #{savingsProductType}, #{savingsProductTerm}, #{savingsProductRate}, #{savingsProductMaxRate})
     </insert>
-
+    <select id="getTop2RecommendedSavingsProduct" parameterType="map" resultType="SavingsProductVo">
+        SELECT *
+        FROM savings_product
+        WHERE bank_id = #{bankId}
+        ORDER BY savings_product_max_rate DESC,
+                 CASE
+                     WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN savings_product_term
+                     ELSE NULL
+                     END ASC,
+                 CASE
+                     WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN savings_product_term
+                     ELSE NULL
+                     END DESC
+            LIMIT 2
+    </select>
 </mapper>

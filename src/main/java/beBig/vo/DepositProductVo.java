@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class DepositProductVo {
     private String depositProductCode;
-    private int depositProductBankId;
+    private int bankId;
     private String depositProductName;
     private int depositProductTerm;
     private double depositProductRate;

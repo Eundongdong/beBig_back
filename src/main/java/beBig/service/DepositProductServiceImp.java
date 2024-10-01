@@ -1,6 +1,6 @@
 package beBig.service;
 
-import beBig.mapper.DepositApiMapper;
+import beBig.mapper.DepositProductMapper;
 import beBig.vo.DepositProductVo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,9 +18,9 @@ import java.net.URL;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DepositApiServiceImp implements DepositApiService {
+public class DepositProductServiceImp implements DepositApiService {
 
-    private final DepositApiMapper depositApiMapper;
+    private final DepositProductMapper depositProductMapper;
 
     // 트랜잭션 처리
     @Transactional
@@ -115,7 +115,7 @@ public class DepositApiServiceImp implements DepositApiService {
                     // DepositProductVo에 데이터 설정
                     DepositProductVo deposit = new DepositProductVo();
                     deposit.setDepositProductCode(depositProductCode);
-                    deposit.setDepositProductBankId(depositProductBankId);
+                    deposit.setBankId(depositProductBankId);
                     deposit.setDepositProductName(depositProductName);
                     deposit.setDepositProductTerm(depositProductTerm);
                     deposit.setDepositProductRate(depositProductRate);
@@ -124,7 +124,7 @@ public class DepositApiServiceImp implements DepositApiService {
                     log.info("Deposit Product Data: {}", deposit);
 
                     // DB 저장 부분
-                    depositApiMapper.insert(deposit);
+                    depositProductMapper.insert(deposit);
                 }
             }
         }
