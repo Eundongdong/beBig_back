@@ -8,5 +8,22 @@
         FROM account
         WHERE account_connected_id = #{connectedId}
     </select>
+    <!--주거래 은행 1개 조회-->
+    <select id="findPrimaryBankId" parameterType="long" resultType="int">
+        SELECT bank_id
+        FROM account
+        WHERE user_id = #{userId}
+        GROUP BY bank_id
+        ORDER BY COUNT(bank_id) DESC
+        LIMIT 1
+    </select>
+    <!--주거래 은행을 제외한 다른 은행 조회-->
+    <select id="findOtherBankIds" parameterType="map" resultType="int">
+        SELECT bank_id
+        FROM account
+        WHERE user_id = #{userId} AND bank_id != #{primaryBankId}
+        GROUP BY bank_id
+    </select>
+
 
 </mapper>

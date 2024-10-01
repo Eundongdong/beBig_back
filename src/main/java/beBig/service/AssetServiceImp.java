@@ -1,8 +1,8 @@
 package beBig.service;
 
 import beBig.dto.response.SpendingPatternsResponseDto;
-import beBig.mapper.AssetMapper;
-import beBig.vo.TransactionVo;
+import beBig.mapper.*;
+import beBig.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -123,5 +120,81 @@ public class AssetServiceImp implements AssetService {
 
         // DTO로 결과 반환
         return new SpendingPatternsResponseDto(monthlySumList, monthlyAverage, previousMonthDiff);
+    }
+
+    /**
+     * 사용자 유형별 예/적금 상품 추천
+     *
+     * 1. 사용자의 주거래 은행을 찾아서 해당 은행에서 예/적금 추천 상품을 각 2개 추천
+     * 2. 사용자의 다른 거래 은행들을 찾아서 해당 은행들에서도 예/적금 추천 상품을 각 2개씩 추천
+     * 3. 사용자의 금융 유형(finTypeCode)을 기준으로
+     *    - 유형 1 (꿀벌)과 3 (다람쥐)은 짧은 기간의 상품을 우선 추천
+     *    - 유형 2 (호랑이)와 4 (나무늘보)는 긴 기간의 상품을 우선 추천
+     *
+     * @param userId 추천할 사용자의 고유 ID
+     * @return 예/적금 추천 정보를 포함하는 Map 객체
+     *         - "depositRecommendations": 예금 추천 상품 리스트 (최대 4개)
+     *         - "savingsRecommendations": 적금 추천 상품 리스트 (최대 4개)
+     */
+    @Override
+    public Map<String, Object> showProductRecommendations(long userId) {
+        DepositProductMapper depositProductMapper = sqlSessionTemplate.getMapper(DepositProductMapper.class);
+        SavingsProductMapper savingsProductMapper = sqlSessionTemplate.getMapper(SavingsProductMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+
+        UserVo userVo = userMapper.findByUserId(userId);
+        if(userVo == null){
+            // 유저 정보가 없으면 빈 맵 반환
+            return new HashMap<>();
+        }
+
+        // 사용자 유형코드 추출
+        int finTypeCode = userVo.getFinTypeCode();
+
+        // 주거래 은행 조회(account 테이블 사용)
+        int primaryBankId  = accountMapper.findPrimaryBankId(userId);
+
+        // 다른 거래은행 조회
+        Map<String, Object> paramsForOtherBanks = new HashMap<>();
+        paramsForOtherBanks.put("userId", userId);
+        paramsForOtherBanks.put("primaryBankId", primaryBankId);
+        List<Integer> otherBankIds = accountMapper.findOtherBankIds(paramsForOtherBanks);
+
+        // 예금 및 적금 추천 리스트 생성
+        List<DepositProductVo> depositRecommendations = new ArrayList<>();
+        List<SavingsProductVo> savingsRecommendations = new ArrayList<>();
+
+        Map<String, Object> primaryBankParams = new HashMap<>();
+        // 주거래은행에서 추천 상품 2개씩 가져오기
+        primaryBankParams.put("bankId", primaryBankId);
+        primaryBankParams.put("finTypeCode", finTypeCode);
+        depositRecommendations.addAll(depositProductMapper.getTop2RecommendedDepositProducts(primaryBankParams));
+        savingsRecommendations.addAll(savingsProductMapper.getTop2RecommendedSavingsProduct(primaryBankParams));
+
+        // 다른 거래은행에서 각 은행별 추천 2개씩 가져오기
+        for (int bankId : otherBankIds) {
+            Map<String, Object> otherBankParams = new HashMap<>();
+            otherBankParams.put("bankId", bankId);
+            otherBankParams.put("finTypeCode", finTypeCode);
+            depositRecommendations.addAll(depositProductMapper.getTop2RecommendedDepositProducts(otherBankParams));
+            savingsRecommendations.addAll(savingsProductMapper.getTop2RecommendedSavingsProduct(otherBankParams));
+            log.info("Other bankId : " + bankId);
+        }
+
+        // 은행별로 최상위 두 개의 예금 및 적금 추천 정보만 추출
+        List<DepositProductVo> topDepositRecommendations = depositRecommendations.stream()
+                .limit(4) // 주거래은행과 다른 은행에서 각 2개씩 총 4개 제한
+                .collect(Collectors.toList());
+
+        List<SavingsProductVo> topSavingsRecommendations = savingsRecommendations.stream()
+                .limit(4) // 주거래은행과 다른 은행에서 각 2개씩 총 4개 제한
+                .collect(Collectors.toList());
+
+        Map<String, Object> recommendations = new HashMap<>();
+        recommendations.put("depositRecommendations", topDepositRecommendations);
+        recommendations.put("savingsRecommendations", topSavingsRecommendations);
+
+        return recommendations;
     }
 }
