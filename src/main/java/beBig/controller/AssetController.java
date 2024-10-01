@@ -1,5 +1,6 @@
 package beBig.controller;
 
+import beBig.dto.UserTotalAssetsDto;
 import beBig.dto.response.AgeComparisonResponseDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.service.AssetService;
@@ -47,9 +48,12 @@ public class AssetController {
     }
 
     @GetMapping("/{userId}/age-comparison")//@RequestHeader("Authorization") String token
-    public ResponseEntity<AgeComparisonResponseDto> ageComparison(@PathVariable Long userId) {
+    public ResponseEntity<UserTotalAssetsDto> ageComparison(@PathVariable Long userId) {
         //        long userId = jwtUtil.extractUserIdFromToken(token);
-        AgeComparisonResponseDto ageComparisonResponseDto = assetService.showAgeComparison(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(ageComparisonResponseDto);
+        if(userId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        UserTotalAssetsDto userTotalAssetsDto = assetService.showAgeComparison(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(userTotalAssetsDto);
     }
 }

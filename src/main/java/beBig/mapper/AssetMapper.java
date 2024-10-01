@@ -8,5 +8,5 @@ import java.util.List;
 public interface AssetMapper {
     List<String> findAccountNumByUserId(long userId);
     List<TransactionVo> findTransactionsByAccountNum(String accountNum);
-    List<UserTotalAssetsDto> findTotalAssetsByAge(long userId);
+    Long findTotalAssetsByAccountNum(List<String> accountNumList);
 }

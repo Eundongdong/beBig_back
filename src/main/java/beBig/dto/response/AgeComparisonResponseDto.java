@@ -8,5 +8,6 @@ import lombok.*;
 public class AgeComparisonResponseDto {
     private int age;
     private int ageRange;
+    private long TotalAssets;
     private int ageComparisonRank;
 }
