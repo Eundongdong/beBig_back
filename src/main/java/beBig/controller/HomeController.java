@@ -1,9 +1,6 @@
 package beBig.controller;
 
-import beBig.dto.AccountDto;
-import beBig.dto.AccountTransactionDto;
-import beBig.dto.CodefAccountDto;
-import beBig.dto.CodefTransactionRequestDto;
+import beBig.dto.*;
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.AccountVo;
@@ -69,9 +66,9 @@ public class HomeController {
     // 사용자 계좌 정보 가져오기 - codef
     @PostMapping("/account")
     public ResponseEntity<List<CodefAccountDto>> getAccount(@RequestHeader("Authorization") String token,
-                                                            @RequestBody AccountDto accountDto) throws Exception {
+                                                            @RequestBody AccountRequestDto accountRequestDto) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountDto);
+        List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
         return ResponseEntity.ok(accountList);
     }
 
@@ -92,12 +89,11 @@ public class HomeController {
 //    }
 
     //
-// 계좌 목록 불러오기
+    // 계좌 목록 불러오기
     @GetMapping("/account/list")
-    public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
-
+    public ResponseEntity<List<AccountResponseDto>> accountList(@RequestHeader("Authorization") String token) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<AccountVo> accountList = homeService.showMyAccount(userId);
+        List<AccountResponseDto> accountList = homeService.showMyAccount(userId);
 
         return ResponseEntity.ok(accountList);
     }

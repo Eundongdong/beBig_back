@@ -1,6 +1,6 @@
 package beBig.service.codef;
 
-import beBig.dto.AccountDto;
+import beBig.dto.AccountRequestDto;
 import beBig.dto.CodefAccountDto;
 import beBig.dto.CodefTransactionRequestDto;
 import beBig.dto.CodefTransactionResponseDto;
@@ -35,13 +35,13 @@ public class CodefApiRequester {
     private final SqlSessionTemplate sqlSessionTemplate;
 
     // ConnectedId 계정 등록 요청 메서드
-    public String registerConnectedId(AccountDto accountDto) throws Exception {
+    public String registerConnectedId(AccountRequestDto accountRequestDto) throws Exception {
         // 토큰이 유효한지 확인하고,
         String accessToken = codefTokenManager.getAccessToken();
         String requestUrl = "https://development.codef.io/v1/account/create";
 
         // 계정 등록 요청 바디 생성 (accountForm 활용)
-        String requestBody = buildRequestBody(accountDto);
+        String requestBody = buildRequestBody(accountRequestDto);
 
         // API 요청 보내기
         String response = sendPostRequest(requestUrl, accessToken, requestBody);
@@ -50,21 +50,21 @@ public class CodefApiRequester {
     }
 
     // ConnectedId 계정 추가 요청 메서드
-    public String addConnectedId(String connectedId, AccountDto accountDto) throws Exception {
+    public String addConnectedId(String connectedId, AccountRequestDto accountRequestDto) throws Exception {
         // 토큰이 유효한지 확인하고,
         String accessToken = codefTokenManager.getAccessToken();
         String requestUrl = "https://development.codef.io/v1/account/add";
 
-        String requestBody = buildRequestBody(accountDto, connectedId);
+        String requestBody = buildRequestBody(accountRequestDto, connectedId);
 
         sendPostRequest(requestUrl, accessToken, requestBody);
         return connectedId;
     }
 
     // 요청 바디 생성
-    private String buildRequestBody(AccountDto accountDto) {
+    private String buildRequestBody(AccountRequestDto accountRequestDto) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode accountInfo = buildAccountInfo(accountDto);
+        ObjectNode accountInfo = buildAccountInfo(accountRequestDto);
 
         ArrayNode accountList = mapper.createArrayNode();
         accountList.add(accountInfo);
@@ -76,9 +76,9 @@ public class CodefApiRequester {
     }
 
     // 요청 바디 생성(Overload)
-    private String buildRequestBody(AccountDto accountDto, String connectedId) {
+    private String buildRequestBody(AccountRequestDto accountRequestDto, String connectedId) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode accountInfo = buildAccountInfo(accountDto);
+        ObjectNode accountInfo = buildAccountInfo(accountRequestDto);
 
         ArrayNode accountList = mapper.createArrayNode();
         accountList.add(accountInfo);
@@ -91,19 +91,19 @@ public class CodefApiRequester {
     }
 
     // accountInfo 객체 생성
-    private ObjectNode buildAccountInfo(AccountDto accountDto) {
+    private ObjectNode buildAccountInfo(AccountRequestDto accountRequestDto) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode accountInfo = mapper.createObjectNode();
 
         accountInfo.put("countryCode", "KR");
         accountInfo.put("businessType", "BK");
         accountInfo.put("clientType", "P");
-        accountInfo.put("organization", accountDto.getBank());
+        accountInfo.put("organization", accountRequestDto.getBank());
         accountInfo.put("loginType", "1");
-        accountInfo.put("id", accountDto.getUserBankId());
+        accountInfo.put("id", accountRequestDto.getUserBankId());
 
         // 암호화된 비밀번호 추가
-        String encryptedPassword = RSAUtil.encryptRSA(accountDto.getBankPassword(), PUBLIC_KEY);
+        String encryptedPassword = RSAUtil.encryptRSA(accountRequestDto.getBankPassword(), PUBLIC_KEY);
         accountInfo.put("password", encryptedPassword);
 
         return accountInfo;
@@ -145,11 +145,11 @@ public class CodefApiRequester {
     }
 
     // 계좌 정보 조회 메서드
-    public List<CodefAccountDto> getAccountInfo(AccountDto accountDto, String connectedId) throws Exception {
+    public List<CodefAccountDto> getAccountInfo(AccountRequestDto accountRequestDto, String connectedId) throws Exception {
         String requestUrl = "https://development.codef.io/v1/kr/bank/p/account/account-list";
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode requestBody = mapper.createObjectNode();
-        requestBody.put("organization", accountDto.getBank());
+        requestBody.put("organization", accountRequestDto.getBank());
         requestBody.put("connectedId", connectedId);
 
         String response = sendPostRequest(requestUrl, codefTokenManager.getAccessToken(), requestBody.toString());
@@ -171,7 +171,7 @@ public class CodefApiRequester {
                 codefAccountDto.setMessage(message);
 
                 AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-                codefAccountDto.setBankVo(accountMapper.getBankByCode(accountDto.getBank()));
+                codefAccountDto.setBankVo(accountMapper.getBankByCode(accountRequestDto.getBank()));
 
                 accountList.add(codefAccountDto);
             }

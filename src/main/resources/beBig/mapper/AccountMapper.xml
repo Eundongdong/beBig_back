@@ -50,4 +50,19 @@
         WHERE t.account_num = #{accountNum}
         ORDER BY t.transaction_date DESC
     </select>
+
+    <select id="findAccountDetailsByUserId" resultType="beBig.dto.AccountResponseDto">
+        SELECT
+            a.account_num AS accountNum,
+            a.account_name AS accountName,
+            b.bank_name AS bankName,
+            (SELECT t.transaction_balance
+             FROM transaction t
+             WHERE t.account_num = a.account_num
+             ORDER BY t.transaction_date DESC
+                LIMIT 1) AS transactionBalance
+        FROM account a
+            JOIN bank b ON a.bank_id = b.bank_id
+        WHERE a.user_id = #{userId}
+    </select>
 </mapper>

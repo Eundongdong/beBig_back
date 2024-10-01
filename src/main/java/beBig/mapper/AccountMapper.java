@@ -1,5 +1,6 @@
 package beBig.mapper;
 
+import beBig.dto.AccountResponseDto;
 import beBig.vo.AccountVo;
 import beBig.vo.BankVo;
 import beBig.vo.TransactionVo;
@@ -22,4 +23,6 @@ public interface AccountMapper {
     List<TransactionVo> getTransactionsByAccountNum(String accountNum);
 
     AccountVo findAccountByAccountNum(String accountNum);
+
+    List<AccountResponseDto> findAccountDetailsByUserId(Long userId);
 }

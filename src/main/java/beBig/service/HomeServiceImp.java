@@ -39,19 +39,19 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public List<CodefAccountDto> getUserAccount(Long userId, AccountDto accountDto) throws Exception {
+    public List<CodefAccountDto> getUserAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         UserVo userInfo = userMapper.findByUserId(userId);
         String connectedId = userInfo.getUserConnectedId();
 
         if (connectedId != null) {
-            connectedId = codefApiRequester.addConnectedId(connectedId, accountDto);
+            connectedId = codefApiRequester.addConnectedId(connectedId, accountRequestDto);
         } else {
-            connectedId = codefApiRequester.registerConnectedId(accountDto);
+            connectedId = codefApiRequester.registerConnectedId(accountRequestDto);
             userMapper.updateUserConnectedId(userId, connectedId);
         }
 
-        return codefApiRequester.getAccountInfo(accountDto, connectedId);
+        return codefApiRequester.getAccountInfo(accountRequestDto, connectedId);
     }
 
     @Override
@@ -145,16 +145,16 @@ public class HomeServiceImp implements HomeService {
 
 
     @Override
-    public List<AccountVo> showMyAccount(Long userId) throws Exception {
+    public List<AccountResponseDto> showMyAccount(Long userId) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-        List<AccountVo> accountList = accountMapper.findAccountById(userId);
+        List<AccountResponseDto> accountDetails = accountMapper.findAccountDetailsByUserId(userId);
 
-        if (accountList == null || accountList.isEmpty()) {
+        if (accountDetails == null || accountDetails.isEmpty()) {
             log.warn("사용자와 연결된 계좌가 없습니다: {}", userId);
             throw new Exception("사용자와 연결된 계좌가 없습니다.");
         }
 
-        log.info("계좌 목록 조회 성공: 사용자 ID: {}, 계좌 수: {}", userId, accountList.size());
-        return accountList;
+        log.info("계좌 목록 조회 성공: 사용자 ID: {}, 계좌 수: {}", userId, accountDetails.size());
+        return accountDetails;
     }
 }
