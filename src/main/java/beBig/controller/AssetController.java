@@ -4,6 +4,7 @@ import beBig.dto.UserTotalAssetsDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.service.AssetService;
 import beBig.service.jwt.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +35,22 @@ public class AssetController {
     }
 
     @ApiOperation(value = "소비 패턴 분석")
-    @GetMapping("/{userId}/spending-patterns") //@RequestHeader("Authorization") String token
-    public ResponseEntity<SpendingPatternsResponseDto> spendingPatterns( @PathVariable Long userId, int year) {
-//        jwtUtil.extractUserIdFromToken(token);
-        SpendingPatternsResponseDto spendingPatternsResponseDto = assetService.showSpendingPatterns(userId, year);
-        return ResponseEntity.status(HttpStatus.OK).body(spendingPatternsResponseDto);
+    @GetMapping("/spending-patterns")
+    public ResponseEntity<SpendingPatternsResponseDto> spendingPatterns(@RequestHeader("Authorization") String token, int year) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            log.info("userId = {}", userId);
+            SpendingPatternsResponseDto spendingPatternsResponseDto = assetService.showSpendingPatterns(userId, year);
+            return ResponseEntity.status(HttpStatus.OK).body(spendingPatternsResponseDto);
+        } catch (JwtException e) {
+            // JWT 토큰이 유효하지 않거나 만료된 경우
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
+        } catch (Exception e) {
+            // 기타 예외 처리 (로깅 후 500 에러 반환)
+            log.error("Unexpected error occurred: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/{userNo}/product-recommendations")
@@ -47,13 +59,23 @@ public class AssetController {
     }
 
     @ApiOperation(value = "같은 나잇대 중 총자산 순위 조회")
-    @GetMapping("/{userId}/age-comparison")//@RequestHeader("Authorization") String token
-    public ResponseEntity<UserTotalAssetsDto> ageComparison(@PathVariable Long userId) {
-        //        long userId = jwtUtil.extractUserIdFromToken(token);
-        if(userId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    @GetMapping("/age-comparison")
+    public ResponseEntity<UserTotalAssetsDto> ageComparison(@RequestHeader("Authorization") String token) {
+        try{
+            // JWT 토큰에서 사용자 ID 추출
+            long userId = jwtUtil.extractUserIdFromToken(token);
+
+            UserTotalAssetsDto userTotalAssetsDto = assetService.showAgeComparison(userId);
+            return ResponseEntity.status(HttpStatus.OK).body(userTotalAssetsDto);
+
+        } catch (JwtException e) {
+            // JWT 토큰이 유효하지 않거나 만료된 경우
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+
+        } catch (Exception e) {
+            // 기타 예외 처리 (로깅 후 500 에러 반환)
+            log.error("Unexpected error occurred: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        UserTotalAssetsDto userTotalAssetsDto = assetService.showAgeComparison(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(userTotalAssetsDto);
     }
 }
