@@ -32,4 +32,6 @@ public class UserVo {
     private List<LikeHitsVo> likeHits;   // user가 누른 좋아요 목록
     private List<PersonalDailyMissionVo> dailyMissions;
     private PersonalMonthlyMissionVo monthlyMission;
+
+    //메서드 추가 Date-> 나이 가져오는거
 }

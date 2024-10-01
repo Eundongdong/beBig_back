@@ -3,7 +3,6 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="beBig.mapper.MyPageMapper">
-
     <!-- userId를 받아서 사용자 프로필을 조회하는 쿼리 -->
     <select id="findUserProfile" resultType="beBig.vo.UserProfileResponseVo" parameterType="long">
         SELECT u.fin_type_code,
@@ -45,5 +44,42 @@
         WHERE lh.user_id = #{userId}
         ORDER BY postTime desc;
     </select>
+
+    <select id="findLoginIdByUserId" resultType="string" parameterType="long">
+        SELECT user_login_type
+        FROM user
+        WHERE user_id = #{userId};
+    </select>
+
+    <!-- 사용자 정보 조회 -->
+    <select id="findEditDtoBy" resultType="beBig.dto.response.MyPageEditResponseDto" parameterType="long">
+        select user_intro,
+               user_nickname,
+               user_name,
+               user_login_id,
+               user_email,
+               user_gender,
+               DATE_FORMAT(user_birth, '%Y-%m-%d') as user_birth
+        from user
+        WHERE user_id = #{userId};
+    </select>
+
+
+    <update id="saveMyPageGeneral" parameterType="map">
+        update user
+        set user_password = #{userPassword},
+            user_intro = #{userIntro},
+            user_nickname = #{userNickname}
+        where user_id = #{userId};
+    </update>
+
+    <update id="saveMyPageSocial" parameterType="map">
+        update user
+        set user_intro    = #{userIntro},
+            user_nickname = #{userNickname}
+        where user_id = #{userId};
+    </update>
+
+
 
 </mapper>
