@@ -1,7 +1,6 @@
 package beBig.service;
 
 import beBig.dto.UserTotalAssetsDto;
-import beBig.dto.response.AgeComparisonResponseDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.mapper.AssetMapper;
 import beBig.mapper.UserMapper;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -127,6 +127,15 @@ public class AssetServiceImp implements AssetService {
         return new SpendingPatternsResponseDto(monthlySumList, monthlyAverage, previousMonthDiff);
     }
 
+    /**
+     * 같은 나잇대 유저들의 총 자산을 불러오고, UserId가 몇 등인지 반환
+     * 1. userId와 같은 나잇대 유저 List
+     * 2. 각 유저별로 계좌 List 찾기 + 각 유저의 총 자산 구하기
+     * 3. 같은 나잇대 유저의 총 자산을 기준으로 랭킹 부여하기
+     * 4. userId가 몇등인지 반환하기
+     * @param userId : 조회할 아이디
+     * @return UserTotalAssetsDto
+     */
     @Override
     public UserTotalAssetsDto showAgeComparison(long userId) {
         LocalDate now = LocalDate.now();
@@ -142,17 +151,18 @@ public class AssetServiceImp implements AssetService {
         Map<Long, UserTotalAssetsDto> totalAssetsDtoMap = new HashMap<>();  // userId로 빠른 접근을 위한 Map
         for (UserVo user : sameAgeUserList) {
             UserTotalAssetsDto totalAssetsDto = new UserTotalAssetsDto();
+            totalAssetsDto.setAgeRange(user.getUserAgeRange());
             totalAssetsDto.setUserId(user.getUserId());
-            totalAssetsDto.setAge(now.getYear() - user.getUserBirth().getYear() + 1);
+            totalAssetsDto.setAge(now.getYear() - user.getUserBirth().toInstant()
+                    .atZone(ZoneId.systemDefault()) // 시스템 기본 시간대 사용
+                    .toLocalDate().getYear() + 1);
 
             // 유저의 계좌 정보 불러오기
             List<String> accountNumList = assetMapper.findAccountNumByUserId(user.getUserId());
-            log.info("** userId:{}, accountNumList{} ** ", user.getUserId(), accountNumList);
             long totalAsset = 0;
             if (!accountNumList.isEmpty()) {
                 // 계좌 정보로 총 자산 계산
                 totalAsset = assetMapper.findTotalAssetsByAccountNum(accountNumList);
-                log.info("TotalAsset:{}", totalAsset);
             }
             totalAssetsDto.setTotalAssets(totalAsset);
 
@@ -171,8 +181,9 @@ public class AssetServiceImp implements AssetService {
             dto.setRank(rank++);
         }
 
-        // 유저의 순위 및 자산 찾기 (Map을 통해 빠르게 접근)
+        // 유저찾기
         UserTotalAssetsDto targetUser = totalAssetsDtoMap.get(userId);
+        targetUser.setTotalSameAgeRangeUsers(totalAssetsDtoList.size());
 
         return targetUser;
     }
