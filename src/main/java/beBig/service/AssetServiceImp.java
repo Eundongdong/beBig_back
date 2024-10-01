@@ -138,7 +138,6 @@ public class AssetServiceImp implements AssetService {
      */
     @Override
     public UserTotalAssetsDto showAgeComparison(long userId) {
-        LocalDate now = LocalDate.now();
         AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
 
@@ -153,9 +152,7 @@ public class AssetServiceImp implements AssetService {
             UserTotalAssetsDto totalAssetsDto = new UserTotalAssetsDto();
             totalAssetsDto.setAgeRange(user.getUserAgeRange());
             totalAssetsDto.setUserId(user.getUserId());
-            totalAssetsDto.setAge(now.getYear() - user.getUserBirth().toInstant()
-                    .atZone(ZoneId.systemDefault()) // 시스템 기본 시간대 사용
-                    .toLocalDate().getYear() + 1);
+            totalAssetsDto.setAge(user.getUserAge());
 
             // 유저의 계좌 정보 불러오기
             List<String> accountNumList = assetMapper.findAccountNumByUserId(user.getUserId());
