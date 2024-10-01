@@ -95,4 +95,10 @@ public class HomeServiceImp implements HomeService {
 
         return type;
     }
+
+    @Override
+    public void saveUserFinType(Long userId, int userFinType) {
+        HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
+        homeMapper.saveFinTypeWithUserId(userId, userFinType);
+    }
 }

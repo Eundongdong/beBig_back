@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin("*")
 @Controller
@@ -123,14 +124,40 @@ public class HomeController {
             log.error("서버 에러 발생 : {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
         }
+    }
+
+    @PostMapping("/fin-save")
+    public ResponseEntity<String> saveFinType(@RequestHeader("Authorization") String token,
+                                              @RequestBody Map<String, Object> requestBody) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            Integer userFinType = (Integer) requestBody.get("user_fin_type");
+            if (userFinType == null) {
+                log.error("user_fin_type 값이 없습니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_fin_type 값이 필요합니다.");
+            }
+            log.info("userFinType: {}", userFinType);
+            homeService.saveUserFinType(userId, userFinType);
+
+            return ResponseEntity.ok("success");
+        } catch (JwtException e) {
+            log.error("JWT 토큰 처리 중 오류 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 토큰입니다.");
+        } catch (ClassCastException e) {
+            log.error("user_fin_type 값 타입 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_fin_type 값은 정수형이어야 합니다.");
+        }  catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버에서 오류가 발생했습니다.");
+        }
+    }
 
 
-//
+    //
 //    @GetMapping("/account/{accountNum}/detail")
 //    public ResponseEntity<String> transactionList(@PathVariable String accountNum,
 //                                                  @RequestHeader("Authorization") String token) {
 //        Long userNo = extractUserNoFromToken(token);
 //        return ResponseEntity.status(HttpStatus.OK).body("거래 내역 조회");
 //    }
-    }
 }

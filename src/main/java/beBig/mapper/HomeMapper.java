@@ -3,6 +3,7 @@ package beBig.mapper;
 import beBig.vo.FinTestVo;
 import beBig.vo.FinTypeVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -10,5 +11,7 @@ import java.util.List;
 public interface HomeMapper {
     List<FinTestVo> findFinTest();
 
-    FinTypeVo findFinTypeByUserId(long userId);
+    FinTypeVo findFinTypeByUserId(@Param("userId") long userId);
+
+    void saveFinTypeWithUserId(@Param("userId") Long userId, @Param("userFinType") int userFinType);
 }
