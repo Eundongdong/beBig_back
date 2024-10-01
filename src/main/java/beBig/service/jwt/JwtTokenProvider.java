@@ -16,6 +16,7 @@ public class JwtTokenProvider {
     // io.jsonwebtoken.security.Keys를 통해 안전한 시크릿 키 생성
     private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 256비트 시크릿 키 생성
     private final long jwtExpirationInMs = 1800000; // 토큰 유효시간 30분
+    private final long refreshTokenExpirationInMs = 604800000; // 7일 (1주일)
 
     // JWT 토큰 생성
     public String generateToken(Long userId) {
@@ -48,4 +49,29 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+    // --- 신규추가 --- //
+
+    // Refresh Token 생성
+    public String generateRefreshToken(Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpirationInMs);
+        return Jwts.builder()
+                .claim("userId", userId)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(jwtSecret)
+                .compact();
+    }
+
+    // Refresh Token 검증 및 새로운 Access Token 발급
+    public String refreshAccessToken(String refreshToken) {
+        if (validateToken(refreshToken)) {
+            Long userId = getUserIdFromJWT(refreshToken);
+            return generateToken(userId);
+        }
+        throw new JwtException("Invalid Refresh Token");
+    }
+
+
 }
