@@ -1,14 +1,20 @@
 package beBig.service;
 
+import beBig.dto.UserTotalAssetsDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.mapper.*;
 import beBig.vo.*;
+import beBig.mapper.AssetMapper;
+import beBig.mapper.UserMapper;
+import beBig.vo.TransactionVo;
+import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,6 +64,7 @@ public class AssetServiceImp implements AssetService {
 
         // 현재 날짜 기준으로 연도와 월 정보를 가져옴
         LocalDate now = LocalDate.now();
+        log.info("now: {}", now);
         int currentYear = now.getYear();
         int currentMonthValue = now.getMonthValue(); // 현재 월 (1 ~ 12)
         log.info("currentYear:{}, currentMonthValue:{}", currentYear, currentMonthValue);
@@ -196,5 +203,61 @@ public class AssetServiceImp implements AssetService {
         recommendations.put("savingsRecommendations", topSavingsRecommendations);
 
         return recommendations;
+
+     * 같은 나잇대 유저들의 총 자산을 불러오고, UserId가 몇 등인지 반환
+     * 1. userId와 같은 나잇대 유저 List
+     * 2. 각 유저별로 계좌 List 찾기 + 각 유저의 총 자산 구하기
+     * 3. 같은 나잇대 유저의 총 자산을 기준으로 랭킹 부여하기
+     * 4. userId가 몇등인지 반환하기
+     * @param userId : 조회할 아이디
+     * @return UserTotalAssetsDto
+     */
+    @Override
+    public UserTotalAssetsDto showAgeComparison(long userId) {
+        AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+
+        // userId와 같은 나잇대의 유저 리스트 가져오기
+        List<UserVo> sameAgeUserList = userMapper.findBySameAgeRange(userId);
+        log.info("sameAgeUserList{}", sameAgeUserList);
+
+        // UserId별로 계좌 리스트 받아오기 및 총 자산 계산
+        List<UserTotalAssetsDto> totalAssetsDtoList = new ArrayList<>();
+        Map<Long, UserTotalAssetsDto> totalAssetsDtoMap = new HashMap<>();  // userId로 빠른 접근을 위한 Map
+        for (UserVo user : sameAgeUserList) {
+            UserTotalAssetsDto totalAssetsDto = new UserTotalAssetsDto();
+            totalAssetsDto.setAgeRange(user.getUserAgeRange());
+            totalAssetsDto.setUserId(user.getUserId());
+            totalAssetsDto.setAge(user.getUserAge());
+
+            // 유저의 계좌 정보 불러오기
+            List<String> accountNumList = assetMapper.findAccountNumByUserId(user.getUserId());
+            long totalAsset = 0;
+            if (!accountNumList.isEmpty()) {
+                // 계좌 정보로 총 자산 계산
+                totalAsset = assetMapper.findTotalAssetsByAccountNum(accountNumList);
+            }
+            totalAssetsDto.setTotalAssets(totalAsset);
+
+            // 리스트와 맵에 각각 저장
+            totalAssetsDtoList.add(totalAssetsDto);
+            totalAssetsDtoMap.put(user.getUserId(), totalAssetsDto);
+        }
+
+        // 총 자산을 기준으로 내림차순 정렬 후 순위 부여
+        totalAssetsDtoList.sort(Comparator.comparingDouble(UserTotalAssetsDto::getTotalAssets).reversed());
+        log.info("totalAssetsDtoList{}", totalAssetsDtoList);
+
+        // Rank 부여
+        int rank = 1;
+        for (UserTotalAssetsDto dto : totalAssetsDtoList) {
+            dto.setRank(rank++);
+        }
+
+        // 유저찾기
+        UserTotalAssetsDto targetUser = totalAssetsDtoMap.get(userId);
+        targetUser.setTotalSameAgeRangeUsers(totalAssetsDtoList.size());
+
+        return targetUser;
     }
 }

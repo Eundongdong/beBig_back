@@ -18,5 +18,6 @@
         <typeAlias alias="DepositProductVo" type="beBig.vo.DepositProductVo"></typeAlias>
         <typeAlias alias="SavingsProductVo" type="beBig.vo.SavingsProductVo"></typeAlias>
         <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
+        <typeAlias alias="UserTotalAssetsDto" type="beBig.dto.UserTotalAssetsDto" />
     </typeAliases>
 </configuration>

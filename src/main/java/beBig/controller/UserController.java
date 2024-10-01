@@ -1,14 +1,19 @@
 package beBig.controller;
 
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.form.LoginForm;
 import beBig.form.UserForm;
+import beBig.mapper.MissionMapper;
 import beBig.service.CustomUserDetails;
 import beBig.service.CustomUserDetailsService;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
+import beBig.service.jwt.JwtUtil;
 import beBig.service.oauth.KakaoOauthService;
-import beBig.vo.UtilVo;
+import beBig.vo.*;
+import com.amazonaws.Response;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -40,6 +45,8 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final KakaoOauthService kakaoLoginService;
+    private final MissionMapper missionMapper;
+    private final JwtUtil jwtUtil;
 
 //    @Autowired
 //    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
@@ -253,9 +260,50 @@ public class UserController {
 
     @GetMapping("/terms")
     public ResponseEntity<List<UtilVo>> getTerms() {
-        List<UtilVo> terms = userService.getUtilTerms();
-        return ResponseEntity.ok(terms);
+        try {
+            List<UtilVo> terms = userService.getUtilTerms();
+            return ResponseEntity.ok(terms);
+        } catch (IllegalArgumentException e) {
+            log.info("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
     }
+
+    @GetMapping("/fin-test")
+    public ResponseEntity<List<FinTestVo>> getTest() {
+        try {
+            List<FinTestVo> testList = userService.findMission();
+            return ResponseEntity.ok(testList);
+        } catch (IllegalArgumentException e) {
+            log.info("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
+    }
+
+    @GetMapping("/fin-type")
+    public ResponseEntity<FinInfoResponseDto> getType(@RequestHeader("Authorization") String token) {
+        try {
+            // JWT 토큰에서 userId 추출
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            // 추출된 userId로 금융 정보를 가져옴
+            FinInfoResponseDto type = userService.findFinTypeByUserId(userId);
+            return ResponseEntity.ok(type);
+        } catch (JwtException e) {
+            log.error("JWT 토큰 처리 중 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);  // 401 Unauthorized
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
 
 
 //    @GetMapping("/social-signup/info")
@@ -274,4 +322,5 @@ public class UserController {
 //        return "/index";
 //    }
 
+    }
 }

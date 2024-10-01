@@ -3,6 +3,8 @@ package beBig.vo;
 import lombok.Data;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Data
@@ -24,6 +26,7 @@ public class UserVo {
     private String userConnectedId;
     private String userIntro;
     private int userSalary;
+    private int userVisibility; // 0 = 비공개 , 1 = 공개
 
     private FinTypeVo finType;    // fin_type_code
     private BadgeVo badge;        // badge_code
@@ -31,4 +34,26 @@ public class UserVo {
     private List<LikeHitsVo> likeHits;   // user가 누른 좋아요 목록
     private List<PersonalDailyMissionVo> dailyMissions;
     private PersonalMonthlyMissionVo monthlyMission;
+
+    public LocalDate getUserBirthLocalDate() {
+        if (userBirth == null) {
+            return LocalDate.now();
+        }
+        LocalDate birthDateLocalDate = userBirth.toLocalDate();
+        return birthDateLocalDate;
+    }
+
+    public int getUserAge(){
+        LocalDate now = LocalDate.now();
+        if (userBirth == null) {
+            return 0;
+        }
+
+        // java.sql.Date -> LocalDate 변환
+        LocalDate birthDate = userBirth.toLocalDate();
+
+        // 나이 계산
+        int age = now.getYear() - birthDate.getYear() + 1;
+        return age;
+    }
 }

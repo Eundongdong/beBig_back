@@ -12,13 +12,27 @@ import java.util.List;
 
 @Mapper
 public interface MissionMapper {
-    // 특정 userId에 해당하는 Daily Mission 목록을 가져옴
     List<DailyMissionResponseDto> getPersonalDailyMission(@Param("userId") long userId);
 
-    // 특정 userId에 해당하는 가장 최근의 Monthly Mission을 가져옴
     MonthlyMissionResponseDto getPersonalMonthlyMission(@Param("userId") long userId);
 
     void completeMonthlyMission(@Param("personalMissionId") long personalMissionId);
+
     void completeDailyMonthlyMission(@Param("personalMissionId") long personalMissionId);
+
+    int findSalaryByUserId(@Param("userId") long userId);
+
+    double findSaveRateByUserIdAndMissionId(@Param("userId") long userId, @Param("missionId") long missionId);
+
+    double findUseRateByUserIdAndMissionId(@Param("userId") long userId, @Param("missionId") long missionId);
+
+    int findMissionCategoryByMissionId(@Param("missionId") long missionId);
+
+    //mission score 갱신 듀오 가져오고 업데이트
+    int findCurrentMissionMonthScoreByUserId(@Param("userId") long userId);
+
+    void updateCurrentMissionMonthScoreByUserId(@Param("userId") long userId, @Param("score") int score);
+
+    long findMissionIsCompletedByPersonalMissionId(@Param("personalMissionId") long personalMissionId);
 }
 
