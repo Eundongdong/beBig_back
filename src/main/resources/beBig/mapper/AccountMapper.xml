@@ -9,6 +9,12 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="findAccountByAccountNum" parameterType="String" resultType="AccountVo">
+        SELECT *
+        FROM account
+        WHERE account_num = #{accountNum}
+    </select>
+
     <insert id="insertAccount" parameterType="AccountVo">
         INSERT INTO account(account_num, bank_id, account_name, user_id, account_type)
         VALUES (#{accountNum}, #{bankId}, #{accountName}, #{userId}, #{accountType})
@@ -18,5 +24,30 @@
         SELECT *
         FROM bank
         WHERE bank_code_codef = #{bankCode}
+    </select>
+
+    <select id="getBankById" resultType="BankVo">
+        SELECT *
+        FROM bank
+        WHERE bank_id = #{bankId}
+    </select>
+
+    <insert id="insertTransaction" parameterType="TransactionVo">
+        INSERT INTO transaction (account_num, transaction_vendor, transaction_balance, transaction_amount, transaction_date, transaction_type)
+        VALUES (#{accountNum}, #{transactionVendor}, #{transactionBalance}, #{transactionAmount}, #{transactionDate}, #{transactionType})
+    </insert>
+
+    <!-- 거래 내역 조회 시 account와 bank 정보를 함께 가져오는 쿼리 -->
+    <select id="getTransactionsByAccountNum" resultType="TransactionVo">
+        SELECT
+            t.account_num AS accountNum,
+            t.transaction_vendor AS transactionVendor,
+            t.transaction_balance AS transactionBalance,
+            t.transaction_amount AS transactionAmount,
+            t.transaction_date AS transactionDate,
+            t.transaction_type AS transactionType
+        FROM transaction t
+        WHERE t.account_num = #{accountNum}
+        ORDER BY t.transaction_date DESC
     </select>
 </mapper>
