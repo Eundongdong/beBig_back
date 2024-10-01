@@ -1,6 +1,9 @@
 package beBig.service;
 
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.form.UserForm;
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
 import org.springframework.stereotype.Service;
@@ -21,4 +24,8 @@ public interface UserService {
     List<UtilVo> getUtilTerms(); // 약관조회
 
     Long findUserIdByKakaoId(String kakaoId);
+
+    List<FinTestVo> findMission();
+
+    FinInfoResponseDto findFinTypeByUserId(Long userId);
 }

@@ -1,5 +1,7 @@
 package beBig.mapper;
 
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
 import org.apache.ibatis.annotations.Mapper;
@@ -29,6 +31,10 @@ public interface UserMapper {
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 
     Long getUserIdByKaKaoId(String userLoginId);
+
+    List<FinTestVo> findFinTest();
+
+    FinTypeVo findFinTypeByUserId(long userId);
 
     List<UserVo> findBySameAgeRange(long userId);
 }
