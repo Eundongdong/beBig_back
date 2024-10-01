@@ -1,10 +1,13 @@
 package beBig.controller;
 
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtTokenProvider;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.AccountVo;
+import beBig.vo.FinTestVo;
 import beBig.vo.UserVo;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -70,7 +73,8 @@ public class HomeController {
     public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token) {
         return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
     }
-//
+
+    //
 //    @GetMapping("/mission")
 //    public ResponseEntity<String> missionList(@RequestHeader("Authorization") String token) {
 //        Long userNo = extractUserNoFromToken(token);
@@ -78,14 +82,48 @@ public class HomeController {
 //    }
 //
 // 계좌 목록 불러오기
-@GetMapping("/account/list")
-public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
+    @GetMapping("/account/list")
+    public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
 
-    Long userId = jwtUtil.extractUserIdFromToken(token);
-    List<AccountVo> accountList = homeService.showMyAccount(userId);
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+        List<AccountVo> accountList = homeService.showMyAccount(userId);
 
-    return ResponseEntity.ok(accountList);
-}
+        return ResponseEntity.ok(accountList);
+    }
+
+    @GetMapping("/fin-test")
+    public ResponseEntity<List<FinTestVo>> getTest() {
+        try {
+            List<FinTestVo> testList = homeService.findMission();
+            return ResponseEntity.ok(testList);
+        } catch (IllegalArgumentException e) {
+            log.info("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
+    }
+
+    @GetMapping("/fin-type")
+    public ResponseEntity<FinInfoResponseDto> getType(@RequestHeader("Authorization") String token) {
+        try {
+            // JWT 토큰에서 userId 추출
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            // 추출된 userId로 금융 정보를 가져옴
+            FinInfoResponseDto type = homeService.findFinTypeByUserId(userId);
+            return ResponseEntity.ok(type);
+        } catch (JwtException e) {
+            log.error("JWT 토큰 처리 중 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);  // 401 Unauthorized
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
+
 
 //
 //    @GetMapping("/account/{accountNum}/detail")
@@ -94,4 +132,5 @@ public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization
 //        Long userNo = extractUserNoFromToken(token);
 //        return ResponseEntity.status(HttpStatus.OK).body("거래 내역 조회");
 //    }
+    }
 }
