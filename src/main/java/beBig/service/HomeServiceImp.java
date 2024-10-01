@@ -1,8 +1,12 @@
 package beBig.service;
 
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.mapper.AccountMapper;
+import beBig.mapper.HomeMapper;
 import beBig.mapper.UserMapper;
 import beBig.vo.AccountVo;
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -64,5 +68,31 @@ public class HomeServiceImp implements HomeService {
 
         log.info("사용자의 계좌 목록 조회 성공: {}", accountList.size());
         return accountList; // 계좌 목록 반환
+    }
+
+    @Override
+    public List<FinTestVo> findMission() {
+        HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
+        List<FinTestVo> list = homeMapper.findFinTest();
+        return list;
+    }
+
+    @Override
+    public FinInfoResponseDto findFinTypeByUserId(Long userId) {
+        HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
+        FinTypeVo vo = homeMapper.findFinTypeByUserId(userId);
+        FinInfoResponseDto type = new FinInfoResponseDto();
+
+        type.setFinTypeAnimal(vo.getFinTypeAnimal());
+        type.setFinTypeTitle(vo.getFinTypeTitle());
+        type.setFinTypeHabit1(vo.getFinTypeHabit1());
+        type.setFinTypeHabit2(vo.getFinTypeHabit2());
+        type.setFinTypeAnimalDescription(vo.getFinTypeAnimalDescription());
+        type.setFinTypeTitleDescription(vo.getFinTypeTitleDescription());
+        type.setFinTypeCode(vo.getFinTypeCode());
+
+        log.info("type : {}", type);
+
+        return type;
     }
 }

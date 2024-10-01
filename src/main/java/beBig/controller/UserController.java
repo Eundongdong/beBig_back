@@ -272,39 +272,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/fin-test")
-    public ResponseEntity<List<FinTestVo>> getTest() {
-        try {
-            List<FinTestVo> testList = userService.findMission();
-            return ResponseEntity.ok(testList);
-        } catch (IllegalArgumentException e) {
-            log.info("잘못된 요청 : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
-        } catch (Exception e) {
-            log.error("서버 에러 발생 : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
-        }
-    }
-
-    @GetMapping("/fin-type")
-    public ResponseEntity<FinInfoResponseDto> getType(@RequestHeader("Authorization") String token) {
-        try {
-            // JWT 토큰에서 userId 추출
-            Long userId = jwtUtil.extractUserIdFromToken(token);
-            // 추출된 userId로 금융 정보를 가져옴
-            FinInfoResponseDto type = userService.findFinTypeByUserId(userId);
-            return ResponseEntity.ok(type);
-        } catch (JwtException e) {
-            log.error("JWT 토큰 처리 중 에러 발생 : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);  // 401 Unauthorized
-        } catch (IllegalArgumentException e) {
-            log.error("잘못된 요청 : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
-        } catch (Exception e) {
-            log.error("서버 에러 발생 : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
-        }
-
 
 //    @GetMapping("/social-signup/info")
 //    public ResponseEntity<String> infoSocialSignup() {
@@ -322,5 +289,5 @@ public class UserController {
 //        return "/index";
 //    }
 
-    }
 }
+

@@ -25,7 +25,5 @@ public interface UserService {
 
     Long findUserIdByKakaoId(String kakaoId);
 
-    List<FinTestVo> findMission();
 
-    FinInfoResponseDto findFinTypeByUserId(Long userId);
 }
