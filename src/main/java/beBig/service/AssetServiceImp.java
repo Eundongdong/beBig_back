@@ -151,7 +151,7 @@ public class AssetServiceImp implements AssetService {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
         UserVo userVo = userMapper.findByUserId(userId);
-        if(userVo == null){
+        if (userVo == null) {
             // 유저 정보가 없으면 빈 맵 반환
             return new HashMap<>();
         }
@@ -160,7 +160,7 @@ public class AssetServiceImp implements AssetService {
         int finTypeCode = userVo.getFinTypeCode();
 
         // 주거래 은행 조회(account 테이블 사용)
-        int primaryBankId  = accountMapper.findPrimaryBankId(userId);
+        int primaryBankId = accountMapper.findPrimaryBankId(userId);
 
         // 다른 거래은행 조회
         Map<String, Object> paramsForOtherBanks = new HashMap<>();
@@ -204,6 +204,8 @@ public class AssetServiceImp implements AssetService {
 
         return recommendations;
 
+    }
+     /**
      * 같은 나잇대 유저들의 총 자산을 불러오고, UserId가 몇 등인지 반환
      * 1. userId와 같은 나잇대 유저 List
      * 2. 각 유저별로 계좌 List 찾기 + 각 유저의 총 자산 구하기
