@@ -4,7 +4,7 @@ import beBig.vo.BankVo;
 import lombok.Data;
 
 @Data
-public class CodefResponseDto {
+public class CodefAccountDto {
     private String resAccountBalance;        // 현재잔액
     private String resAccount;               // 계좌번호
     private String resAccountDeposit;        // 예금구분

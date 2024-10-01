@@ -1,13 +1,16 @@
 package beBig.service.codef;
 
-import beBig.dto.AccountDto;
-import beBig.dto.CodefResponseDto;
+import beBig.dto.AccountRequestDto;
+import beBig.dto.CodefAccountDto;
+import beBig.dto.CodefTransactionRequestDto;
+import beBig.dto.CodefTransactionResponseDto;
 import beBig.mapper.AccountMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CodefApiRequester {
 
     @Value("${codef.RSA_public_key}")
@@ -31,13 +35,13 @@ public class CodefApiRequester {
     private final SqlSessionTemplate sqlSessionTemplate;
 
     // ConnectedId 계정 등록 요청 메서드
-    public String registerConnectedId(AccountDto accountDto) throws Exception {
+    public String registerConnectedId(AccountRequestDto accountRequestDto) throws Exception {
         // 토큰이 유효한지 확인하고,
         String accessToken = codefTokenManager.getAccessToken();
         String requestUrl = "https://development.codef.io/v1/account/create";
 
         // 계정 등록 요청 바디 생성 (accountForm 활용)
-        String requestBody = buildRequestBody(accountDto);
+        String requestBody = buildRequestBody(accountRequestDto);
 
         // API 요청 보내기
         String response = sendPostRequest(requestUrl, accessToken, requestBody);
@@ -46,21 +50,21 @@ public class CodefApiRequester {
     }
 
     // ConnectedId 계정 추가 요청 메서드
-    public String addConnectedId(String connectedId, AccountDto accountDto) throws Exception {
+    public String addConnectedId(String connectedId, AccountRequestDto accountRequestDto) throws Exception {
         // 토큰이 유효한지 확인하고,
         String accessToken = codefTokenManager.getAccessToken();
         String requestUrl = "https://development.codef.io/v1/account/add";
 
-        String requestBody = buildRequestBody(accountDto, connectedId);
+        String requestBody = buildRequestBody(accountRequestDto, connectedId);
 
         sendPostRequest(requestUrl, accessToken, requestBody);
         return connectedId;
     }
 
     // 요청 바디 생성
-    private String buildRequestBody(AccountDto accountDto) {
+    private String buildRequestBody(AccountRequestDto accountRequestDto) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode accountInfo = buildAccountInfo(accountDto);
+        ObjectNode accountInfo = buildAccountInfo(accountRequestDto);
 
         ArrayNode accountList = mapper.createArrayNode();
         accountList.add(accountInfo);
@@ -72,9 +76,9 @@ public class CodefApiRequester {
     }
 
     // 요청 바디 생성(Overload)
-    private String buildRequestBody(AccountDto accountDto, String connectedId) {
+    private String buildRequestBody(AccountRequestDto accountRequestDto, String connectedId) {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode accountInfo = buildAccountInfo(accountDto);
+        ObjectNode accountInfo = buildAccountInfo(accountRequestDto);
 
         ArrayNode accountList = mapper.createArrayNode();
         accountList.add(accountInfo);
@@ -87,19 +91,19 @@ public class CodefApiRequester {
     }
 
     // accountInfo 객체 생성
-    private ObjectNode buildAccountInfo(AccountDto accountDto) {
+    private ObjectNode buildAccountInfo(AccountRequestDto accountRequestDto) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode accountInfo = mapper.createObjectNode();
 
         accountInfo.put("countryCode", "KR");
         accountInfo.put("businessType", "BK");
         accountInfo.put("clientType", "P");
-        accountInfo.put("organization", accountDto.getBank());
+        accountInfo.put("organization", accountRequestDto.getBank());
         accountInfo.put("loginType", "1");
-        accountInfo.put("id", accountDto.getUserBankId());
+        accountInfo.put("id", accountRequestDto.getUserBankId());
 
         // 암호화된 비밀번호 추가
-        String encryptedPassword = RSAUtil.encryptRSA(accountDto.getBankPassword(), PUBLIC_KEY);
+        String encryptedPassword = RSAUtil.encryptRSA(accountRequestDto.getBankPassword(), PUBLIC_KEY);
         accountInfo.put("password", encryptedPassword);
 
         return accountInfo;
@@ -141,16 +145,16 @@ public class CodefApiRequester {
     }
 
     // 계좌 정보 조회 메서드
-    public List<CodefResponseDto> getAccountInfo(AccountDto accountDto, String connectedId) throws Exception {
+    public List<CodefAccountDto> getAccountInfo(AccountRequestDto accountRequestDto, String connectedId) throws Exception {
         String requestUrl = "https://development.codef.io/v1/kr/bank/p/account/account-list";
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode requestBody = mapper.createObjectNode();
-        requestBody.put("organization", accountDto.getBank());
+        requestBody.put("organization", accountRequestDto.getBank());
         requestBody.put("connectedId", connectedId);
 
         String response = sendPostRequest(requestUrl, codefTokenManager.getAccessToken(), requestBody.toString());
 
-        List<CodefResponseDto> accountList = new ArrayList<>();
+        List<CodefAccountDto> accountList = new ArrayList<>();
         JsonNode jsonResponse = mapper.readTree(response);
 
         // 응답에서 따로 메시지를 추출
@@ -159,19 +163,58 @@ public class CodefApiRequester {
         JsonNode depositTrustList = jsonResponse.path("data").path("resDepositTrust");
         if (depositTrustList.isArray() && depositTrustList.size() > 0) {
             for (JsonNode accountInfo : depositTrustList) {
-                CodefResponseDto codefResponseDto = new CodefResponseDto();
-                codefResponseDto.setResAccount(accountInfo.get("resAccount").asText());
-                codefResponseDto.setResAccountBalance(accountInfo.get("resAccountBalance").asText());
-                codefResponseDto.setResAccountDeposit(accountInfo.get("resAccountDeposit").asText());
-                codefResponseDto.setResAccountName(accountInfo.get("resAccountName").asText());
-                codefResponseDto.setMessage(message);
+                CodefAccountDto codefAccountDto = new CodefAccountDto();
+                codefAccountDto.setResAccount(accountInfo.get("resAccount").asText());
+                codefAccountDto.setResAccountBalance(accountInfo.get("resAccountBalance").asText());
+                codefAccountDto.setResAccountDeposit(accountInfo.get("resAccountDeposit").asText());
+                codefAccountDto.setResAccountName(accountInfo.get("resAccountName").asText());
+                codefAccountDto.setMessage(message);
 
                 AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-                codefResponseDto.setBankVo(accountMapper.getBankByCode(accountDto.getBank()));
+                codefAccountDto.setBankVo(accountMapper.getBankByCode(accountRequestDto.getBank()));
 
-                accountList.add(codefResponseDto);
+                accountList.add(codefAccountDto);
             }
         }
         return accountList;
     }
+
+    public CodefTransactionResponseDto getTransactionHistory(CodefTransactionRequestDto requestDto) throws Exception {
+        String accessToken = codefTokenManager.getAccessToken();
+        String requestUrl = "https://development.codef.io/v1/kr/bank/p/account/transaction-list";
+
+        // 요청 바디 생성
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(requestDto);
+
+        // API 요청 보내기
+        String response = sendPostRequest(requestUrl, accessToken, requestBody);
+
+        // 응답 파싱
+        JsonNode jsonNode = objectMapper.readTree(response);
+
+        // 결과 코드 체크
+        String resultCode = jsonNode.path("result").path("code").asText();
+        if (!"CF-00000".equals(resultCode)) {
+            throw new Exception("Codef API error: " + jsonNode.path("result").path("message").asText());
+        }
+
+        // CodefTransactionResponseDto 생성
+        CodefTransactionResponseDto transactionResponseDto = new CodefTransactionResponseDto();
+        transactionResponseDto.setAccountNum(jsonNode.path("data").path("resAccount").asText());
+
+        // 거래 내역 리스트 존재 여부 체크
+        ArrayNode transactionArray = (ArrayNode) jsonNode.path("data").path("resTrHistoryList");
+        List<CodefTransactionResponseDto.HistoryItem> historyItems = new ArrayList<>();
+
+        // 각 항목을 DTO로 변환하여 리스트에 추가
+        for (JsonNode node : transactionArray) {
+            CodefTransactionResponseDto.HistoryItem historyItem = objectMapper.treeToValue(node, CodefTransactionResponseDto.HistoryItem.class);
+            historyItems.add(historyItem);
+        }
+
+        transactionResponseDto.setResTrHistoryList(historyItems);
+        return transactionResponseDto;
+    }
+
 }

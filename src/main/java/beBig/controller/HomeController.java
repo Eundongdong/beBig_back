@@ -1,7 +1,6 @@
 package beBig.controller;
 
-import beBig.dto.AccountDto;
-import beBig.dto.CodefResponseDto;
+import beBig.dto.*;
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.AccountVo;
@@ -13,8 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin("*")
 @Controller
@@ -61,46 +63,24 @@ public class HomeController {
 //    }
 //
 
-    /**
-     *
-     * @param token
-     * @param accountDto : codef api요청에 필요한 데이터
-     * @return codef api 요청으로부터 받은 은행정보
-     */
+    // 사용자 계좌 정보 가져오기 - codef
     @PostMapping("/account")
-    public ResponseEntity<List<CodefResponseDto>> getAccount(@RequestHeader("Authorization") String token,
-                                                             @RequestBody AccountDto accountDto) throws Exception {
-        // JWT 토큰에서 userId 추출
+    public ResponseEntity<List<CodefAccountDto>> getAccount(@RequestHeader("Authorization") String token,
+                                                            @RequestBody AccountRequestDto accountRequestDto) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-
-        // 사용자의 계좌 정보 가져오기
-        List<CodefResponseDto> accountList = homeService.getUserAccount(userId, accountDto);
-
+        List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
         return ResponseEntity.ok(accountList);
     }
 
-    /**
-     * 프론트에서 계좌를 선택해서 보낸 데이터
-     * @param token
-     * @param codefResponseDtoList
-     * @return
-     * @throws Exception
-     */
+    // 계좌를 db에 등록
     @PostMapping("/account/add")
     public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token,
-                                             @RequestBody List<CodefResponseDto> codefResponseDtoList) throws Exception {
-        // JWT 토큰에서 userId 추출
+                                             @RequestBody List<CodefAccountDto> codefAccountDtoList) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-
-        // 계좌를 데이터베이스에 추가
-        boolean isAdded = homeService.addAccountToDB(userId, codefResponseDtoList);
-
-        if (isAdded) {
-            return ResponseEntity.status(HttpStatus.OK).body("계좌 추가 완료");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 추가 실패");
-        }
+        boolean isAdded = homeService.addAccountToDB(userId, codefAccountDtoList);
+        return isAdded ? ResponseEntity.ok("계좌 추가 완료") : ResponseEntity.badRequest().body("계좌 추가 실패");
     }
+
 
 //    @GetMapping("/mission")
 //    public ResponseEntity<String> missionList(@RequestHeader("Authorization") String token) {
@@ -109,21 +89,48 @@ public class HomeController {
 //    }
 
     //
-// 계좌 목록 불러오기
+    // 계좌 목록 불러오기
     @GetMapping("/account/list")
-    public ResponseEntity<List<AccountVo>> accountList(@RequestHeader("Authorization") String token) throws Exception {
-
+    public ResponseEntity<List<AccountResponseDto>> accountList(@RequestHeader("Authorization") String token) throws Exception {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<AccountVo> accountList = homeService.showMyAccount(userId);
+        List<AccountResponseDto> accountList = homeService.showMyAccount(userId);
 
         return ResponseEntity.ok(accountList);
     }
 
-//
-    @GetMapping("/account/{accountNum}/detail")
-    public ResponseEntity<String> transactionList(@PathVariable String accountNum,
-                                                  @RequestHeader("Authorization") String token) {
+    // 계좌별 거래내역 조회
+    @GetMapping("/account/{accountNum}/transactions")
+    public ResponseEntity<AccountTransactionDto> getTransactionList(@RequestHeader("Authorization") String token,
+                                                                    @PathVariable String accountNum) {
         Long userId = jwtUtil.extractUserIdFromToken(token);
-        return ResponseEntity.status(HttpStatus.OK).body("거래 내역 조회");
+        AccountTransactionDto response = homeService.getTransactionList(userId, accountNum);
+        return ResponseEntity.ok(response);
+    }
+
+    // 거래 내역 저장 -> Spring Batch를 활용하여 스케줄링 예정으로, 수정 필요함
+    @PostMapping("/transactions")
+    public ResponseEntity<Void> saveTransactions(@RequestHeader("Authorization") String token,
+                                                 @RequestBody Map<String, String> requestBody) throws Exception {
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+
+        // 거래 내역 요청 객체 생성 및 설정
+        CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
+        UserVo userInfo = homeService.getUserInfo(userId);
+        requestDto.setAccount(requestBody.get("accountNum"));
+        requestDto.setConnectedId(userInfo.getUserConnectedId());
+        requestDto.setOrganization("0004");
+
+        // 날짜 설정 (최근 3일)
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        requestDto.setStartDate(startDate.format(formatter));
+        requestDto.setEndDate(endDate.format(formatter));
+        requestDto.setOrderBy("0");
+
+        // 거래 내역 저장
+        homeService.saveTransactions(userId, requestDto);
+
+        return ResponseEntity.ok().build();
     }
 }

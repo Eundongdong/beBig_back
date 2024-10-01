@@ -11,5 +11,6 @@
         <typeAlias alias="PostVo" type="beBig.vo.PostVo"/>
         <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"/>
         <typeAlias alias="BankVo" type="beBig.vo.BankVo"/>
+        <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
     </typeAliases>
 </configuration>

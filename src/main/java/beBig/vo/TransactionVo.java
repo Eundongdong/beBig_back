@@ -2,13 +2,15 @@ package beBig.vo;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class TransactionVo {
     private int transactionId;
-    private String transactionAccountNum;
+    private String accountNum;
     private String transactionVendor;
     private int transactionBalance;
     private int transactionAmount;
-    private String transactionDate; // 추후 유틸 클래스를 통해 Date로 변환예정
+    private Date transactionDate;
     private String transactionType;
 }
