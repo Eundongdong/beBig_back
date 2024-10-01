@@ -35,6 +35,14 @@ public class UserVo {
     private List<PersonalDailyMissionVo> dailyMissions;
     private PersonalMonthlyMissionVo monthlyMission;
 
+    public LocalDate getUserBirthLocalDate() {
+        if (userBirth == null) {
+            return LocalDate.now();
+        }
+        LocalDate birthDateLocalDate = userBirth.toLocalDate();
+        return birthDateLocalDate;
+    }
+
     public int getUserAge(){
         LocalDate now = LocalDate.now();
         if (userBirth == null) {
