@@ -8,7 +8,7 @@
     <select id="findAccountNumByUserId" resultType="string">
         SELECT account_num
         FROM account JOIN user ON account.user_id = user.user_id
-        WHERE account.user_id = #{userId}
+        WHERE user.user_id =#{userId}
     </select>
 
     <!-- accountNum으로 Transaction 출금 정보를 조회하는 쿼리 -->
@@ -19,4 +19,21 @@
         WHERE transaction.account_num = #{accountNum}
         AND transaction.transaction_type='출금'
     </select>
+
+    <!-- List<accountNum>에 있는 잔액의 총 합을 가져오는 쿼리-->
+    <select id="findTotalAssetsByAccountNum" resultType="long" parameterType="list">
+        SELECT sum(transaction_balance) as balance
+        FROM transaction
+        WHERE account_num IN
+        <foreach item="accountNum" collection="list" open="(" separator="," close=")">
+            #{accountNum}
+        </foreach>
+        AND transaction_date = (
+        SELECT MAX(transaction_date)
+        FROM transaction t2
+        WHERE t2.account_num = transaction.account_num
+        )
+    </select>
+
+
 </mapper>

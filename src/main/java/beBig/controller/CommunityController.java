@@ -6,7 +6,7 @@ import beBig.exception.NoContentFoundException;
 import beBig.service.CommunityService;
 import beBig.service.jwt.JwtUtil;
 import beBig.vo.PostVo;
-import beBig.vo.UserVo;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,16 +32,22 @@ public class CommunityController {
         this.jwtUtil = jwtUtil;
     }
 
+    @ApiOperation(value = "게시글 페이지 단위로 불러오기")
     @PostMapping()
-    public ResponseEntity<List<PostVo>> list(@RequestParam(value = "category", required = false) Optional<Integer> postCategory,
+    public ResponseEntity<List<PostVo>> list(@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit,
+                                             @RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset,
+                                             @RequestParam(value = "category", required = false) Optional<Integer> postCategory,
                                              @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode) {
         // Optional에서 값이 없을 경우 -1로 처리
         int category = postCategory.orElse(-1);
         log.info("category: " + category);
         int type = finTypeCode.orElse(-1);
         log.info("type: " + type);
+        int page = offset.orElse(0);
+        log.info("page: " + page);
+        int pageSize = limit.orElse(10);
 
-        List<PostVo> list = communityService.showList(category, type);
+        List<PostVo> list = communityService.showList(category, type,page,pageSize);
         if (list == null || list.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

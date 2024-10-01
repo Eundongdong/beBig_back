@@ -75,6 +75,7 @@
             </if>
         </where>
         ORDER BY p.post_id DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- PostId의 좋아요 갯수를 조회하는 쿼리 -->

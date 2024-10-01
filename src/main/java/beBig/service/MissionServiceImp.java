@@ -53,4 +53,44 @@ public class MissionServiceImp implements MissionService {
         MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         missionMapper.completeDailyMonthlyMission(personalMissionId);
     }
+
+    @Override
+    public double findRate(long userId, long missionId) {
+        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        int missionType = missionMapper.findMissionCategoryByMissionId(missionId);
+        if (missionType == 2) {
+            return missionMapper.findSaveRateByUserIdAndMissionId(userId, missionId);
+        } else if (missionType == 3) {
+            return missionMapper.findUseRateByUserIdAndMissionId(userId, missionId);
+        }
+        return 0.0;
+    }
+
+    @Override
+    public int findSalary(long userId) {
+        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        return missionMapper.findSalaryByUserId(userId);
+    }
+
+    //점수계산
+    @Override
+    public int updateScore(long userId, int amount) {
+        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        //월별점수가져옴
+        int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId) + amount;
+        missionMapper.updateCurrentMissionMonthScoreByUserId(userId, currentScore);
+        return currentScore;
+    }
+
+    @Override
+    public long findIsCompleted(long personalMissionId) {
+        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        return missionMapper.findMissionIsCompletedByPersonalMissionId(personalMissionId);
+    }
+
+    @Override
+    public int findCurrentMonthScore(long userId) {
+        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        return missionMapper.findCurrentMissionMonthScoreByUserId(userId);
+    }
 }
