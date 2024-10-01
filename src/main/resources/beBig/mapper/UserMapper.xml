@@ -103,6 +103,17 @@
         FROM user
         where user_login_id = #{userLoginId}
     </select>
+    <select id="findFinTest" resultType="beBig.vo.FinTestVo">
+        SELECT *
+        FROM fin_test;
+    </select>
+    <select id="findFinTypeByUserId" resultType="beBig.vo.FinTypeVo" parameterType="long">
+        SELECT f.*
+        FROM fin_type f
+                 JOIN user u
+                      ON u.fin_type_code = f.fin_type_code
+        WHERE u.user_id = #{userId};
+    </select>
 
 
 </mapper>

@@ -1,7 +1,10 @@
 package beBig.service;
 
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.form.UserForm;
 import beBig.mapper.UserMapper;
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +181,32 @@ public class UserServiceImp implements UserService {
     public Long findUserIdByKakaoId(String kakaoId) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.getUserIdByKaKaoId(kakaoId);
+    }
+
+    @Override
+    public List<FinTestVo> findMission() {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        List<FinTestVo> list = userMapper.findFinTest();
+        return list;
+    }
+
+    @Override
+    public FinInfoResponseDto findFinTypeByUserId(Long userId) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        FinTypeVo vo = userMapper.findFinTypeByUserId(userId);
+        FinInfoResponseDto type = new FinInfoResponseDto();
+
+        type.setFinTypeAnimal(vo.getFinTypeAnimal());
+        type.setFinTypeTitle(vo.getFinTypeTitle());
+        type.setFinTypeHabit1(vo.getFinTypeHabit1());
+        type.setFinTypeHabit2(vo.getFinTypeHabit2());
+        type.setFinTypeAnimalDescription(vo.getFinTypeAnimalDescription());
+        type.setFinTypeTitleDescription(vo.getFinTypeTitleDescription());
+        type.setFinTypeCode(vo.getFinTypeCode());
+
+        log.info("type : {}", type);
+
+        return type;
     }
 
 
