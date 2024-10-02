@@ -1,11 +1,12 @@
 package beBig.controller;
 
+import beBig.dto.LoginDto;
+import beBig.dto.UserDto;
 import beBig.dto.response.FinInfoResponseDto;
 import beBig.form.LoginForm;
 import beBig.form.UserForm;
 import beBig.mapper.MissionMapper;
 import beBig.service.CustomUserDetails;
-import beBig.service.CustomUserDetailsService;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
 import beBig.service.jwt.JwtUtil;
@@ -24,7 +25,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,15 +59,15 @@ public class UserController {
 //    }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserForm userForm) {
-        log.info("회원가입 요청: {}", userForm);
+    public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
+        log.info("회원가입 요청: {}", userDto);
         try {
             // 필수 필드 확인 예시 (예: 이메일이 없으면 에러 반환)
-            if (userForm.getEmail() == null || userForm.getEmail().isEmpty()) {
+            if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일은 필수 항목입니다.");
             }
             // 사용자 등록 로직 호출
-            userService.registerUser(userForm);
+            userService.registerUser(userDto);
             // 성공 응답
             return ResponseEntity.status(HttpStatus.OK).body("유저 등록 완료!");
         } catch (Exception e) {
@@ -88,21 +88,21 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginForm loginForm) {
+    public ResponseEntity<String> login(@RequestBody LoginDto loginDto) {
         try {
             // 사용자 인증
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginForm.getUserLoginId(),
-                            loginForm.getPassword()
+                            loginDto.getUserLoginId(),
+                            loginDto.getPassword()
                     )
             );
 
-            log.info("Received login request: {}", loginForm);
+            log.info("Received login request: {}", loginDto);
 
             // 인증된 사용자 정보 로드
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            log.info("로그인 성공: " + loginForm);
+            log.info("로그인 성공: " + loginDto);
 
             // JWT 토큰 생성
             String token = jwtTokenProvider.generateToken(userDetails.getUserId());
@@ -112,11 +112,11 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(token);
 
         } catch (BadCredentialsException e) {
-            log.error("로그인 실패: " + loginForm);
+            log.error("로그인 실패: " + loginDto);
             log.error("Bad credentials: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
         } catch (AuthenticationException e) {
-            log.error("로그인 실패: " + loginForm);
+            log.error("로그인 실패: " + loginDto);
             log.error("Authentication exception: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
         }
@@ -161,8 +161,8 @@ public class UserController {
 
     // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
-    public ResponseEntity<String> findPassword(@RequestBody UserForm userForm) {
-        boolean isUpdated = userService.updatePasswordByEmail(userForm.getUserLoginId(), userForm.getName(), userForm.getEmail());
+    public ResponseEntity<String> findPassword(@RequestBody UserDto userDto) {
+        boolean isUpdated = userService.updatePasswordByEmail(userDto.getUserLoginId(), userDto.getName(), userDto.getEmail());
 
         if (isUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body("Temporary password sent to your email!");
@@ -196,7 +196,7 @@ public class UserController {
             // 사용자가 존재하지 않을 경우 (회원가입 필요)
             if (!existingUser) {
                 // UserForm 객체 생성 및 값 설정
-                UserForm kakaoUser = new UserForm();
+                UserDto kakaoUser = new UserDto();
                 kakaoUser.setName(nickname);
                 kakaoUser.setUserLoginId(kakaoId);
                 kakaoUser.setPassword("kakao"); // 소셜 로그인 사용자의 비밀번호는 'kakao'로 설정 (별도 처리 필요)

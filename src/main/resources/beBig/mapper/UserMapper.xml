@@ -98,6 +98,12 @@
         FROM util
     </select>
 
+    <update id="updateUserConnectedId">
+        UPDATE user
+        SET user_connected_id = #{connectedId}
+        WHERE user_id = #{userId}
+    </update>
+
     <select id="getUserIdByKaKaoId" resultType="Long" parameterType="string">
         SELECT user_id
         FROM user
@@ -142,5 +148,4 @@
         SET refresh_token = null
         WHERE refresh_token = #{refreshToken};
     </update>
-
 </mapper>

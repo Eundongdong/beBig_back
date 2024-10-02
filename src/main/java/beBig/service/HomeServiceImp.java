@@ -1,34 +1,38 @@
 package beBig.service;
 
+import beBig.dto.*;
 import beBig.dto.response.FinInfoResponseDto;
 import beBig.mapper.AccountMapper;
 import beBig.mapper.HomeMapper;
 import beBig.mapper.UserMapper;
+import beBig.service.codef.CodefApiRequester;
 import beBig.vo.AccountVo;
+import beBig.vo.BankVo;
+import beBig.vo.TransactionVo;
 import beBig.vo.FinTestVo;
 import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class HomeServiceImp implements HomeService {
+
     private final SqlSessionTemplate sqlSessionTemplate;
+    private final CodefApiRequester codefApiRequester;
 
-    public HomeServiceImp(SqlSessionTemplate sqlSessionTemplate) {
-        this.sqlSessionTemplate = sqlSessionTemplate;
-    }
-
-    // 사용자 정보 불러오기
     @Override
     public UserVo getUserInfo(Long userId) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-
-        // userId로 사용자 정보를 가져옴
         UserVo userInfo = userMapper.findByUserId(userId);
 
         if (userInfo == null) {
@@ -36,38 +40,156 @@ public class HomeServiceImp implements HomeService {
             throw new Exception("사용자 정보를 찾을 수 없습니다.");
         }
 
-        log.info("사용자 ID: {}, finTypeCode: {}", userId, userInfo.getFinTypeCode());
-        log.info("사용자 정보 조회 성공: {}", userInfo.getUserName());
-
+        log.info("사용자 정보 조회 성공: ID: {}, 이름: {}", userInfo.getUserId(), userInfo.getUserName());
         return userInfo;
     }
 
     @Override
-    public List<AccountVo> showMyAccount(Long userId) throws Exception {
-        // UserVo 조회
-        UserVo userInfo = getUserInfo(userId); // 사용자 정보 조회
+    public List<CodefAccountDto> getUserAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        UserVo userInfo = userMapper.findByUserId(userId);
+        String connectedId = userInfo.getUserConnectedId();
 
-        // UserVo가 null인 경우 예외 처리
-        if (userInfo == null) {
-            throw new Exception("사용자 정보를 찾을 수 없습니다.");
+        if (connectedId != null) {
+            connectedId = codefApiRequester.addConnectedId(connectedId, accountRequestDto);
+        } else {
+            connectedId = codefApiRequester.registerConnectedId(accountRequestDto);
+            userMapper.updateUserConnectedId(userId, connectedId);
         }
 
-        String connectedId = userInfo.getUserConnectedId(); // connectedId 가져오기
+        return codefApiRequester.getAccountInfo(accountRequestDto, connectedId);
+    }
 
-        // *********** 후에 Codef API 연결여부에 따라 확인해야함 ******************
-
-        // AccountMapper 호출하여 connectedId로 계좌 정보 조회
+    @Override
+    public boolean addAccountToDB(Long userId, List<CodefAccountDto> codefAccountDtoList) {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-        List<AccountVo> accountList = accountMapper.findAccountById(connectedId);
 
-        // 계좌 정보가 없는 경우 예외 처리
-        if (accountList == null || accountList.isEmpty()) {
-            log.warn("사용자와 연결된 계좌가 없습니다: {}", connectedId);
+        for (CodefAccountDto accountInfo : codefAccountDtoList) {
+            AccountVo accountVo = mapToAccountVo(userId, accountInfo);
+            accountMapper.insertAccount(accountVo);
+            log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
+        }
+        return true;
+    }
+
+    private AccountVo mapToAccountVo(Long userId, CodefAccountDto accountInfo) {
+        AccountVo accountVo = new AccountVo();
+        accountVo.setAccountNum(accountInfo.getResAccount());
+        accountVo.setBankId(accountInfo.getBankVo().getBankId());
+        accountVo.setAccountName(accountInfo.getResAccountName());
+        accountVo.setAccountType(accountInfo.getResAccountDeposit());
+        accountVo.setUserId(userId);
+        return accountVo;
+    }
+
+    @Override
+    public boolean saveTransactions(Long userId, String accountNum) throws Exception {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
+
+        // 거래 내역 요청 객체 생성
+        CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
+        UserVo userInfo = getUserInfo(userId);
+        requestDto.setAccount(accountNum);  // 추출된 accountNum 사용
+        requestDto.setConnectedId(userInfo.getUserConnectedId());
+        requestDto.setOrganization("0004");
+
+        // 날짜 설정 (최근 3일)
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        requestDto.setStartDate(startDate.format(formatter));
+        requestDto.setEndDate(endDate.format(formatter));
+        requestDto.setOrderBy("0");
+
+        // 거래 내역 조회
+        CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
+        List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
+
+        if (transactionHistory == null || transactionHistory.isEmpty()) {
+            log.info("거래 내역이 없습니다: 계좌 번호 {}", requestDto.getAccount());
+            return false;
+        }
+
+        List<TransactionVo> transactionList = mapToTransactionList(requestDto, transactionHistory);
+
+        // 중복 체크 및 저장
+        for (TransactionVo transactionVo : transactionList) {
+            TransactionVo existingTransaction = accountMapper.findTransactionByDateAndAmount(
+                    transactionVo.getAccountNum(), transactionVo.getTransactionDate(), transactionVo.getTransactionAmount());
+
+            if (existingTransaction == null) {
+                accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
+            } else {
+                log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
+                return false;
+            }
+        }
+
+        return true; // 성공적으로 저장된 경우
+    }
+
+    private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
+        List<TransactionVo> transactionList = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd HHmmss");
+
+        for (CodefTransactionResponseDto.HistoryItem historyItem : transactionHistory) {
+            TransactionVo transactionVo = new TransactionVo();
+            transactionVo.setAccountNum(requestDto.getAccount());
+            transactionVo.setTransactionVendor(historyItem.getResAccountDesc3());
+            transactionVo.setTransactionBalance(Integer.parseInt(historyItem.getResAfterTranBalance()));
+
+            int transactionOut = Integer.parseInt(historyItem.getResAccountOut());
+            int transactionIn = Integer.parseInt(historyItem.getResAccountIn());
+            transactionVo.setTransactionAmount(transactionOut != 0 ? transactionOut : transactionIn);
+
+            Date transactionDate = dateFormat.parse(historyItem.getResAccountTrDate() + " " + historyItem.getResAccountTrTime());
+            transactionVo.setTransactionDate(transactionDate);
+            transactionVo.setTransactionType(transactionOut != 0 ? "출금" : "입금");
+
+            transactionList.add(transactionVo);
+        }
+        return transactionList;
+    }
+
+    @Override
+    public AccountTransactionDto getTransactionList(Long userId, String accountNum) {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+
+        // accountNum으로 계좌 정보 조회
+        AccountVo accountVo = accountMapper.findAccountByAccountNum(accountNum);
+        if (accountVo == null || !accountVo.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("유효하지 않은 계좌 번호입니다.");
+        }
+
+        // 거래 내역 조회
+        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum);
+
+
+        // bankId로 은행 정보 조회
+        BankVo bankVo = accountMapper.getBankById(accountVo.getBankId());
+
+        // DTO 구성
+        AccountTransactionDto response = new AccountTransactionDto();
+        response.setTransactions(transactionList);
+        response.setAccountName(accountVo.getAccountName());
+        response.setBankName(bankVo.getBankName());
+
+        return response;
+    }
+
+
+    @Override
+    public List<AccountResponseDto> showMyAccount(Long userId) throws Exception {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+        List<AccountResponseDto> accountDetails = accountMapper.findAccountDetailsByUserId(userId);
+
+        if (accountDetails == null || accountDetails.isEmpty()) {
+            log.warn("사용자와 연결된 계좌가 없습니다: {}", userId);
             throw new Exception("사용자와 연결된 계좌가 없습니다.");
         }
 
-        log.info("사용자의 계좌 목록 조회 성공: {}", accountList.size());
-        return accountList; // 계좌 목록 반환
+        log.info("계좌 목록 조회 성공: 사용자 ID: {}, 계좌 수: {}", userId, accountDetails.size());
+        return accountDetails;
     }
 
     @Override
