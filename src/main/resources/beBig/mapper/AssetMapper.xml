@@ -4,11 +4,40 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="beBig.mapper.AssetMapper">
+    <!--계좌별 현금 잔액 합산-->
+<!--    <select id="findCurrentBalanceByAccountType" parameterType="map" resultType="long">-->
+<!--        SELECT t.transaction_balance-->
+<!--        FROM transaction t-->
+<!--        JOIN account a ON t.account_num = a.account_num-->
+<!--        WHERE a.user_id = #{userId}-->
+<!--        AND a.account_type = #{accountType}-->
+<!--        ORDER BY t.transaction_date DESC-->
+<!--            LIMIT 1-->
+<!--    </select>-->
+
     <!-- userId로 계좌 정보를 조회하는 쿼리  -->
-    <select id="findAccountNumByUserId" resultType="string">
+    <select id="findAccountNumByUserId" parameterType="long" resultType="string">
         SELECT account_num
-        FROM account JOIN user ON account.user_id = user.user_id
-        WHERE user.user_id =#{userId}
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 최근 입금/출금 거래 내역 잔액 조회 -->
+    <select id="showLatestCashBalance" parameterType="map" resultType="Long">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE account_num = #{accountNum} AND transaction_type IN ('입금', '출금')
+        ORDER BY transaction_date DESC
+            LIMIT 1
+    </select>
+
+    <!-- 최근 예금/적금 거래 내역 잔액 조회 -->
+    <select id="showLatestDepositBalance" parameterType="map" resultType="Long">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE account_num = #{accountNum} AND transaction_type IN ('예금', '적금')
+        ORDER BY transaction_date DESC
+            LIMIT 1
     </select>
 
     <!-- accountNum으로 Transaction 출금 정보를 조회하는 쿼리 -->
