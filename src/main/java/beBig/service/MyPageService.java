@@ -4,10 +4,13 @@ package beBig.service;
 import beBig.dto.response.MyPageEditResponseDto;
 import beBig.dto.response.MyPagePostResponseDto;
 import beBig.dto.response.UserProfileResponseDto;
+import beBig.vo.BadgeVo;
 
 import java.util.List;
 
 public interface MyPageService {
+    List<BadgeVo> getBadges();
+
     UserProfileResponseDto findProfileByUserId(long userId);
 
     List<MyPagePostResponseDto> findMyPostByUserId(long userId);

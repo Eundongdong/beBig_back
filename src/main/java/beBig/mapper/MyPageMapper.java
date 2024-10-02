@@ -2,6 +2,7 @@ package beBig.mapper;
 
 import beBig.dto.response.MyPageEditResponseDto;
 import beBig.dto.response.MyPagePostResponseDto;
+import beBig.vo.BadgeVo;
 import beBig.vo.UserProfileResponseVo;
 import beBig.vo.UserRankVo;
 import org.apache.ibatis.annotations.Mapper;
@@ -32,4 +33,5 @@ public interface MyPageMapper {
                            @Param("userNickname") String userNickname,
                            @Param("userPassword") String userPassword);
 
+    List<BadgeVo> getBadges();
 }

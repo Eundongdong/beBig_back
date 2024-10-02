@@ -5,9 +5,12 @@ import beBig.dto.response.MyPagePostResponseDto;
 import beBig.dto.response.MyPageEditResponseDto;
 import beBig.dto.response.TotalMissionResponseDto;
 import beBig.dto.response.UserProfileResponseDto;
+import beBig.mapper.MyPageMapper;
 import beBig.service.MissionService;
 import beBig.service.MyPageService;
 import beBig.service.jwt.JwtUtil;
+import beBig.vo.BadgeVo;
+import com.amazonaws.Response;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,7 @@ public class MyPageController {
     private final MyPageService myPageService;
     private final MissionService missionService;
     private final JwtUtil jwtUtil;
+    private final MyPageMapper myPageMapper;
 
     @GetMapping("/info")
     public ResponseEntity<UserProfileResponseDto> getMypage(@RequestHeader("Authorization") String token) {
@@ -49,6 +53,16 @@ public class MyPageController {
         } catch (Exception e) {
             log.info("에러 메시지: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/badge")
+    public ResponseEntity<?> personalBadge(@RequestHeader("Authorization") String token) {
+        try {
+            List<BadgeVo> badges = myPageService.getBadges();
+            return ResponseEntity.status(HttpStatus.OK).body(badges);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("internal server error");
         }
     }
 

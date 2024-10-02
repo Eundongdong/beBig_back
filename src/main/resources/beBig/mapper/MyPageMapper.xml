@@ -64,6 +64,11 @@
         WHERE user_id = #{userId};
     </select>
 
+    <select id="getBadges" resultType="beBig.vo.BadgeVo">
+        SELECT *
+        FROM badge;
+    </select>
+
 
     <update id="saveMyPageGeneral" parameterType="map">
         update user
@@ -79,6 +84,7 @@
             user_nickname = #{userNickname}
         where user_id = #{userId};
     </update>
+
 
 
 
