@@ -21,7 +21,7 @@
 
     <!-- 게시글 목록을 전부 조회하는 쿼리 -->
     <select id="findAll" resultType="PostVo">
-        SELECT p.post_id, p.user_id, p.post_title, p.post_content, p.post_created_time,
+        SELECT p.post_id, p.user_id, u.user_nickname, p.post_title, p.post_content, p.post_created_time,
                 p.post_like_hits, p.post_category, u.fin_type_code
         FROM post p
         JOIN user u ON p.user_id = u.user_id
@@ -32,6 +32,7 @@
     <resultMap id="findDetailMap" type="PostVo" autoMapping="false">
         <id property="postId" column="post_id" />
         <result property="userId" column="user_id" />
+        <result property="userNickname" column="user_nickname"/>
         <result property="postTitle" column="post_title" />
         <result property="postContent" column="post_content" />
         <result property="postCreatedTime" column="post_created_time" />
@@ -46,7 +47,7 @@
     <!-- postId를 기준으로 게시글 상세페이지를 조회하는 쿼리 -->
     <!-- 이미지 테이블과 조인 -->
     <select id="findDetail" resultMap="findDetailMap" parameterType="long">
-        SELECT post.post_id, post.user_id,post.post_title, post.post_content,
+        SELECT post.post_id, post.user_id, user.user_nickname, post.post_title, post.post_content,
                post.post_created_time, post.post_like_hits, post.post_category, user.fin_type_code,
                 image.image_path
         FROM post
@@ -57,7 +58,7 @@
 
     <!-- PostCategory와 FinTypeCode를 기준으로 게시글을 조회하는 쿼리  -->
     <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
-        SELECT p.post_id, p.user_id, p.post_title, p.post_content, p.post_created_time,
+        SELECT p.post_id, p.user_id, u.user_nickname, p.post_title, p.post_content, p.post_created_time,
                 p.post_like_hits, p.post_category, u.fin_type_code AS finTypeCode
         FROM post p
         JOIN user u ON p.user_id = u.user_id

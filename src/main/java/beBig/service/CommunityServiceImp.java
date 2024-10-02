@@ -104,6 +104,7 @@ public class CommunityServiceImp implements CommunityService {
         PostResponseDto postResponseDto = new PostResponseDto();
         postResponseDto.setPostId(post.getPostId());
         postResponseDto.setUserId(post.getUserId());
+        postResponseDto.setUserNickname(post.getUserNickname());
         postResponseDto.setPostTitle(post.getPostTitle());
         postResponseDto.setPostContent(post.getPostContent());
         postResponseDto.setPostCreatedTime(post.getPostCreatedTime());
