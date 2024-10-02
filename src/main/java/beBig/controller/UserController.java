@@ -48,15 +48,40 @@ public class UserController {
     private final MissionMapper missionMapper;
     private final JwtUtil jwtUtil;
 
-//    @Autowired
-//    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
-//                          CustomUserDetailsService customUserDetailsService, KakaoOauthService kakaoLoginService) {
-//        this.userService = userService;
-//        this.jwtTokenProvider = jwtTokenProvider;
-//        this.authenticationManager = authenticationManager;
-//        this.customUserDetailsService = customUserDetailsService;
-//        this.kakaoLoginService = kakaoLoginService;
-//    }
+    //임시 테스트용
+    @GetMapping("/token")
+    public ResponseEntity<?> getProtectedResource(
+            @RequestHeader("Authorization") String token,
+            HttpServletRequest request) {
+        String accessToken = token.replace("Bearer ", "");
+        // 리프레시 토큰은 헤더로 전송
+        String refreshToken = request.getHeader("Refresh-Token");
+        boolean isAccessTokenRefreshed = false;  // Access Token 재발급 여부를 확인하는 플래그
+
+        try {
+            // 토큰 검증 및 갱신 로직 처리
+            String validAccessToken = jwtTokenProvider.validateAndRefreshToken(accessToken, refreshToken);
+            // 액세스 토큰이 재발급되었는지 확인
+            if (!validAccessToken.equals(accessToken)) {
+                isAccessTokenRefreshed = true;  // 새로운 액세스 토큰이 발급된 경우
+            }
+            if (isAccessTokenRefreshed) {
+                // 새로운 액세스 토큰이 발급된 경우 이를 프론트에 알리고 전달
+                return ResponseEntity.ok()
+                        .header("New-Access-Token", validAccessToken)  // 새로운 토큰을 헤더에 포함
+                        .body("new Access Token issued.");
+            } else {
+                // 기존 토큰이 유효한 경우
+                return ResponseEntity.ok().header("Access-token", accessToken).body("Valid Access Token");
+            }
+        } catch (JwtException e) {
+            // 토큰이 만료되었거나 유효하지 않을 때의 처리
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserForm userForm) {

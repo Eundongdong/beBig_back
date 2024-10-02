@@ -111,11 +111,23 @@ public class JwtTokenProvider {
         return !expiryDate.isBefore(now);
     }
 
-    public long process(String token){
-        //accesstoken 검사 통과시 결과값 리턴
-        long isAccessTokenValid = checkAccessToken(token);
-        if (isAccessTokenValid != -1) return isAccessTokenValid;
-        return -1;
+    // 통합된 토큰 검증 및 리프레시 처리 메서드
+    public String validateAndRefreshToken(String accessToken, String refreshToken) {
+        // 액세스 토큰 검증
+        if (validateToken(accessToken)) {
+            // 토큰이 유효하면 그대로 반환
+            return accessToken;
+        } else {
+            // 액세스 토큰이 만료되었을 때 리프레시 토큰을 검증
+            if (checkRefreshToken(refreshToken)) {
+                // 리프레시 토큰이 유효하다면 새로운 액세스 토큰 발급
+                String newAccessToken = refreshAccessToken(refreshToken);
+                return newAccessToken;
+            } else {
+                // 리프레시 토큰이 유효하지 않다면 예외 발생
+                throw new JwtException("Token has expired, please log in again.");
+            }
+        }
     }
 
 }

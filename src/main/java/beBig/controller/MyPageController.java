@@ -160,7 +160,7 @@ public class MyPageController {
         }
     }
 
-    @GetMapping("/check-password")
+    @PostMapping("/check-password")
     public ResponseEntity<?> checkPassword(@RequestHeader("Authorization") String token,
                                            @RequestBody Map<String, Object> requestBody) {
         try {
@@ -168,7 +168,7 @@ public class MyPageController {
             String password = (String) requestBody.get("password");
 
             if (!myPageService.checkPassword(password, userId)) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("password does not match");
+                return ResponseEntity.status(HttpStatus.OK).body("password does not match");
             }
             return ResponseEntity.ok("password match");
         } catch (Exception e) {

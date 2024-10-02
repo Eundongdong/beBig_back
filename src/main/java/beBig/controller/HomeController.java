@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,6 @@ public class HomeController {
         }
 
         log.info("사용자 finTypeCode: {}", userInfo.getFinTypeCode());
-
 
         HashMap<String, Object> response = new HashMap<>();
         response.put("userName", userInfo.getUserName());
