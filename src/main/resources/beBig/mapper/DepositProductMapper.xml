@@ -22,6 +22,7 @@
             #{depositProductMaxRate}
         )
     </insert>
+    <!-- 주거래 은행 및 다른 은행에서 추천 상품 2개씩 가져오기 -->
     <select id="getTop2RecommendedDepositProducts" parameterType="map" resultType="DepositProductVo">
         SELECT *
         FROM deposit_product
@@ -37,6 +38,5 @@
                      END DESC
             LIMIT 2
     </select>
-
 
 </mapper>

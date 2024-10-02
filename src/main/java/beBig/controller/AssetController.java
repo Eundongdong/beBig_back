@@ -1,5 +1,6 @@
 package beBig.controller;
 
+import beBig.dto.AssetAnalysisDto;
 import beBig.dto.UserTotalAssetsDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.service.AssetService;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @CrossOrigin("*")

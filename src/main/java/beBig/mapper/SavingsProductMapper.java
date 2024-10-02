@@ -11,4 +11,5 @@ import java.util.Map;
 public interface SavingsProductMapper {
     void insertSavingsProduct(SavingsProductDto savingsProductDto);
     List<SavingsProductVo> getTop2RecommendedSavingsProduct(Map<String, Object> params);
+    List<SavingsProductVo> showSavingsProductsExcludingPrimaryBanks(Map<String, Object> params);
 }

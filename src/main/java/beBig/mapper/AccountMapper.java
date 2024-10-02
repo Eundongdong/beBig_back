@@ -10,5 +10,5 @@ import java.util.Map;
 public interface AccountMapper {
     List<AccountVo> findAccountById(String connectedId);
     int findPrimaryBankId(long userId);
-    List<Integer> findOtherBankIds(Map<String, Object> params);
+    List<Integer> findAllOtherBanksExceptPrimary(int primaryBankId);
 }

@@ -10,4 +10,5 @@ import java.util.Map;
 public interface DepositProductMapper {
     void insert(DepositProductVo depositProductVo);
     List<DepositProductVo> getTop2RecommendedDepositProducts(Map<String, Object> params);
+    List<DepositProductVo> showDepositProductsExcludingPrimaryBanks(Map<String, Object> params);
 }

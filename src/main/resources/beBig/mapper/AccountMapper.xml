@@ -17,13 +17,13 @@
         ORDER BY COUNT(bank_id) DESC
         LIMIT 1
     </select>
-    <!--주거래 은행을 제외한 다른 은행 조회-->
-    <select id="findOtherBankIds" parameterType="map" resultType="int">
+    <!-- 주거래 은행을 제외한 모든 은행 조회 -->
+    <select id="findAllBankIdsExceptPrimary" parameterType="int" resultType="int">
         SELECT bank_id
-        FROM account
-        WHERE user_id = #{userId} AND bank_id != #{primaryBankId}
-        GROUP BY bank_id
+        FROM bank
+        WHERE bank_id != #{primaryBankId}
     </select>
+
 
 
 </mapper>

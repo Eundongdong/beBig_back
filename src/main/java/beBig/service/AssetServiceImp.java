@@ -162,50 +162,53 @@ public class AssetServiceImp implements AssetService {
         // 주거래 은행 조회(account 테이블 사용)
         int primaryBankId = accountMapper.findPrimaryBankId(userId);
 
-        // 다른 거래은행 조회
-        Map<String, Object> paramsForOtherBanks = new HashMap<>();
-        paramsForOtherBanks.put("userId", userId);
-        paramsForOtherBanks.put("primaryBankId", primaryBankId);
-        List<Integer> otherBankIds = accountMapper.findOtherBankIds(paramsForOtherBanks);
+        // 모든 은행(주거래 은행 제외) 조회
+        List<Integer> otherBankIds = accountMapper.findAllOtherBanksExceptPrimary(primaryBankId);
 
         // 예금 및 적금 추천 리스트 생성
         List<DepositProductVo> depositRecommendations = new ArrayList<>();
         List<SavingsProductVo> savingsRecommendations = new ArrayList<>();
 
+        // 1. 주거래은행에서 추천 상품 2개씩 가져오기
         Map<String, Object> primaryBankParams = new HashMap<>();
-        // 주거래은행에서 추천 상품 2개씩 가져오기
         primaryBankParams.put("bankId", primaryBankId);
         primaryBankParams.put("finTypeCode", finTypeCode);
         depositRecommendations.addAll(depositProductMapper.getTop2RecommendedDepositProducts(primaryBankParams));
         savingsRecommendations.addAll(savingsProductMapper.getTop2RecommendedSavingsProduct(primaryBankParams));
 
-        // 다른 거래은행에서 각 은행별 추천 2개씩 가져오기
+        // 2. 주거래 은행을 제외한 모든 은행에서 추천 상품 2개씩 가져오기 (거래 여부 상관없이)
         for (int bankId : otherBankIds) {
             Map<String, Object> otherBankParams = new HashMap<>();
             otherBankParams.put("bankId", bankId);
             otherBankParams.put("finTypeCode", finTypeCode);
             depositRecommendations.addAll(depositProductMapper.getTop2RecommendedDepositProducts(otherBankParams));
             savingsRecommendations.addAll(savingsProductMapper.getTop2RecommendedSavingsProduct(otherBankParams));
-            log.info("Other bankId : " + bankId);
+
+            // 주거래 은행 제외한 다른 은행들에서 6개까지만 가져오도록 설정
+            if (depositRecommendations.size() >= 8 || savingsRecommendations.size() >= 8) {
+                break;
+            }
         }
 
-        // 은행별로 최상위 두 개의 예금 및 적금 추천 정보만 추출
-        List<DepositProductVo> topDepositRecommendations = depositRecommendations.stream()
-                .limit(4) // 주거래은행과 다른 은행에서 각 2개씩 총 4개 제한
+        // 3. 최종 추천 상품은 8개로 제한 (주거래 2개 + 그 외 은행에서 6개)
+        List<DepositProductVo> finalDepositRecommendations = depositRecommendations.stream()
+                .limit(8)
                 .collect(Collectors.toList());
 
-        List<SavingsProductVo> topSavingsRecommendations = savingsRecommendations.stream()
-                .limit(4) // 주거래은행과 다른 은행에서 각 2개씩 총 4개 제한
+        List<SavingsProductVo> finalSavingsRecommendations = savingsRecommendations.stream()
+                .limit(8)
                 .collect(Collectors.toList());
 
+        // 4. 결과 반환
         Map<String, Object> recommendations = new HashMap<>();
-        recommendations.put("depositRecommendations", topDepositRecommendations);
-        recommendations.put("savingsRecommendations", topSavingsRecommendations);
+        recommendations.put("depositRecommendations", finalDepositRecommendations);
+        recommendations.put("savingsRecommendations", finalSavingsRecommendations);
 
         return recommendations;
-
     }
-     /**
+
+
+    /**
      * 같은 나잇대 유저들의 총 자산을 불러오고, UserId가 몇 등인지 반환
      * 1. userId와 같은 나잇대 유저 List
      * 2. 각 유저별로 계좌 List 찾기 + 각 유저의 총 자산 구하기
