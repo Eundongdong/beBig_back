@@ -5,6 +5,7 @@ import beBig.dto.response.MyPagePostResponseDto;
 import beBig.dto.response.UserProfileResponseDto;
 import beBig.mapper.MissionMapper;
 import beBig.mapper.UserMapper;
+import beBig.vo.BadgeVo;
 import beBig.vo.UserProfileResponseVo;
 import beBig.mapper.MyPageMapper;
 import beBig.vo.UserRankVo;
@@ -30,6 +31,11 @@ public class MyPageServiceImp implements MyPageService {
         this.missionMapper = missionMapper;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public List<BadgeVo> getBadges() {
+        return myPageMapper.getBadges();
     }
 
     @Override

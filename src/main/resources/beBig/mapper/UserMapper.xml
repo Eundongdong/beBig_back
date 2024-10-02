@@ -104,6 +104,43 @@
         where user_login_id = #{userLoginId}
     </select>
 
+    <!-- refresh_token으로 만료 시간을 조회하는 쿼리 -->
+    <select id="getExpiredTimeByRefreshToken" resultType="java.time.LocalDateTime" parameterType="string">
+        select expiry_date
+        from refresh_token
+        where refresh_token = #{refreshToken};
+    </select>
 
+    <!-- refresh_token으로 user_id를 조회하는 쿼리 -->
+    <select id="getUserIdByRefreshToken" resultType="java.lang.Long" parameterType="string">
+        select u.user_id
+        from refresh_token rt
+                 join user u on u.user_id = rt.user_id
+        where rt.refresh_token = #{refreshToken};
+    </select>
+
+    <insert id="saveRefreshTokenRT" parameterType="map">
+        INSERT INTO refresh_token (user_id, refresh_token, expiry_date)
+        VALUES (#{userId}, #{refreshToken}, #{expiryDate});
+    </insert>
+
+
+    <update id="saveRefreshTokenUser" parameterType="map">
+        UPDATE user
+        SET refresh_token = #{refreshToken}
+        WHERE user_id = #{userId};
+    </update>
+
+    <delete id="clearRefreshTokenRT" parameterType="string">
+        DELETE
+        FROM refresh_token
+        WHERE refresh_token = #{refreshToken};
+    </delete>
+
+    <update id="clearRefreshTokenUser" parameterType="string">
+        UPDATE user
+        SET refresh_token = null
+        WHERE refresh_token = #{refreshToken};
+    </update>
 
 </mapper>
