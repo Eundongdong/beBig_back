@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.AssetMapper">
+    <!--계좌별 현금 잔액 합산-->
+<!--    <select id="findCurrentBalanceByAccountType" parameterType="map" resultType="long">-->
+<!--        SELECT t.transaction_balance-->
+<!--        FROM transaction t-->
+<!--        JOIN account a ON t.account_num = a.account_num-->
+<!--        WHERE a.user_id = #{userId}-->
+<!--        AND a.account_type = #{accountType}-->
+<!--        ORDER BY t.transaction_date DESC-->
+<!--            LIMIT 1-->
+<!--    </select>-->
+
+    <!-- userId로 계좌 정보를 조회하는 쿼리  -->
+    <select id="findAccountNumByUserId" parameterType="long" resultType="string">
+        SELECT account_num
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 최근 입금/출금 거래 내역 잔액 조회 -->
+    <select id="showLatestCashBalance" parameterType="map" resultType="Long">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE account_num = #{accountNum} AND transaction_type IN ('입금', '출금')
+        ORDER BY transaction_date DESC
+            LIMIT 1
+    </select>
+
+    <!-- 최근 예금/적금 거래 내역 잔액 조회 -->
+    <select id="showLatestDepositBalance" parameterType="map" resultType="Long">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE account_num = #{accountNum} AND transaction_type IN ('예금', '적금')
+        ORDER BY transaction_date DESC
+            LIMIT 1
+    </select>
+
+    <!-- accountNum으로 Transaction 출금 정보를 조회하는 쿼리 -->
+    <!-- 출금만 가져옴-->
+    <select id="findTransactionsByAccountNum" resultType="TransactionVo">
+        SELECT *
+        FROM transaction JOIN account ON transaction.account_num = account.account_num
+        WHERE transaction.account_num = #{accountNum}
+        AND transaction.transaction_type='출금'
+    </select>
+
+    <!-- List<accountNum>에 있는 잔액의 총 합을 가져오는 쿼리-->
+    <select id="findTotalAssetsByAccountNum" resultType="long" parameterType="list">
+        SELECT sum(transaction_balance) as balance
+        FROM transaction
+        WHERE account_num IN
+        <foreach item="accountNum" collection="list" open="(" separator="," close=")">
+            #{accountNum}
+        </foreach>
+        AND transaction_date = (
+        SELECT MAX(transaction_date)
+        FROM transaction t2
+        WHERE t2.account_num = transaction.account_num
+        )
+    </select>
+
+
+</mapper>

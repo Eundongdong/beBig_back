@@ -47,5 +47,8 @@ public interface UserMapper {
 
     void saveRefreshTokenRT(@Param("userId") Long userId, @Param("refreshToken") String refreshToken, @Param("expiryDate") Date expiryDate);
 
+    FinTypeVo findFinTypeByUserId(long userId);
+
+    List<UserVo> findBySameAgeRange(long userId);
     void clearRefreshTokenUser(@Param("refreshToken") String refreshToken);
 }

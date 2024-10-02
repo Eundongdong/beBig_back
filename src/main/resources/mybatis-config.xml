@@ -18,5 +18,9 @@
         <typeAlias alias="MonthlyMissionResponseDto" type="beBig.dto.response.MonthlyMissionResponseDto"></typeAlias>
         <typeAlias alias="DailyMissionResponseDto" type="beBig.dto.response.DailyMissionResponseDto"></typeAlias>
         <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"></typeAlias>
+        <typeAlias alias="DepositProductVo" type="beBig.vo.DepositProductVo"></typeAlias>
+        <typeAlias alias="SavingsProductVo" type="beBig.vo.SavingsProductVo"></typeAlias>
+        <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
+        <typeAlias alias="UserTotalAssetsDto" type="beBig.dto.UserTotalAssetsDto" />
     </typeAliases>
 </configuration>

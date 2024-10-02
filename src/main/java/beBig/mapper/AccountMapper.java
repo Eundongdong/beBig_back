@@ -9,9 +9,15 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface AccountMapper {
+
+    List<AccountVo> findAccountById(String connectedId);
+    int findPrimaryBankId(long userId);
+    List<Integer> findAllOtherBanksExceptPrimary(int primaryBankId);
+
     List<AccountVo> findAccountById(Long userId);
 
     void insertAccount(AccountVo accountVo);
@@ -32,4 +38,5 @@ public interface AccountMapper {
             @Param("transactionAmount") Integer transactionAmount); // 중복 거래 조회
 
     List<AccountResponseDto> findAccountDetailsByUserId(Long userId);
+
 }
