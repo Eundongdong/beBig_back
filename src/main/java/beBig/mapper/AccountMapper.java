@@ -12,6 +12,8 @@ import java.util.List;
 
 @Mapper
 public interface AccountMapper {
+    List<AccountVo> findAccountById(Long userId);
+
     void insertAccount(AccountVo accountVo);
 
     BankVo getBankByCode(String bankCode);
