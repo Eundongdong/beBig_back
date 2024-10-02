@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.MyPageMapper">
+    <!-- userId를 받아서 사용자 프로필을 조회하는 쿼리 -->
+    <select id="findUserProfile" resultType="beBig.vo.UserProfileResponseVo" parameterType="long">
+        SELECT u.fin_type_code,
+               u.user_nickname,
+               u.badge_code,
+               u.user_visibility,
+               u.user_intro,
+               CONCAT(ft.fin_type_title, ' ', ft.fin_type_animal) AS fin_type_info
+        FROM user u
+                 JOIN fin_type ft
+                      ON ft.fin_type_code = u.fin_type_code
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <select id="findUserRank" resultType="beBig.vo.UserRankVo">
+        SELECT u.user_id,
+               RANK() OVER (ORDER BY u.user_salary DESC) AS user_rank
+        FROM user u;
+    </select>
+
+    <!-- userId를 받아서 특정 사용자의 게시물 정보를 조회하는 쿼리 -->
+    <select id="findMyPagePost" resultType="beBig.dto.response.MyPagePostResponseDto" parameterType="long">
+        SELECT p.post_title              AS title,
+               DATE(p.post_updated_time) AS postTime,
+               p.post_like_hits          AS postLikeHits
+        FROM post p
+                 JOIN user u
+                      ON p.user_id = u.user_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <select id="findMyPageLikeHits" resultType="beBig.dto.response.MyPagePostResponseDto">
+        SELECT p.post_title              AS title,
+               DATE(p.post_updated_time) AS postTime,
+               p.post_like_hits          AS postLikeHits
+        FROM like_hits lh
+                 JOIN post p
+                      ON lh.post_id = p.post_id
+        WHERE lh.user_id = #{userId}
+        ORDER BY postTime desc;
+    </select>
+
+    <select id="findLoginIdByUserId" resultType="string" parameterType="long">
+        SELECT user_login_type
+        FROM user
+        WHERE user_id = #{userId};
+    </select>
+
+    <!-- 사용자 정보 조회 -->
+    <select id="findEditDtoBy" resultType="beBig.dto.response.MyPageEditResponseDto" parameterType="long">
+        select user_intro,
+               user_nickname,
+               user_name,
+               user_login_id,
+               user_email,
+               user_gender,
+               DATE_FORMAT(user_birth, '%Y-%m-%d') as user_birth
+        from user
+        WHERE user_id = #{userId};
+    </select>
+
+    <select id="getBadges" resultType="beBig.vo.BadgeVo">
+        SELECT *
+        FROM badge;
+    </select>
+
+
+    <update id="saveMyPageGeneral" parameterType="map">
+        update user
+        set user_password = #{userPassword},
+            user_intro = #{userIntro},
+            user_nickname = #{userNickname}
+        where user_id = #{userId};
+    </update>
+
+    <update id="saveMyPageSocial" parameterType="map">
+        update user
+        set user_intro    = #{userIntro},
+            user_nickname = #{userNickname}
+        where user_id = #{userId};
+    </update>
+
+
+
+
+</mapper>

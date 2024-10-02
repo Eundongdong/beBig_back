@@ -1,7 +1,11 @@
 package beBig.service;
 
 import beBig.dto.UserDto;
+import beBig.dto.response.FinInfoResponseDto;
+import beBig.form.UserForm;
 import beBig.mapper.UserMapper;
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
 import lombok.extern.slf4j.Slf4j;
@@ -172,6 +176,12 @@ public class UserServiceImp implements UserService {
     public List<UtilVo> getUtilTerms() {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.getUtilTerms();
+    }
+
+    @Override
+    public Long findUserIdByKakaoId(String kakaoId) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        return userMapper.getUserIdByKaKaoId(kakaoId);
     }
 
 

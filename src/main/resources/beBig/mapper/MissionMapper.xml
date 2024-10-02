@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.MissionMapper">
+
+    <!-- Personal Daily Mission 쿼리 -->
+    <select id="getPersonalDailyMission" resultType="DailyMissionResponseDto" parameterType="long">
+        SELECT pm.personal_daily_mission_id,
+               m.mission_topic,
+               pm.mission_id,
+               pm.personal_daily_mission_completed,
+               m.mission_type
+        FROM user u
+                 JOIN personal_daily_mission pm ON u.user_id = pm.user_id
+                 JOIN mission m ON m.mission_id = pm.mission_id
+        WHERE u.user_id = #{userId};
+    </select>
+
+    <!-- Personal Monthly Mission 쿼리 -->
+    <select id="getPersonalMonthlyMission" resultType="MonthlyMissionResponseDto" parameterType="long">
+        SELECT pm.personal_monthly_mission_id,
+        m.mission_topic,
+        pm.mission_id,
+        pm.personal_monthly_mission_completed,
+        m.mission_type
+        FROM user u
+        JOIN personal_monthly_mission pm ON u.user_id = pm.user_id
+        JOIN mission m ON m.mission_id = pm.mission_id
+        WHERE u.user_id = #{userId}  <!-- userId를 조건으로 추가 -->
+        LIMIT 1;
+    </select>
+
+    <!-- Personal Monthly Mission 미션바꾸기 쿼리 -->
+    <select id="completeMonthlyMission" parameterType="long">
+        UPDATE personal_monthly_mission
+        SET personal_monthly_mission_completed = 1 - personal_monthly_mission_completed
+        WHERE personal_monthly_mission_id = #{personalMissionId};
+    </select>
+
+    <!-- Personal Daily Mission 미션바꾸기 쿼리 -->
+    <select id="completeDailyMonthlyMission" parameterType="long">
+        UPDATE personal_daily_mission
+        SET personal_daily_mission_completed = 1 - personal_daily_mission_completed
+        WHERE personal_daily_mission_id = #{personalMissionId};
+    </select>
+
+    <!-- Personal Daily Mission 미션 완료여부 확인-->
+    <select id="findMissionIsCompletedByPersonalMissionId" parameterType="long" resultType="long">
+        SELECT personal_daily_mission_completed
+        FROM personal_daily_mission
+        WHERE personal_daily_mission_id = #{personalMissionId};
+    </select>
+
+    <!-- UserId에 따른 Salary 조회 -->
+    <select id="findSalaryByUserId" resultType="int">
+        SELECT user_salary
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- userId와 missionId에 따른 저축 비율 조회 -->
+    <select id="findSaveRateByUserIdAndMissionId" resultType="double">
+        SELECT u.fin_type_save_rate
+        FROM user u
+                 JOIN mission m ON u.fin_type_code = m.mission_category
+        WHERE u.user_id = #{userId}
+          AND m.mission_id = #{missionId}
+    </select>
+
+    <!-- userId와 missionId에 따른 사용 비율 조회 -->
+    <select id="findUseRateByUserIdAndMissionId" resultType="double">
+        SELECT u.fin_type_use_rate
+        FROM user u
+                 JOIN mission m ON u.fin_type_code = m.mission_category
+        WHERE u.user_id = #{userId}
+          AND m.mission_id = #{missionId}
+    </select>
+
+
+    <!-- missionId에 따른 미션 카테고리 조회 -->
+    <select id="findMissionCategoryByMissionId" resultType="int">
+        SELECT mission_category
+        FROM mission
+        WHERE mission_id = #{missionId}
+    </select>
+
+    <!-- user_mission_current_month_score 가져오기 -->
+    <select id="findCurrentMissionMonthScoreByUserId" resultType="int" parameterType="long">
+        SELECT user_mission_current_month_score
+        FROM user
+        WHERE user_id = #{userId};
+    </select>
+
+    <!-- user_mission_current_month_score 업데이트 -->
+    <update id="updateCurrentMissionMonthScoreByUserId" parameterType="map">
+        UPDATE user
+        SET user_mission_current_month_score = #{score}
+        WHERE user_id = #{userId};
+    </update>
+
+
+</mapper>

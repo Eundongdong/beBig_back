@@ -12,5 +12,11 @@
         <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"/>
         <typeAlias alias="BankVo" type="beBig.vo.BankVo"/>
         <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
+        <typeAlias alias="PersonalMonthlyMissionVo" type="beBig.vo.PersonalMonthlyMissionVo"/>
+        <typeAlias alias="PersonalDailyMissionVo" type="beBig.vo.PersonalDailyMissionVo"/>
+        <typeAlias alias="MissionVo" type="beBig.vo.MissionVo"></typeAlias>
+        <typeAlias alias="MonthlyMissionResponseDto" type="beBig.dto.response.MonthlyMissionResponseDto"></typeAlias>
+        <typeAlias alias="DailyMissionResponseDto" type="beBig.dto.response.DailyMissionResponseDto"></typeAlias>
+        <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"></typeAlias>
     </typeAliases>
 </configuration>

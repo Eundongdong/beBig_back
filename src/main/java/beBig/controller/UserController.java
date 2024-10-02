@@ -2,12 +2,19 @@ package beBig.controller;
 
 import beBig.dto.LoginDto;
 import beBig.dto.UserDto;
+import beBig.dto.response.FinInfoResponseDto;
+import beBig.form.LoginForm;
+import beBig.form.UserForm;
+import beBig.mapper.MissionMapper;
 import beBig.service.CustomUserDetails;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
+import beBig.service.jwt.JwtUtil;
 import beBig.service.oauth.KakaoOauthService;
-import beBig.vo.UtilVo;
+import beBig.vo.*;
+import com.amazonaws.Response;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,6 +45,8 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final KakaoOauthService kakaoLoginService;
+    private final MissionMapper missionMapper;
+    private final JwtUtil jwtUtil;
 
 //    @Autowired
 //    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
@@ -133,23 +142,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");
     }
 
-    //승아오면물어보기
-//    @PostMapping("/find-id")
-//    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
-//        String name = userForm.getName();
-//        String email = userForm.getEmail();
-//
-//        log.info("Received name: {}, email: {}", name, email);
-//        String maskedUserId = userService.findByEmailAndLoginType(name, email);
-//
-//        if (maskedUserId != null) {
-//            log.info("Found user id: {}", maskedUserId);
-//            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
-//        } else {
-//            log.info("No user found with name: {}", name);
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
-//        }
-//    }
+    @PostMapping("/find-id")
+    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
+        String name = userForm.getName();
+        String email = userForm.getEmail();
+
+        log.info("Received name: {}, email: {}", name, email);
+        String maskedUserId = userService.findUserLoginIdByNameAndEmail(name, email);
+
+        if (maskedUserId != null) {
+            log.info("Found user id: {}", maskedUserId);
+            return ResponseEntity.status(HttpStatus.OK).body(maskedUserId);
+        } else {
+            log.info("No user found with name: {}", name);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 이름과 이메일로 등록된 아이디가 없습니다.");
+        }
+    }
 
     // 아이디, 이름, 이메일을 통해 비밀번호 찾기 요청
     @PostMapping("/find-pwd")
@@ -210,13 +218,16 @@ public class UserController {
 //                loginForm.setUserLoginId(kakaoId); // Kakao 로그인 시 사용자 ID로 email 사용
 //                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
                 // 로그인 처리
-                String token = jwtTokenProvider.generateToken(Long.valueOf(kakaoId));
+                Long userId = userService.findUserIdByKakaoId(kakaoId);
+                String token = jwtTokenProvider.generateToken(userId);
                 log.info("JWT 토큰 생성: {}", token);
-
+                log.info("userId : {}", userId);
                 // existingUser = true와 JWT 토큰을 프론트로 전달
                 return ResponseEntity.ok().body(Map.of(
                         "existingUser", true,
-                        "token", token
+                        "token", token,
+                        "userId", userId,
+                        "accessToken", accessToken
                 ));
             }
 
@@ -226,11 +237,41 @@ public class UserController {
         }
     }
 
+    @PostMapping("/social-kakao-logout")
+    public ResponseEntity<?> kakaoLogout(HttpServletRequest request) {
+        try {
+            String token = request.getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7); // "Bearer " 이후의 실제 토큰 부분 추출
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("token is null");
+            }
+            log.info("로그아웃 토큰 : {}", token);
+            Long result = kakaoLoginService.kakaoLogout(token);
+
+            log.info("result : {}", result);
+            if (result != -1L) return ResponseEntity.ok("kakao Logout Success");
+            else return ResponseEntity.status(HttpStatus.NOT_FOUND).body("kakao logout error");
+        } catch (Exception e) {
+            log.error("카카오 로그인 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("kakao logout error");
+        }
+    }
+
     @GetMapping("/terms")
     public ResponseEntity<List<UtilVo>> getTerms() {
-        List<UtilVo> terms = userService.getUtilTerms();
-        return ResponseEntity.ok(terms);
+        try {
+            List<UtilVo> terms = userService.getUtilTerms();
+            return ResponseEntity.ok(terms);
+        } catch (IllegalArgumentException e) {
+            log.info("잘못된 요청 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // 400 Bad Request
+        } catch (Exception e) {
+            log.error("서버 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
+        }
     }
+
 
 //    @GetMapping("/social-signup/info")
 //    public ResponseEntity<String> infoSocialSignup() {
@@ -249,3 +290,4 @@ public class UserController {
 //    }
 
 }
+
