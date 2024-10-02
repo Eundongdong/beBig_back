@@ -11,9 +11,9 @@ public interface HomeService {
     List<CodefAccountDto> getUserAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception;
     boolean addAccountToDB(Long userId, List<CodefAccountDto> codefAccountDtoList);
 
-    void saveTransactions(Long userId, CodefTransactionRequestDto requestDto) throws Exception;
-
     List<AccountResponseDto> showMyAccount(Long userId) throws Exception;
 
     AccountTransactionDto getTransactionList(Long userId, String accountNum);
+
+    boolean saveTransactions(Long userId, String accountNum) throws Exception;
 }

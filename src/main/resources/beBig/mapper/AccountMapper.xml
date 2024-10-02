@@ -51,6 +51,14 @@
         ORDER BY t.transaction_date DESC
     </select>
 
+    <!-- 중복 거래 내역 확인 -->
+    <select id="findTransactionByDateAndAmount" resultType="TransactionVo">
+        SELECT * FROM transaction
+        WHERE account_num = #{accountNum}
+          AND transaction_date = #{transactionDate}
+          AND transaction_amount = #{transactionAmount}
+    </select>
+
     <select id="findAccountDetailsByUserId" resultType="beBig.dto.AccountResponseDto">
         SELECT
             a.account_num AS accountNum,

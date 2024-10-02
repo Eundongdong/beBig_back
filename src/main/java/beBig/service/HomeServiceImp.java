@@ -14,6 +14,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -77,21 +79,49 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public void saveTransactions(Long userId, CodefTransactionRequestDto requestDto) throws Exception {
-        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+    public boolean saveTransactions(Long userId, String accountNum) throws Exception {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
+
+        // 거래 내역 요청 객체 생성
+        CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
+        UserVo userInfo = getUserInfo(userId);
+        requestDto.setAccount(accountNum);  // 추출된 accountNum 사용
+        requestDto.setConnectedId(userInfo.getUserConnectedId());
+        requestDto.setOrganization("0004");
+
+        // 날짜 설정 (최근 3일)
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(3);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        requestDto.setStartDate(startDate.format(formatter));
+        requestDto.setEndDate(endDate.format(formatter));
+        requestDto.setOrderBy("0");
+
+        // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
 
         if (transactionHistory == null || transactionHistory.isEmpty()) {
             log.info("거래 내역이 없습니다: 계좌 번호 {}", requestDto.getAccount());
-            return;
+            return false;
         }
 
         List<TransactionVo> transactionList = mapToTransactionList(requestDto, transactionHistory);
 
+        // 중복 체크 및 저장
         for (TransactionVo transactionVo : transactionList) {
-            accountMapper.insertTransaction(transactionVo);
+            TransactionVo existingTransaction = accountMapper.findTransactionByDateAndAmount(
+                    transactionVo.getAccountNum(), transactionVo.getTransactionDate(), transactionVo.getTransactionAmount());
+
+            if (existingTransaction == null) {
+                accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
+            } else {
+                log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
+                return false;
+            }
         }
+
+        return true; // 성공적으로 저장된 경우
     }
 
     private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
