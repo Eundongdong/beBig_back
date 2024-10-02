@@ -24,4 +24,6 @@ public interface MyPageService {
     void saveMyPageSocial(long userId, String userIntro, String userNickname);
 
     void saveMyPageGeneral(long userId, String userIntro, String userNickname, String password);
+
+    boolean checkPassword(String password, long userId);
 }
