@@ -34,4 +34,6 @@ public interface MyPageMapper {
                            @Param("userPassword") String userPassword);
 
     List<BadgeVo> getBadges();
+
+    String findPasswordByUserId(@Param("userId") long userId);
 }

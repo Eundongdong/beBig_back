@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -153,6 +154,23 @@ public class MyPageController {
                 myPageService.saveMyPageGeneral(userId, userIntro, userNickname, password);
             }
             return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");
+        }
+    }
+
+    @GetMapping("/check-password")
+    public ResponseEntity<?> checkPassword(@RequestHeader("Authorization") String token,
+                                           @RequestBody Map<String, Object> requestBody) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            String password = (String) requestBody.get("password");
+
+            if (!myPageService.checkPassword(password, userId)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("password does not match");
+            }
+            return ResponseEntity.ok("password match");
         } catch (Exception e) {
             log.error("서버 에러 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");

@@ -28,6 +28,7 @@ public class HomeController {
 
     private final HomeService homeService;
     private final JwtUtil jwtUtil; // JWT 토큰 제공자 주입
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 유저 정보 불러오기
     // ******수정 필요******
@@ -146,7 +147,7 @@ public class HomeController {
         } catch (ClassCastException e) {
             log.error("user_fin_type 값 타입 오류: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_fin_type 값은 정수형이어야 합니다.");
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("서버 에러 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버에서 오류가 발생했습니다.");
         }
