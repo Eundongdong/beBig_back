@@ -2,7 +2,6 @@ package beBig.service;
 
 import beBig.dto.UserDto;
 import beBig.dto.response.FinInfoResponseDto;
-import beBig.form.UserForm;
 import beBig.mapper.UserMapper;
 import beBig.vo.FinTestVo;
 import beBig.vo.FinTypeVo;
