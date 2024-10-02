@@ -27,6 +27,7 @@ public class UserVo {
     private String userIntro;
     private int userSalary;
     private int userVisibility; // 0 = 비공개 , 1 = 공개
+    private String refreshToken;
 
     private FinTypeVo finType;    // fin_type_code
     private BadgeVo badge;        // badge_code
@@ -34,6 +35,7 @@ public class UserVo {
     private List<LikeHitsVo> likeHits;   // user가 누른 좋아요 목록
     private List<PersonalDailyMissionVo> dailyMissions;
     private PersonalMonthlyMissionVo monthlyMission;
+
 
     public LocalDate getUserBirthLocalDate() {
         if (userBirth == null) {

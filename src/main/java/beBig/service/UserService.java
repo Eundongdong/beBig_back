@@ -1,17 +1,16 @@
 package beBig.service;
 
+import beBig.dto.UserDto;
 import beBig.dto.response.FinInfoResponseDto;
-import beBig.form.UserForm;
 import beBig.vo.FinTestVo;
 import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 public interface UserService {
-    void registerUser(UserForm userForm) throws Exception;
+    void registerUser(UserDto userDto) throws Exception;
 
     boolean updatePasswordByEmail(String userLoginId, String name, String email);
 
@@ -25,7 +24,4 @@ public interface UserService {
 
     Long findUserIdByKakaoId(String kakaoId);
 
-    List<FinTestVo> findMission();
-
-    FinInfoResponseDto findFinTypeByUserId(Long userId);
 }

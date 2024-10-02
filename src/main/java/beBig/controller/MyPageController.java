@@ -1,22 +1,30 @@
 package beBig.controller;
 
+import beBig.dto.request.MyPageEditRequestDto;
 import beBig.dto.response.MyPagePostResponseDto;
+import beBig.dto.response.MyPageEditResponseDto;
 import beBig.dto.response.TotalMissionResponseDto;
 import beBig.dto.response.UserProfileResponseDto;
+import beBig.mapper.MyPageMapper;
 import beBig.service.MissionService;
-import beBig.vo.UserProfileResponseVo;
 import beBig.service.MyPageService;
 import beBig.service.jwt.JwtUtil;
+import beBig.vo.BadgeVo;
+import com.amazonaws.Response;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static beBig.controller.MissionController.getRestDaysInCurrentMonth;
 
@@ -30,6 +38,7 @@ public class MyPageController {
     private final MyPageService myPageService;
     private final MissionService missionService;
     private final JwtUtil jwtUtil;
+    private final MyPageMapper myPageMapper;
 
     @GetMapping("/info")
     public ResponseEntity<UserProfileResponseDto> getMypage(@RequestHeader("Authorization") String token) {
@@ -45,6 +54,16 @@ public class MyPageController {
         } catch (Exception e) {
             log.info("에러 메시지: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/badge")
+    public ResponseEntity<?> personalBadge(@RequestHeader("Authorization") String token) {
+        try {
+            List<BadgeVo> badges = myPageService.getBadges();
+            return ResponseEntity.status(HttpStatus.OK).body(badges);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("internal server error");
         }
     }
 
@@ -84,6 +103,77 @@ public class MyPageController {
         } catch (Exception e) {
             log.error("좋아요 수 조회 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/login-type")
+    public ResponseEntity<String> checkLoginType(@RequestHeader("Authorization") String token) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            String loginType = myPageService.findLoginIdByUserId(userId);
+            log.info("loginType : {}", loginType);
+            return ResponseEntity.ok(loginType);
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버에서 오류가 발생했습니다.");
+        }
+    }
+
+    @GetMapping("/edit-form")
+    public ResponseEntity<MyPageEditResponseDto> editForm(@RequestHeader("Authorization") String token) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+
+            MyPageEditResponseDto dto = myPageService.findEditFormByUserId(userId);
+            // 예시 숫자
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = dateFormat.format(dto.getUserBirth());
+            dto.setUserBirth2(formattedDate);
+
+            log.info("dto : {}", dto);
+            return ResponseEntity.status(HttpStatus.OK).body(dto);
+        } catch (Exception e) {
+            log.error("마이페이지 수정 에러 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/edit-save")
+    public ResponseEntity<String> editSave(@RequestHeader("Authorization") String token,
+                                           @RequestBody Map<String, Object> requestBody) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            String userIntro = (String) requestBody.get("user_intro");
+            String userNickname = (String) requestBody.get("user_nickname");
+            String loginType = (String) requestBody.get("user_login_type");
+
+            if (loginType.equals("kakao")) {
+                myPageService.saveMyPageSocial(userId, userIntro, userNickname);
+            } else {
+                String password = (String) requestBody.get("user_password");
+                myPageService.saveMyPageGeneral(userId, userIntro, userNickname, password);
+            }
+            return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");
+        }
+    }
+
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(@RequestHeader("Authorization") String token,
+                                           @RequestBody Map<String, Object> requestBody) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            String password = (String) requestBody.get("password");
+
+            if (!myPageService.checkPassword(password, userId)) {
+                return ResponseEntity.status(HttpStatus.OK).body("password does not match");
+            }
+            return ResponseEntity.ok("password match");
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");
         }
     }
 

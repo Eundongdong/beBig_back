@@ -9,6 +9,9 @@
     <typeAliases>
         <typeAlias alias="UserVo" type="beBig.vo.UserVo"/>
         <typeAlias alias="PostVo" type="beBig.vo.PostVo"/>
+        <typeAlias alias="AccountVo" type="beBig.vo.AccountVo"/>
+        <typeAlias alias="BankVo" type="beBig.vo.BankVo"/>
+        <typeAlias alias="TransactionVo" type="beBig.vo.TransactionVo"/>
         <typeAlias alias="PersonalMonthlyMissionVo" type="beBig.vo.PersonalMonthlyMissionVo"/>
         <typeAlias alias="PersonalDailyMissionVo" type="beBig.vo.PersonalDailyMissionVo"/>
         <typeAlias alias="MissionVo" type="beBig.vo.MissionVo"></typeAlias>

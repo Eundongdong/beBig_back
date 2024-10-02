@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class FinTestVo {
     private int finTestId;
+    private String finTestQuestion;
+    private String finTestAnswer1;
+    private String finTestAnswer2;
     private int finTestType;
-    private int finTestSelect;
-    private String finTestDescription;
 }

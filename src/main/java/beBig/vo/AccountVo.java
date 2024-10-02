@@ -7,9 +7,8 @@ import java.util.List;
 @Data
 public class AccountVo {
     private String accountNum;
-    private int accountBankId;
+    private int bankId;
     private String accountName;
-    private String accountConnectedId;
-
-    private List<TransactionVo> transactions;  // 거래 목록
+    private Long userId;
+    private String accountType;
 }

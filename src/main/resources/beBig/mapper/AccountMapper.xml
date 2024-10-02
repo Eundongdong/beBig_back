@@ -3,10 +3,10 @@
 
 <mapper namespace="beBig.mapper.AccountMapper">
 
-    <select id="findAccountById" parameterType="String" resultType="AccountVo">
+    <select id="findAccountById" parameterType="Long" resultType="AccountVo">
         SELECT *
         FROM account
-        WHERE account_connected_id = #{connectedId}
+        WHERE user_id = #{userId}
     </select>
     <!--주거래 은행 1개 조회-->
     <select id="findPrimaryBankId" parameterType="long" resultType="int">
@@ -26,4 +26,68 @@
 
 
 
+    <select id="findAccountByAccountNum" parameterType="String" resultType="AccountVo">
+        SELECT *
+        FROM account
+        WHERE account_num = #{accountNum}
+    </select>
+
+    <insert id="insertAccount" parameterType="AccountVo">
+        INSERT INTO account(account_num, bank_id, account_name, user_id, account_type)
+        VALUES (#{accountNum}, #{bankId}, #{accountName}, #{userId}, #{accountType})
+    </insert>
+
+    <select id="getBankByCode" resultType="BankVo">
+        SELECT *
+        FROM bank
+        WHERE bank_code_codef = #{bankCode}
+    </select>
+
+    <select id="getBankById" resultType="BankVo">
+        SELECT *
+        FROM bank
+        WHERE bank_id = #{bankId}
+    </select>
+
+    <insert id="insertTransaction" parameterType="TransactionVo">
+        INSERT INTO transaction (account_num, transaction_vendor, transaction_balance, transaction_amount, transaction_date, transaction_type)
+        VALUES (#{accountNum}, #{transactionVendor}, #{transactionBalance}, #{transactionAmount}, #{transactionDate}, #{transactionType})
+    </insert>
+
+    <!-- 거래 내역 조회 시 account와 bank 정보를 함께 가져오는 쿼리 -->
+    <select id="getTransactionsByAccountNum" resultType="TransactionVo">
+        SELECT
+            t.account_num AS accountNum,
+            t.transaction_vendor AS transactionVendor,
+            t.transaction_balance AS transactionBalance,
+            t.transaction_amount AS transactionAmount,
+            t.transaction_date AS transactionDate,
+            t.transaction_type AS transactionType
+        FROM transaction t
+        WHERE t.account_num = #{accountNum}
+        ORDER BY t.transaction_date DESC
+    </select>
+
+    <!-- 중복 거래 내역 확인 -->
+    <select id="findTransactionByDateAndAmount" resultType="TransactionVo">
+        SELECT * FROM transaction
+        WHERE account_num = #{accountNum}
+          AND transaction_date = #{transactionDate}
+          AND transaction_amount = #{transactionAmount}
+    </select>
+
+    <select id="findAccountDetailsByUserId" resultType="beBig.dto.AccountResponseDto">
+        SELECT
+            a.account_num AS accountNum,
+            a.account_name AS accountName,
+            b.bank_name AS bankName,
+            (SELECT t.transaction_balance
+             FROM transaction t
+             WHERE t.account_num = a.account_num
+             ORDER BY t.transaction_date DESC
+                LIMIT 1) AS transactionBalance
+        FROM account a
+            JOIN bank b ON a.bank_id = b.bank_id
+        WHERE a.user_id = #{userId}
+    </select>
 </mapper>
