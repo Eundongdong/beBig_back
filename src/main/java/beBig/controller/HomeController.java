@@ -30,18 +30,24 @@ public class HomeController {
 
     // 유저 정보 불러오기
     @GetMapping("/info")
-    public ResponseEntity<HashMap<String, Object>> getMyInfo(@RequestHeader("Authorization") String token) throws Exception {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        UserVo userInfo = homeService.getUserInfo(userId);
+    public ResponseEntity<HashMap<String, Object>> getMyInfo(@RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            UserVo userInfo = homeService.getUserInfo(userId);
 
-        if (userInfo == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Not Found
+            if (userInfo == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Not Found
+            }
+
+            log.info("사용자 finTypeCode: {}", userInfo.getFinTypeCode());
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("userName", userInfo.getUserName());
+            response.put("finTypeCode", userInfo.getFinTypeCode());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("유저 정보 불러오기 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Internal Server Error
         }
-        log.info("사용자 finTypeCode: {}", userInfo.getFinTypeCode());
-        HashMap<String, Object> response = new HashMap<>();
-        response.put("userName", userInfo.getUserName());
-        response.put("finTypeCode", userInfo.getFinTypeCode());
-        return ResponseEntity.ok(response);
     }
 
 //    @GetMapping("/survey")
@@ -65,20 +71,41 @@ public class HomeController {
 
     // 사용자 계좌 정보 가져오기 - codef
     @PostMapping("/account")
-    public ResponseEntity<List<CodefAccountDto>> getAccount(@RequestHeader("Authorization") String token,
-                                                            @RequestBody AccountRequestDto accountRequestDto) throws Exception {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
-        return ResponseEntity.ok(accountList);
+    public ResponseEntity<?> getAccount(@RequestHeader("Authorization") String token,
+                                        @RequestBody AccountRequestDto accountRequestDto) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
+
+            if (accountList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("등록된 계좌가 없습니다.");
+            }
+
+            return ResponseEntity.ok(accountList);
+        } catch (Exception e) {
+            log.error("계좌 정보 불러오기 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 정보 불러오기 중 오류가 발생했습니다.");
+        }
     }
+
 
     // 계좌를 db에 등록
     @PostMapping("/account/add")
-    public ResponseEntity<String> addAccount(@RequestHeader("Authorization") String token,
-                                             @RequestBody List<CodefAccountDto> codefAccountDtoList) throws Exception {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        boolean isAdded = homeService.addAccountToDB(userId, codefAccountDtoList);
-        return isAdded ? ResponseEntity.ok("계좌 추가 완료") : ResponseEntity.badRequest().body("계좌 추가 실패");
+    public ResponseEntity<?> addAccount(@RequestHeader("Authorization") String token,
+                                        @RequestBody List<CodefAccountDto> codefAccountDtoList) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            boolean isAdded = homeService.addAccountToDB(userId, codefAccountDtoList);
+
+            if (isAdded) {
+                return ResponseEntity.ok("계좌 추가 완료");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 추가 실패");
+            }
+        } catch (Exception e) {
+            log.error("계좌 추가 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 추가 중 오류가 발생했습니다.");
+        }
     }
 
 
@@ -88,49 +115,67 @@ public class HomeController {
 //        return ResponseEntity.status(HttpStatus.OK).body("미션 목록 조회");
 //    }
 
-    //
     // 계좌 목록 불러오기
     @GetMapping("/account/list")
-    public ResponseEntity<List<AccountResponseDto>> accountList(@RequestHeader("Authorization") String token) throws Exception {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        List<AccountResponseDto> accountList = homeService.showMyAccount(userId);
+    public ResponseEntity<?> accountList(@RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            List<AccountResponseDto> accountList = homeService.showMyAccount(userId);
 
-        return ResponseEntity.ok(accountList);
+            if (accountList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("등록된 계좌가 없습니다.");
+            }
+
+            return ResponseEntity.ok(accountList);
+        } catch (Exception e) {
+            log.error("계좌 목록 불러오기 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 목록 불러오기 중 오류가 발생했습니다.");
+        }
     }
-
     // 계좌별 거래내역 조회
     @GetMapping("/account/{accountNum}/transactions")
-    public ResponseEntity<AccountTransactionDto> getTransactionList(@RequestHeader("Authorization") String token,
-                                                                    @PathVariable String accountNum) {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        AccountTransactionDto response = homeService.getTransactionList(userId, accountNum);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> getTransactionList(@RequestHeader("Authorization") String token,
+                                                @PathVariable String accountNum) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+            AccountTransactionDto response = homeService.getTransactionList(userId, accountNum);
+
+            if (response == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("거래 내역을 찾을 수 없습니다.");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("거래 내역 조회 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("거래 내역 조회 중 오류가 발생했습니다.");
+        }
     }
 
     // 거래 내역 저장 -> Spring Batch를 활용하여 스케줄링 예정으로, 수정 필요함
     @PostMapping("/transactions")
-    public ResponseEntity<Void> saveTransactions(@RequestHeader("Authorization") String token,
-                                                 @RequestBody Map<String, String> requestBody) throws Exception {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
+    public ResponseEntity<?> saveTransactions(@RequestHeader("Authorization") String token,
+                                              @RequestBody Map<String, String> requestBody) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
 
-        // 거래 내역 요청 객체 생성 및 설정
-        CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
-        UserVo userInfo = homeService.getUserInfo(userId);
-        requestDto.setAccount(requestBody.get("accountNum"));
-        requestDto.setConnectedId(userInfo.getUserConnectedId());
-        requestDto.setOrganization("0004");
+            // requestBody에서 accountNum을 추출
+            String accountNum = requestBody.get("accountNum");
 
-        // 날짜 설정 (최근 3일)
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(3);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        requestDto.setStartDate(startDate.format(formatter));
-        requestDto.setEndDate(endDate.format(formatter));
-        requestDto.setOrderBy("0");
+            if (accountNum == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 번호가 누락되었습니다.");
+            }
 
-        // 거래 내역 저장
-        homeService.saveTransactions(userId, requestDto);
+            // 추출한 accountNum을 사용하여 서비스 메서드 호출
+            boolean isSaved = homeService.saveTransactions(userId, accountNum);
 
-        return ResponseEntity.ok().build();
+            if (isSaved) {
+                return ResponseEntity.ok("거래 내역이 성공적으로 저장되었습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("거래 내역 저장에 실패했습니다.");
+            }
+        } catch (Exception e) {
+            log.error("거래 내역 저장 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("거래 내역 저장 중 오류가 발생했습니다.");
+        }
     }
 }
