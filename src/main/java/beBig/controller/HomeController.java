@@ -15,8 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +63,7 @@ public class HomeController {
         try {
             Long userId = jwtUtil.extractUserIdFromToken(token);
             List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
+
 
             if (accountList.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("등록된 계좌가 없습니다.");
