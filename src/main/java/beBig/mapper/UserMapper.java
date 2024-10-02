@@ -33,6 +33,7 @@ public interface UserMapper {
 
     List<UtilVo> getUtilTerms(); // 약관 조회 메서드
 
+    void updateUserConnectedId(@Param("userId") Long userId, @Param("connectedId") String connectedId);
 
     Long getUserIdByKaKaoId(String userLoginId);
 
