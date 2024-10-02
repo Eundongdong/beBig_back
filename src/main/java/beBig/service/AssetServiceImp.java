@@ -1,5 +1,6 @@
 package beBig.service;
 
+import beBig.dto.AssetAnalysisDto;
 import beBig.dto.UserTotalAssetsDto;
 import beBig.dto.response.SpendingPatternsResponseDto;
 import beBig.mapper.*;
@@ -28,6 +29,57 @@ public class AssetServiceImp implements AssetService {
     @Autowired
     public void setSqlSessionTemplate(SqlSession sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
+    }
+
+    /**
+     * 사용자 자산 분석을 제공하는 메서드
+     *
+     * 이 메서드는 사용자의 모든 계좌 번호를 조회한 후, 각 계좌에 대해 최신 현금 잔액(입출금) 및
+     * 예적금 잔액(예금/적금)을 조회하고 합산하여 총 잔액을 반환
+     *
+     * @param userId 분석할 사용자의 고유 ID
+     * @return 사용자 자산 분석 결과를 담은 {@link AssetAnalysisDto} 객체
+     *
+     */
+    @Override
+    public AssetAnalysisDto showAnalysis(long userId) {
+        AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
+
+        // 사용자의 모든 계좌 번호 조회
+        List<String> accountNumbers = assetMapper.findAccountNumByUserId(userId);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+
+        long totalCashBalance = 0;
+        long totalDepositSavingBalance = 0;
+
+        // 각 계좌별로 잔액을 계산
+        for(String accountNum : accountNumbers) {
+            params.put("accountNum", accountNum);
+
+            // 최근 현금(입금/출금) 거래 내역 조회
+            Long cashBalance = assetMapper.showLatestCashBalance(params);
+
+            // 최근 예금/적금 거래 내역 조회
+            Long depositBalance = assetMapper.showLatestDepositBalance(params);
+
+            if (cashBalance != null) {
+                totalCashBalance += cashBalance;
+            }
+
+            if (depositBalance != null) {
+                totalDepositSavingBalance += depositBalance;
+            }
+        }
+
+        // 총 잔액 계산 후 DTO 생성
+        AssetAnalysisDto assetAnalysisDto = new AssetAnalysisDto();
+        assetAnalysisDto.setTotalCashBalance(totalCashBalance);
+        assetAnalysisDto.setTotalDepositSavingsBalance(totalDepositSavingBalance);
+        assetAnalysisDto.setTotalBalance(totalCashBalance + totalDepositSavingBalance);
+
+        return assetAnalysisDto;
     }
 
     /**

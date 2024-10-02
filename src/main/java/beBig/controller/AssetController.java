@@ -32,10 +32,16 @@ public class AssetController {
     }
 
 
+    @GetMapping("/analysis")
+    public ResponseEntity<AssetAnalysisDto> assetAnalysis(@RequestHeader("Authorization") String token) {
+        long userId = jwtUtil.extractUserIdFromToken(token);
 
-    @GetMapping("/{userNo}/analysis")
-    public ResponseEntity<String> assetAnalysis(@PathVariable Long userNo) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
+        AssetAnalysisDto analysisDto = assetService.showAnalysis(userId);
+        if (analysisDto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(analysisDto);
     }
 
     @ApiOperation(value = "소비 패턴 분석")
