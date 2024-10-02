@@ -3,8 +3,7 @@ package beBig.controller;
 import beBig.dto.LoginDto;
 import beBig.dto.UserDto;
 import beBig.dto.response.FinInfoResponseDto;
-import beBig.form.LoginForm;
-import beBig.form.UserForm;
+
 import beBig.mapper.MissionMapper;
 import beBig.service.CustomUserDetails;
 import beBig.service.UserService;
@@ -143,9 +142,9 @@ public class UserController {
     }
 
     @PostMapping("/find-id")
-    public ResponseEntity<String> findUserId(@RequestBody UserForm userForm) {
-        String name = userForm.getName();
-        String email = userForm.getEmail();
+    public ResponseEntity<String> findUserId(@RequestBody UserDto userDto) {
+        String name = userDto.getName();
+        String email = userDto.getEmail();
 
         log.info("Received name: {}, email: {}", name, email);
         String maskedUserId = userService.findUserLoginIdByNameAndEmail(name, email);

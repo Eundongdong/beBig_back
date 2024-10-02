@@ -121,7 +121,7 @@ public class HomeServiceImp implements HomeService {
                 accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
             } else {
                 log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
-                return false;
+                break;
             }
         }
 
