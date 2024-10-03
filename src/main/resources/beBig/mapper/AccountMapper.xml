@@ -18,7 +18,7 @@
         LIMIT 1
     </select>
     <!-- 주거래 은행을 제외한 모든 은행 조회 -->
-    <select id="findAllBankIdsExceptPrimary" parameterType="int" resultType="int">
+    <select id="findAllOtherBanksExceptPrimary" parameterType="int" resultType="int">
         SELECT bank_id
         FROM bank
         WHERE bank_id != #{primaryBankId}
