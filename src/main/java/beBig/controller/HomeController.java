@@ -32,7 +32,6 @@ public class HomeController {
 
     private final HomeService homeService;
     private final JwtUtil jwtUtil; // JWT 토큰 제공자 주입
-    private final JwtTokenProvider jwtTokenProvider;
 
     // 유저 정보 불러오기
     @GetMapping("/info")
