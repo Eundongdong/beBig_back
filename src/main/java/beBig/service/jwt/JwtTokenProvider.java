@@ -20,17 +20,13 @@ public class JwtTokenProvider {
 
     // io.jsonwebtoken.security.Keys를 통해 안전한 시크릿 키 생성
     private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 256비트 시크릿 키 생성
-    private final long jwtExpirationInMs = 1800000; // 토큰 유효시간 30분
-    private final long refreshTokenExpirationInMs = 604800000; // 7일 (1주일)
+    private final long jwtExpirationInMs = 1800000; // 토큰 유효시간 30분 = 1800000
+    private final long refreshTokenExpirationInMs = 604800000; // 7일 (1주일) 604800000
     private final UserMapper userMapper;
-//    private final JwtUtil jwtUtil;
-
     // JWT 토큰 생성
     public String generateToken(Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
-        generateRefreshToken(userId);
 
         return Jwts.builder()
                 .claim("userId", userId)   // userId를 클레임에 저장

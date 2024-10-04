@@ -30,13 +30,14 @@ public class TokenController {
     public ResponseEntity<Map<String, Object>> refreshToken(
             @RequestHeader("Authorization") String token, HttpServletRequest request) {
 
+        String jwtToken = token.replace("Bearer ", "");
         String refreshToken = request.getHeader("refreshToken");
         Map<String, Object> response = new HashMap<>();
 
         try {
             // 1. Access Token이 유효한 경우
-            if (jwtTokenProvider.validateToken(token)) {
-                response.put("accessToken", token);
+            if (jwtTokenProvider.validateToken(jwtToken)) {
+                response.put("accessToken", jwtToken);
                 return ResponseEntity.ok(response);
             }
 
@@ -44,6 +45,7 @@ public class TokenController {
             if (jwtTokenProvider.checkRefreshToken(refreshToken)) {
                 String newAccessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
                 response.put("accessToken", newAccessToken);
+                log.info("accessToken 재발급 : {}", newAccessToken);
                 return ResponseEntity.ok(response);
             }
 

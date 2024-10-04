@@ -25,4 +25,8 @@ public interface UserService {
     Long findUserIdByKakaoId(String kakaoId);
 
     void removeRefreshToken(String refreshToken);
+
+    Long findUserIdByUserLoginId(String userLoginId);
+
+    void deleteRefreshTokenBeforeLogin(Long userId);
 }

@@ -159,4 +159,16 @@
         SET refresh_token = null
         WHERE refresh_token = #{refreshToken};
     </update>
+
+    <delete id="clearRefreshTokenByUserId" parameterType="long">
+        delete
+        from refresh_token
+        where user_id = #{userId};
+    </delete>
+
+    <select id="findUserIdByUserLoginId" parameterType="String">
+        select user_id
+        from user
+        where user_login_id = #{userLoginId};
+    </select>
 </mapper>

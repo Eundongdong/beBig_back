@@ -27,6 +27,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.spring.web.scanners.ApiListingReferenceScanner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,6 +48,7 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final KakaoOauthService kakaoLoginService;
     private final UserMapper userMapper;
+    private final ApiListingReferenceScanner apiListingReferenceScanner;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
@@ -94,6 +96,10 @@ public class UserController {
             // 인증된 사용자 정보 로드
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             log.info("로그인 성공: {}", loginDto.getUserLoginId());
+
+
+            // 로그인하기전 기존 db에 저장되어있던 refershToken이 있다면 삭제
+            userService.deleteRefreshTokenBeforeLogin(userService.findUserIdByUserLoginId(loginDto.getUserLoginId()));
 
             // JWT 토큰 생성
             String accessToken = jwtTokenProvider.generateToken(userDetails.getUserId());
@@ -225,10 +231,12 @@ public class UserController {
 //                loginForm.setPassword("kakao"); // 소셜 로그인은 별도의 비밀번호 처리가 필요 (고정된 비밀번호 사용)
                 // 로그인 처리
                 Long userId = userService.findUserIdByKakaoId(kakaoId);
+                userService.deleteRefreshTokenBeforeLogin(userId);
                 String token = jwtTokenProvider.generateToken(userId);
                 String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
                 log.info("JWT 토큰 생성: {}", token);
+                log.info("JWT REFERSH 토큰 생성 : {}", refreshToken);
                 log.info("userId : {}", userId);
                 // existingUser = true와 JWT 토큰을 프론트로 전달
                 return ResponseEntity.ok().body(Map.of(
