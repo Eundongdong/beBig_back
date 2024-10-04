@@ -24,4 +24,5 @@ public interface UserService {
 
     Long findUserIdByKakaoId(String kakaoId);
 
+    void removeRefreshToken(String refreshToken);
 }

@@ -183,6 +183,14 @@ public class UserServiceImp implements UserService {
         return userMapper.getUserIdByKaKaoId(kakaoId);
     }
 
+    @Override
+    // db에서 refreshToken 지우기 (로그아웃시)
+    public void removeRefreshToken(String refreshToken) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        userMapper.clearRefreshTokenRT(refreshToken);
+        userMapper.clearRefreshTokenUser(refreshToken);
+    }
+
 
     //    public UserVo findByUserId(String userId) throws Exception {
 //        return userMapper.findByUserId(userId);

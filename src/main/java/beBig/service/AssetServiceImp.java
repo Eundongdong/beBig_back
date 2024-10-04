@@ -133,13 +133,13 @@ public class AssetServiceImp implements AssetService {
         Map<String, Long> monthlySums = transactionVoList.stream()
                 .filter(t -> {
                     // String을 LocalDate로 변환하여 해당 연도에 맞는 거래만 필터링
-                    LocalDate date = LocalDate.parse(t.getTransactionDate(), formatter);
+                    LocalDate date = LocalDate.parse((CharSequence) t.getTransactionDate(), formatter);
                     return date.getYear() == year;
                 })
                 .collect(Collectors.groupingBy(
                         t -> {
                             // yyyy-MM 형식으로 월 추출
-                            LocalDate date = LocalDate.parse(t.getTransactionDate(), formatter);
+                            LocalDate date = LocalDate.parse((CharSequence) t.getTransactionDate(), formatter);
                             return date.format(DateTimeFormatter.ofPattern("yyyy-MM"));
                         },
                         Collectors.summingLong(TransactionVo::getTransactionAmount)

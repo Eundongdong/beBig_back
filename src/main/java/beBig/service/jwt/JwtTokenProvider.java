@@ -92,18 +92,6 @@ public class JwtTokenProvider {
         throw new JwtException("Invalid Refresh Token");
     }
 
-    // db에서 refreshToken 지우기 (로그아웃시)
-    public void removeRefreshToken(String refreshToken) {
-        userMapper.clearRefreshTokenRT(refreshToken);
-        userMapper.clearRefreshTokenUser(refreshToken);
-    }
-
-    //accessToken 검사
-    public long checkAccessToken(String token) {
-//        if (validateToken(token)) return jwtUtil.extractUserIdFromToken(token);
-        return -1;
-    }
-
     // refreshToken 검사
     public boolean checkRefreshToken(String refreshToken) {
         LocalDateTime expiryDate = userMapper.getExpiredTimeByRefreshToken(refreshToken);

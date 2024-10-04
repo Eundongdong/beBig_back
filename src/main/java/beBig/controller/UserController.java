@@ -5,6 +5,7 @@ import beBig.dto.UserDto;
 import beBig.dto.response.FinInfoResponseDto;
 
 import beBig.mapper.MissionMapper;
+import beBig.mapper.UserMapper;
 import beBig.service.CustomUserDetails;
 import beBig.service.UserService;
 import beBig.service.jwt.JwtTokenProvider;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,43 +46,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final KakaoOauthService kakaoLoginService;
-    private final MissionMapper missionMapper;
-    private final JwtUtil jwtUtil;
-
-    //임시 테스트용
-    @GetMapping("/token")
-    public ResponseEntity<?> getProtectedResource(
-            @RequestHeader("Authorization") String token,
-            HttpServletRequest request) {
-        String accessToken = token.replace("Bearer ", "");
-        // 리프레시 토큰은 헤더로 전송
-        String refreshToken = request.getHeader("Refresh-Token");
-        boolean isAccessTokenRefreshed = false;  // Access Token 재발급 여부를 확인하는 플래그
-
-        try {
-            // 토큰 검증 및 갱신 로직 처리
-            String validAccessToken = jwtTokenProvider.validateAndRefreshToken(accessToken, refreshToken);
-            // 액세스 토큰이 재발급되었는지 확인
-            if (!validAccessToken.equals(accessToken)) {
-                isAccessTokenRefreshed = true;  // 새로운 액세스 토큰이 발급된 경우
-            }
-            if (isAccessTokenRefreshed) {
-                // 새로운 액세스 토큰이 발급된 경우 이를 프론트에 알리고 전달
-                return ResponseEntity.ok()
-                        .header("New-Access-Token", validAccessToken)  // 새로운 토큰을 헤더에 포함
-                        .body("new Access Token issued.");
-            } else {
-                // 기존 토큰이 유효한 경우
-                return ResponseEntity.ok().header("Access-token", accessToken).body("Valid Access Token");
-            }
-        } catch (JwtException e) {
-            // 토큰이 만료되었거나 유효하지 않을 때의 처리
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
+    private final UserMapper userMapper;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
@@ -112,9 +78,10 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginDto loginDto) {
+        Map<String, Object> response = new HashMap<>();
+
         try {
-            // 사용자 인증
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginDto.getUserLoginId(),
@@ -122,29 +89,41 @@ public class UserController {
                     )
             );
 
-            log.info("Received login request: {}", loginDto);
+            log.info("Received login request for userLoginId: {}", loginDto.getUserLoginId());
 
             // 인증된 사용자 정보 로드
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            log.info("로그인 성공: " + loginDto);
+            log.info("로그인 성공: {}", loginDto.getUserLoginId());
 
             // JWT 토큰 생성
-            String token = jwtTokenProvider.generateToken(userDetails.getUserId());
-            log.info("JWT 토큰 생성: " + token);
+            String accessToken = jwtTokenProvider.generateToken(userDetails.getUserId());
+
+            // Refresh Token 생성 및 저장
+            String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails.getUserId());
+
+            response.put("accessToken", accessToken);
+            response.put("refreshToken", refreshToken);
+
+            log.info("JWT Accesstoken 생성: {}", accessToken);
+            log.info("JWT RefreshToken 생성: {}", refreshToken);
 
             // 토큰을 클라이언트로 응답
-            return ResponseEntity.status(HttpStatus.OK).body(token);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
 
         } catch (BadCredentialsException e) {
-            log.error("로그인 실패: " + loginDto);
-            log.error("Bad credentials: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
+            log.error("로그인 실패: {}", loginDto.getUserLoginId());
+
+            response.put("error", "로그인 실패!");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
         } catch (AuthenticationException e) {
-            log.error("로그인 실패: " + loginDto);
-            log.error("Authentication exception: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패!");
+            log.error("로그인 실패 - 인증 실패: {}", loginDto.getUserLoginId());
+
+            response.put("error", "로그인 실패! 인증 실패");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
+
 
     @GetMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -162,6 +141,9 @@ public class UserController {
                 response.addCookie(cookie);
             }
         }
+
+        String refreshToken = request.getHeader("refreshToken");
+        userService.removeRefreshToken(refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");
     }
@@ -187,7 +169,6 @@ public class UserController {
     @PostMapping("/find-pwd")
     public ResponseEntity<String> findPassword(@RequestBody UserDto userDto) {
         boolean isUpdated = userService.updatePasswordByEmail(userDto.getUserLoginId(), userDto.getName(), userDto.getEmail());
-
         if (isUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body("Temporary password sent to your email!");
         } else {
@@ -204,6 +185,7 @@ public class UserController {
             String accessToken = kakaoLoginService.getAccessToken(code);
             // AccessToken으로 유저 정보 획득
             JsonObject userInfo = kakaoLoginService.getUserInfo(accessToken);
+
             if (userInfo == null) {
                 // 유저 정보를 가져오지 못한 경우
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유저 정보를 가져올 수 없습니다.");
@@ -244,6 +226,8 @@ public class UserController {
                 // 로그인 처리
                 Long userId = userService.findUserIdByKakaoId(kakaoId);
                 String token = jwtTokenProvider.generateToken(userId);
+                String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
+
                 log.info("JWT 토큰 생성: {}", token);
                 log.info("userId : {}", userId);
                 // existingUser = true와 JWT 토큰을 프론트로 전달
@@ -251,7 +235,8 @@ public class UserController {
                         "existingUser", true,
                         "token", token,
                         "userId", userId,
-                        "accessToken", accessToken
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
                 ));
             }
 
@@ -274,8 +259,10 @@ public class UserController {
             Long result = kakaoLoginService.kakaoLogout(token);
 
             log.info("result : {}", result);
-            if (result != -1L) return ResponseEntity.ok("kakao Logout Success");
-            else return ResponseEntity.status(HttpStatus.NOT_FOUND).body("kakao logout error");
+            if (result != -1L) {
+                userService.removeRefreshToken(request.getHeader("refreshToken"));
+                return ResponseEntity.ok("kakao Logout Success");
+            } else return ResponseEntity.status(HttpStatus.NOT_FOUND).body("kakao logout error");
         } catch (Exception e) {
             log.error("카카오 로그인 중 예외 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("kakao logout error");
