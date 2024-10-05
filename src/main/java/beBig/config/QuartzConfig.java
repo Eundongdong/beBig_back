@@ -10,9 +10,14 @@ import org.quartz.TriggerBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 public class QuartzConfig {
+
+    @Autowired
+    private SpringBeanJobFactory jobFactory; // SpringBeanJobFactory 주입
 
     // Quartz Job을 정의하는 메서드
     @Bean
@@ -37,8 +42,16 @@ public class QuartzConfig {
     @Bean
     public SchedulerFactoryBean schedulerFactory(Trigger trigger, JobDetail jobDetail) {
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
+        schedulerFactory.setJobFactory(jobFactory); // Spring의 JobFactory를 설정
         schedulerFactory.setJobDetails(jobDetail);
         schedulerFactory.setTriggers(trigger);
         return schedulerFactory;
+    }
+
+    // SpringBeanJobFactory를 설정하는 빈
+    @Bean
+    public SpringBeanJobFactory jobFactory() {
+        SpringBeanJobFactory jobFactory = new SpringBeanJobFactory();
+        return jobFactory;
     }
 }
