@@ -42,11 +42,5 @@ public class BatchConfig extends DefaultBatchConfigurer {
                     return null;
                 }).build();
     }
-
-    @Override
-    public void setDataSource(DataSource dataSource) {
-        // jdbc로 설정한 DataSource 주입
-        super.setDataSource(dataSource);
-    }
 }
 

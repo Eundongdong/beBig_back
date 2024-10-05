@@ -43,4 +43,6 @@ public interface AccountMapper {
 
     int findBankIdByAccountNum(String accountNum);
 
+    List<AccountVo> findAllAccounts();
+
 }

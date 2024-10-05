@@ -82,6 +82,34 @@ public class HomeServiceImp implements HomeService {
         return accountVo;
     }
 
+    // 전체 거래내역 업데이트
+    @Override
+    public void updateTransactions() throws Exception {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+
+        // 모든 계좌 조회
+        List<AccountVo> accountList = accountMapper.findAllAccounts(); // 모든 계좌를 조회하는 메서드 필요
+
+        if (accountList == null || accountList.isEmpty()) {
+            log.warn("등록된 계좌가 없습니다.");
+            return; // 계좌가 없으면 종료
+        }
+
+        for (AccountVo account : accountList) {
+            Long userId = account.getUserId();
+            String accountNum = account.getAccountNum();
+
+            try {
+                // saveTransactions 메서드를 호출하여 거래 내역 저장
+                saveTransactions(userId, accountNum);
+            } catch (Exception e) {
+                log.error("계좌 {}의 거래 내역 저장 중 오류 발생: {}", accountNum, e.getMessage());
+                // 오류 발생 시 다음 계좌로 넘어감
+            }
+        }
+    }
+
     @Override
     public boolean saveTransactions(Long userId, String accountNum) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
@@ -99,7 +127,7 @@ public class HomeServiceImp implements HomeService {
 
         // 날짜 설정 (최근 3일)
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(3);
+        LocalDate startDate = endDate.minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         requestDto.setStartDate(startDate.format(formatter));
         requestDto.setEndDate(endDate.format(formatter));
@@ -126,12 +154,13 @@ public class HomeServiceImp implements HomeService {
                 accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
             } else {
                 log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
-                break;
             }
         }
 
         return true; // 성공적으로 저장된 경우
     }
+
+
 
     private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
         List<TransactionVo> transactionList = new ArrayList<>();

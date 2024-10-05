@@ -28,7 +28,7 @@ public class QuartzConfig {
                 .build();
     }
 
-    // 트리거를 정의 (Cron 표현식 사용)
+    // 예시 트리거를 정의 (Cron 표현식 사용)
     @Bean
     public CronTrigger trigger(JobDetail jobDetail) {
         return TriggerBuilder.newTrigger()
@@ -38,13 +38,23 @@ public class QuartzConfig {
                 .build();
     }
 
+    // 거래내역 업데이트 트리거 (Cron 표현식 사용)
+    @Bean
+    public CronTrigger transactionUpdateTrigger(JobDetail jobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(jobDetail)
+                .withIdentity("transactionUpdateTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0/6 * * ?")) // 6시간마다 실행
+                .build();
+    }
+
     // SchedulerFactoryBean을 설정하여 Quartz 스케줄러를 등록
     @Bean
-    public SchedulerFactoryBean schedulerFactory(Trigger trigger, JobDetail jobDetail) {
+    public SchedulerFactoryBean schedulerFactory(Trigger trigger, JobDetail jobDetail, CronTrigger transactionUpdateTrigger) {
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
-        schedulerFactory.setJobFactory(jobFactory); // Spring의 JobFactory를 설정
+        schedulerFactory.setJobFactory(jobFactory);
         schedulerFactory.setJobDetails(jobDetail);
-        schedulerFactory.setTriggers(trigger);
+        schedulerFactory.setTriggers(trigger, transactionUpdateTrigger); // 두 개의 트리거 등록
         return schedulerFactory;
     }
 

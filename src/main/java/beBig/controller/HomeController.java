@@ -4,7 +4,6 @@ import beBig.dto.*;
 import beBig.dto.response.FinInfoResponseDto;
 import beBig.service.HomeService;
 import beBig.service.jwt.JwtUtil;
-import beBig.vo.AccountVo;
 import beBig.vo.FinTestVo;
 import beBig.vo.UserVo;
 import io.jsonwebtoken.JwtException;
@@ -14,10 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -131,6 +126,7 @@ public class HomeController {
     }
 
     // 거래 내역 저장 -> Spring Batch를 활용하여 스케줄링 예정으로, 수정 필요함
+    // batch를 통한 구현 완료 -> 이 부분은 사용자가 새로고침 버튼을 누르면 직접 호출하는 기능으로 활용하거나, 삭제
     @PostMapping("/transactions")
     public ResponseEntity<?> saveTransactions(@RequestHeader("Authorization") String token,
                                               @RequestBody Map<String, String> requestBody) {
