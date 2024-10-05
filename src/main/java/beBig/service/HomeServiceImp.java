@@ -86,12 +86,16 @@ public class HomeServiceImp implements HomeService {
     public boolean saveTransactions(Long userId, String accountNum) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
 
+        // 1. 계좌번호를 사용하여 bankId 조회
+        int bankId = accountMapper.findBankIdByAccountNum(accountNum);
+        String bankCode = accountMapper.findBankCodeByBankId(bankId);
+
         // 거래 내역 요청 객체 생성
         CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
         UserVo userInfo = getUserInfo(userId);
         requestDto.setAccount(accountNum);  // 추출된 accountNum 사용
         requestDto.setConnectedId(userInfo.getUserConnectedId());
-        requestDto.setOrganization("0004");
+        requestDto.setOrganization(bankCode);
 
         // 날짜 설정 (최근 3일)
         LocalDate endDate = LocalDate.now();
@@ -101,6 +105,7 @@ public class HomeServiceImp implements HomeService {
         requestDto.setEndDate(endDate.format(formatter));
         requestDto.setOrderBy("0");
 
+        log.info(requestDto.toString());
         // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();

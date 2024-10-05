@@ -39,4 +39,8 @@ public interface AccountMapper {
 
     List<AccountResponseDto> findAccountDetailsByUserId(Long userId);
 
+    String findBankCodeByBankId(int bankId);
+
+    int findBankIdByAccountNum(String accountNum);
+
 }

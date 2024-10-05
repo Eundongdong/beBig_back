@@ -24,7 +24,21 @@
         WHERE bank_id != #{primaryBankId}
     </select>
 
+    <!-- 계좌번호로 bankId 조회 -->
+    <select id="findBankIdByAccountNum" parameterType="String" resultType="int">
+        SELECT bank_id
+        FROM account
+        WHERE account_num = #{accountNum}
+            LIMIT 1
+    </select>
 
+    <!-- bankId로 bank_code_codef 조회 -->
+    <select id="findBankCodeByBankId" parameterType="int" resultType="String">
+        SELECT bank_code_codef
+        FROM bank
+        WHERE bank_id = #{bankId}
+            LIMIT 1
+    </select>
 
     <select id="findAccountByAccountNum" parameterType="String" resultType="AccountVo">
         SELECT *
