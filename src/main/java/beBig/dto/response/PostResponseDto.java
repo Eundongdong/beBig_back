@@ -8,6 +8,7 @@ import java.util.List;
 public class PostResponseDto {
     private long postId;
     private long userId;
+    private String userNickname;
     private String postTitle;
     private String postContent;
     private String postCreatedTime;
