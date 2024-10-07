@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -181,6 +184,30 @@ public class UserServiceImp implements UserService {
     public Long findUserIdByKakaoId(String kakaoId) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.getUserIdByKaKaoId(kakaoId);
+    }
+
+    @Override
+    public void updateUserAges() {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        List<UserVo> users = userMapper.getAllUsers();
+
+        for (UserVo user : users) {
+            Date birthDate = user.getUserBirth();
+            if (birthDate != null) { // null 체크
+                LocalDate localBirthDate = (birthDate).toLocalDate();
+                int birthYear = localBirthDate.getYear();
+                int age = currentYear - birthYear; // 나이 계산
+
+                // 나이에 따라 나이 범위 설정
+                int ageRange = (age / 10) * 10;
+
+
+                userMapper.updateUserAgeRange(user.getUserId(), ageRange);
+                log.info("updated :" + user.getUserLoginId() + " - age range: " + ageRange);
+            }
+        }
     }
 
 

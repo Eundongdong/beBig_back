@@ -51,4 +51,8 @@ public interface UserMapper {
 
     List<UserVo> findBySameAgeRange(long userId);
     void clearRefreshTokenUser(@Param("refreshToken") String refreshToken);
+
+    List<UserVo> getAllUsers();
+
+    void updateUserAgeRange(@Param("userId")Long userId, @Param("ageRange")int ageRange);
 }
