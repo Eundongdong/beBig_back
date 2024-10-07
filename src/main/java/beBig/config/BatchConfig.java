@@ -1,6 +1,7 @@
 package beBig.config;
 
 import beBig.service.HomeService;
+import beBig.service.MissionService;
 import beBig.service.UserService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -21,6 +22,9 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MissionService missionService;
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
@@ -65,4 +69,22 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 .start(ageUpdateStep())
                 .build();
     }
+
+    @Bean
+    public Step assignDailyMissionStep() {
+        return stepBuilderFactory.get("assignDailyMissionStep")
+                .tasklet((contribution, chunkContext) -> {
+                    missionService.assignDailyMission();
+                    return null;
+                }).build();
+    }
+
+    // 일일 미션 업데이트 Job 정의
+    @Bean
+    public Job assignDailyMissionJob() {
+        return jobBuilderFactory.get("assignDailyMissionJob")
+                .start(assignDailyMissionStep())
+                .build();
+    }
+
 }

@@ -17,7 +17,6 @@ public class AgeUpdateJob extends QuartzJobBean {
     private JobLauncher jobLauncher;
 
     @Autowired
-    @Qualifier("ageUpdateJob")
     private Job ageUpdateJob; // BatchConfig에서 정의한 Job 주입
 
     @Override

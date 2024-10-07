@@ -11,19 +11,19 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TransactionUpdateJob extends QuartzJobBean {
+public class AssignDailyMissionJob extends QuartzJobBean {
 
     @Autowired
     private JobLauncher jobLauncher;
 
     @Autowired
-    private Job transactionUpdateJob; // BatchConfig에서 정의한 Job 주입
+    private Job assignDailyMissionJob; // BatchConfig에서 정의한 Job 주입
 
     @Override
     public void executeInternal(JobExecutionContext context) throws JobExecutionException {
         try {
             // Spring Batch Job 실행
-            jobLauncher.run(transactionUpdateJob, new JobParametersBuilder()
+            jobLauncher.run(assignDailyMissionJob, new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
                     .toJobParameters());
         } catch (Exception e) {

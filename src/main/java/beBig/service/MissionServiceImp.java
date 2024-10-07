@@ -11,6 +11,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -92,5 +93,45 @@ public class MissionServiceImp implements MissionService {
     public int findCurrentMonthScore(long userId) {
         MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         return missionMapper.findCurrentMissionMonthScoreByUserId(userId);
+    }
+
+    // 전체 사용자 업데이트
+    public void assignDailyMission() {
+        List<Long> userIds = missionMapper.findAllUsersWithDailyMissions(); // 모든 사용자 ID 조회
+
+        for (Long userId : userIds) {
+            updateDailyMissionForUser(userId); // 미션 갱신
+        }
+    }
+
+    // 사용자에 대한 미션 갱신
+    public void updateDailyMissionForUser(Long userId) {
+        // type이 2인 미션을 랜덤으로 3개 가져옴
+        List<Integer> dailyMissions = missionMapper.findRandomMissionsByType(2, 3);
+
+        // 기존 personal_daily_mission_id를 가져옴
+        List<Integer> existingMissionIds = missionMapper.findExistingDailyMissions(userId);
+
+        // 기존 미션이 있을 경우 mission_id, 완료여부 0으로 업데이트
+        if (!existingMissionIds.isEmpty()) {
+            for (int i = 0; i < Math.min(dailyMissions.size(), existingMissionIds.size()); i++) {
+                missionMapper.updateDailyMission(userId, existingMissionIds.get(i), dailyMissions.get(i)); // 각 미션 ID를 업데이트
+            }
+        }
+    }
+
+    // 신규 미션 추가
+    public void addDailyMissions(Long userId) {
+        boolean isAssetAndSurveyLoaded = missionMapper.countUserAssetStatus(userId) > 0;
+
+        if (isAssetAndSurveyLoaded) {
+            // type이 2인 미션을 랜덤으로 3개 가져옴
+            List<Integer> dailyMissions = missionMapper.findRandomMissionsByType(2, 3);
+
+            // 신규 미션 삽입
+            for (int dailyMission : dailyMissions) {
+                missionMapper.insertDailyMission(userId, dailyMission);
+            }
+        }
     }
 }
