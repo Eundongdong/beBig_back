@@ -37,7 +37,7 @@ public class TokenController {
         try {
             // 1. Access Token이 유효한 경우
             if (jwtTokenProvider.validateToken(jwtToken)) {
-                response.put("accessToken", jwtToken);
+                response.put("accessTokenOK", jwtToken);
                 return ResponseEntity.ok(response);
             }
 

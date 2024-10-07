@@ -29,4 +29,7 @@ public interface UserService {
     Long findUserIdByUserLoginId(String userLoginId);
 
     void deleteRefreshTokenBeforeLogin(Long userId);
+
+    boolean checkIfRefreshTokenExistsByUserId(Long userId);
+
 }

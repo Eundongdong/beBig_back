@@ -140,15 +140,21 @@ public class UserController {
         request.getSession().invalidate();
 
         // JSESSIONID 쿠키 삭제
-        for (javax.servlet.http.Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals("JSESSIONID")) {
-                cookie.setMaxAge(0);
-                cookie.setPath("/");
-                response.addCookie(cookie);
+        javax.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {  // 쿠키가 null인지 체크
+            for (javax.servlet.http.Cookie cookie : cookies) {
+                if (cookie.getName().equals("JSESSIONID")) {
+                    cookie.setMaxAge(0);  // 쿠키를 삭제
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }
             }
+        } else {
+            log.info("No cookies found in the request.");
         }
 
         String refreshToken = request.getHeader("refreshToken");
+        log.info("refreshToken: {}", refreshToken);
         userService.removeRefreshToken(refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK).body("로그아웃에 성공하였습니다!");

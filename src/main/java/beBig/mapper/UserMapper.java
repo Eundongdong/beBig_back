@@ -56,4 +56,6 @@ public interface UserMapper {
     Long findUserIdByUserLoginId(@Param("userLoginId") String userLoginId);
 
     void clearRefreshTokenByUserId(@Param("userId") Long userId);
+
+    int countRefreshTokenByUserId(Long userId);
 }

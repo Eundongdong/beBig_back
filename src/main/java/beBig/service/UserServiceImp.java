@@ -200,9 +200,15 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void deleteRefreshTokenBeforeLogin(Long userId) {
-        userMapper.clearRefreshTokenByUserId(userId);
+        if (checkIfRefreshTokenExistsByUserId(userId)) {
+            userMapper.clearRefreshTokenByUserId(userId);
+        }
     }
 
+    @Override
+    public boolean checkIfRefreshTokenExistsByUserId(Long userId) {
+        return userMapper.countRefreshTokenByUserId(userId) > 0;
+    }
 
     //    public UserVo findByUserId(String userId) throws Exception {
 //        return userMapper.findByUserId(userId);
