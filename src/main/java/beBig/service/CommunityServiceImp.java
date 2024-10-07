@@ -1,5 +1,6 @@
 package beBig.service;
 
+import beBig.dto.response.PostListResponseDto;
 import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
@@ -59,7 +60,7 @@ public class CommunityServiceImp implements CommunityService {
      * @return 필터에 맞는 게시글 목록
      */
     @Override
-    public List<PostVo> showList(int postCategory, int finTypeCode, int page,int pageSize) {
+    public PostListResponseDto showList(int postCategory, int finTypeCode, int page,int pageSize) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
@@ -77,14 +78,24 @@ public class CommunityServiceImp implements CommunityService {
             log.info("service finTypeCode: " + finTypeCode);
             params.put("finTypeCode", finTypeCode);
         }
+
+        List<PostVo> list;
+        PostListResponseDto postListResponseDto = new PostListResponseDto();
         // 전체 목록 조회(파라미터에 검색 필터가 없는 경우)
         if (params.isEmpty()) {
-            return mapper.findAll();
+            list = mapper.findAll();
         }
         // 카테고리/유형별 조회(파라미터 검색 필터가 있는 경우)
         else {
-            return mapper.findByPostCategoryAndFinTypeCode(params);
+            list =mapper.findByPostCategoryAndFinTypeCode(params);
         }
+        postListResponseDto.setList(list);
+
+        //총 페이지 수 구하기
+        long totalPosts = mapper.findPostCountByPostCategoryAndFinTypeCode(params);
+        long totalPages = (long) Math.ceil((double) totalPosts /pageSize);
+        postListResponseDto.setTotalPage(totalPages);
+        return postListResponseDto;
     }
 
     /**
