@@ -55,23 +55,24 @@ public class HomeController {
         }
     }
 
-    // 사용자 계좌 정보 가져오기 - codef
     @PostMapping("/account")
     public ResponseEntity<?> getAccount(@RequestHeader("Authorization") String token,
                                         @RequestBody AccountRequestDto accountRequestDto) {
         try {
+            log.info(accountRequestDto.toString());
             Long userId = jwtUtil.extractUserIdFromToken(token);
             List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
+            log.info(accountList.toString());
 
-
-            if (accountList.isEmpty()) {
+            if (accountList.size() == 0 || accountList == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("등록된 계좌가 없습니다.");
             }
 
             return ResponseEntity.ok(accountList);
         } catch (Exception e) {
-            log.error("계좌 정보 불러오기 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 정보 불러오기 중 오류가 발생했습니다.");
+            // 에러 발생 시 메시지를 클라이언트로 전달
+            log.error("Error occurred: ", e);  // 에러 로그 출력
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 

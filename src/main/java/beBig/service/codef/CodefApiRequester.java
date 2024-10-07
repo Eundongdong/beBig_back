@@ -29,6 +29,7 @@ import java.util.List;
 @Slf4j
 public class CodefApiRequester {
 
+    private final AccountMapper accountMapper;
     @Value("${codef.RSA_public_key}")
     String PUBLIC_KEY;
     private final CodefTokenManager codefTokenManager;
@@ -45,7 +46,13 @@ public class CodefApiRequester {
 
         // API 요청 보내기
         String response = sendPostRequest(requestUrl, accessToken, requestBody);
-        System.out.println(response);
+        log.info(response);
+        // 에러 메시지 추출
+        String errorMessage = extractErrorMessage(response);
+        if (errorMessage != null) {
+            throw new Exception(errorMessage);  // 에러가 있으면 예외 발생
+        }
+
         return extractConnectedIdFromResponse(response);
     }
 
@@ -57,9 +64,41 @@ public class CodefApiRequester {
 
         String requestBody = buildRequestBody(accountRequestDto, connectedId);
 
-        sendPostRequest(requestUrl, accessToken, requestBody);
+        String response = sendPostRequest(requestUrl, accessToken, requestBody);
+        log.info(response);
+
+        // 에러 메시지 추출
+        String errorMessage = extractErrorMessage(response);
+        if (errorMessage != null) {
+            throw new Exception(errorMessage);  // 에러가 있으면 예외 발생
+        }
+
         return connectedId;
     }
+
+    private String extractErrorMessage(String response) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonResponse = mapper.readTree(response);
+
+        // errorList 확인
+        JsonNode errorList = jsonResponse.path("data").path("errorList");
+        if (errorList.isArray() && errorList.size() > 0) {
+            JsonNode errorDetail = errorList.get(0);  // 첫 번째 에러만 처리
+            String errorCode = errorDetail.path("code").asText();
+            String errorMessage = errorDetail.path("message").asText();
+
+            // 특정 에러 코드에 대한 커스텀 메시지 처리
+            if ("CF-04004".equals(errorCode)) {
+                return "기존에 연결한 계좌가 존재합니다.";  // 커스텀 메시지
+            }
+
+            // 기본 메시지 반환
+            return errorMessage;
+        }
+
+        return null;  // 에러가 없으면 null 반환
+    }
+
 
     // 요청 바디 생성
     private String buildRequestBody(AccountRequestDto accountRequestDto) {
@@ -164,7 +203,12 @@ public class CodefApiRequester {
         if (depositTrustList.isArray() && depositTrustList.size() > 0) {
             for (JsonNode accountInfo : depositTrustList) {
                 CodefAccountDto codefAccountDto = new CodefAccountDto();
-                codefAccountDto.setResAccount(accountInfo.get("resAccount").asText());
+                String resAccount = (accountInfo.get("resAccount").asText());
+                if(accountMapper.findAccountByAccountNum(resAccount)!=null){
+                    continue;
+                } else{
+                    codefAccountDto.setResAccount(resAccount);
+                }
                 codefAccountDto.setResAccountBalance(accountInfo.get("resAccountBalance").asText());
                 codefAccountDto.setResAccountDeposit(accountInfo.get("resAccountDeposit").asText());
                 codefAccountDto.setResAccountName(accountInfo.get("resAccountName").asText());
