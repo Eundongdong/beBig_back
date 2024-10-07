@@ -1,5 +1,6 @@
 package beBig.controller;
 
+import beBig.dto.response.PostListResponseDto;
 import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
@@ -34,10 +35,10 @@ public class CommunityController {
 
     @ApiOperation(value = "게시글 페이지 단위로 불러오기")
     @PostMapping()
-    public ResponseEntity<List<PostVo>> list(@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit,
-                                             @RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset,
-                                             @RequestParam(value = "category", required = false) Optional<Integer> postCategory,
-                                             @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode) {
+    public ResponseEntity<PostListResponseDto> list(@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit,
+                                                    @RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset,
+                                                    @RequestParam(value = "category", required = false) Optional<Integer> postCategory,
+                                                    @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode) {
         // Optional에서 값이 없을 경우 -1로 처리
         int category = postCategory.orElse(-1);
         log.info("category: " + category);
@@ -47,11 +48,12 @@ public class CommunityController {
         log.info("page: " + page);
         int pageSize = limit.orElse(10);
 
-        List<PostVo> list = communityService.showList(category, type,page,pageSize);
-        if (list == null || list.isEmpty()) {
+        PostListResponseDto postListResponseDto = communityService.showList(category, type,page,pageSize);
+        if (postListResponseDto.getList() == null || postListResponseDto.getList().isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(list);
+
+        return ResponseEntity.status(HttpStatus.OK).body(postListResponseDto);
     }
 
     @GetMapping("/{postId}")

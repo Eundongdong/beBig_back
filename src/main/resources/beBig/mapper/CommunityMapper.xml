@@ -79,6 +79,26 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- PostCategory와 FinTypeCode를 기준으로 총 게시글 수를 조회하는 쿼리  -->
+    <select id="findPostCountByPostCategoryAndFinTypeCode" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM post p
+        JOIN user u ON p.user_id = u.user_id
+        <where>
+            <if test="postCategory != null">
+                p.post_category = #{postCategory}
+            </if>
+            <if test="finTypeCode != null">
+                <if test="postCategory != null">
+                    AND u.fin_type_code = #{finTypeCode}
+                </if>
+                <if test="postCategory == null">
+                    u.fin_type_code = #{finTypeCode}
+                </if>
+            </if>
+        </where>
+    </select>
+
     <!-- PostId의 좋아요 갯수를 조회하는 쿼리 -->
     <select id="findLikeHitsByPostId" resultType="int">
         SELECT COUNT(*)

@@ -12,6 +12,7 @@ public interface CommunityMapper {
     List<PostVo> findAll();
     PostVo findDetail(Long postId);
     List<PostVo> findByPostCategoryAndFinTypeCode(Map<String, Object> params);
+    long findPostCountByPostCategoryAndFinTypeCode(Map<String, Object> params);
     void insert(PostVo post);
     int findLikeHitsByPostId(Long postId);
     // 좋아요가 이미 눌린 상태인지 확인
