@@ -66,7 +66,7 @@ public class HomeController {
 
             if (accountList.size() == 0 || accountList == null) {
                 log.info("등록된 계좌가 없습니다.");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("아이디/비밀번호를 확인하세요.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("아이디/비밀번호를 확인하세요.");
             }
 
             return ResponseEntity.ok(accountList);
