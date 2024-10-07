@@ -14,10 +14,10 @@ import java.net.URL;
 @Service
 public class KakaoOauthService {
 
-    // 카카오 REST API 키
+    // 카카오 REST API 키 <- 형이 바꿔야함
     private String REST_API_KEY = "f8156e1595fd76d2b241ad4b4f3c4ca6";
 
-    // 카카오 로그인 후 리다이렉트될 URI
+    // 카카오 로그인 후 리다이렉트될 URI <-이것도 형네주소
     private String REDIRECT_URI = "http://localhost:5173/user";
 
     public String getAccessToken(String authorize_code) {

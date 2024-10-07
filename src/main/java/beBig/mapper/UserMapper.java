@@ -50,5 +50,12 @@ public interface UserMapper {
     FinTypeVo findFinTypeByUserId(long userId);
 
     List<UserVo> findBySameAgeRange(long userId);
+
     void clearRefreshTokenUser(@Param("refreshToken") String refreshToken);
+
+    Long findUserIdByUserLoginId(@Param("userLoginId") String userLoginId);
+
+    void clearRefreshTokenByUserId(@Param("userId") Long userId);
+
+    int countRefreshTokenByUserId(Long userId);
 }
