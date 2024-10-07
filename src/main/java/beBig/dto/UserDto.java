@@ -1,11 +1,11 @@
-package beBig.form;
+package beBig.dto;
 
 import lombok.Data;
 
 import java.sql.Date;
 
 @Data
-public class UserForm {
+public class UserDto {
     private String name;
     private String nickname;
     private String userLoginId;      //사용자로그인용

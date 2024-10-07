@@ -64,6 +64,10 @@
         WHERE user_id = #{userId};
     </select>
 
+    <select id="getBadges" resultType="beBig.vo.BadgeVo">
+        SELECT *
+        FROM badge;
+    </select>
 
     <update id="saveMyPageGeneral" parameterType="map">
         update user
@@ -80,6 +84,11 @@
         where user_id = #{userId};
     </update>
 
+    <select id="findPasswordByUserId" resultType="java.lang.String">
+        select user_password
+        from user
+        where user_id = #{userId};
+    </select>
 
 
 </mapper>

@@ -5,11 +5,13 @@ import lombok.Data;
 @Data
 public class SavingsProductVo {
     private String savingsProductCode;
-    private int savingsProductBankId;
+    private int bankId;
     private String savingsProductName;
+    private String savingsProductType;
     private int savingsProductTerm;
     private double savingsProductRate;
     private double savingsProductMaxRate;
+    private String bankUrl;
 
     private BankVo bank; // FK - 은행 정보
 }

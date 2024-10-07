@@ -5,15 +5,19 @@ import beBig.dto.response.MyPagePostResponseDto;
 import beBig.dto.response.MyPageEditResponseDto;
 import beBig.dto.response.TotalMissionResponseDto;
 import beBig.dto.response.UserProfileResponseDto;
+import beBig.mapper.MyPageMapper;
 import beBig.service.MissionService;
 import beBig.service.MyPageService;
 import beBig.service.jwt.JwtUtil;
+import beBig.vo.BadgeVo;
+import com.amazonaws.Response;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +38,7 @@ public class MyPageController {
     private final MyPageService myPageService;
     private final MissionService missionService;
     private final JwtUtil jwtUtil;
+    private final MyPageMapper myPageMapper;
 
     @GetMapping("/info")
     public ResponseEntity<UserProfileResponseDto> getMypage(@RequestHeader("Authorization") String token) {
@@ -49,6 +54,16 @@ public class MyPageController {
         } catch (Exception e) {
             log.info("에러 메시지: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/badge")
+    public ResponseEntity<?> personalBadge(@RequestHeader("Authorization") String token) {
+        try {
+            List<BadgeVo> badges = myPageService.getBadges();
+            return ResponseEntity.status(HttpStatus.OK).body(badges);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("internal server error");
         }
     }
 
@@ -139,6 +154,23 @@ public class MyPageController {
                 myPageService.saveMyPageGeneral(userId, userIntro, userNickname, password);
             }
             return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");
+        }
+    }
+
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(@RequestHeader("Authorization") String token,
+                                           @RequestBody Map<String, Object> requestBody) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            String password = (String) requestBody.get("password");
+
+            if (!myPageService.checkPassword(password, userId)) {
+                return ResponseEntity.status(HttpStatus.OK).body("password does not match");
+            }
+            return ResponseEntity.ok("password match");
         } catch (Exception e) {
             log.error("서버 에러 발생: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server error.");
