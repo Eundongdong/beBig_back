@@ -36,4 +36,10 @@ public interface MyPageMapper {
     List<BadgeVo> getBadges();
 
     String findPasswordByUserId(@Param("userId") long userId);
+
+    void saveMyPageGeneralWithoutPassword(@Param("userId") long userId,
+                                          @Param("userIntro") String userIntro,
+                                          @Param("userNickname") String userNickname);
+
+    void updateVisibility(@Param("userId") long userId, @Param("userVisibility") int userVisibility);
 }

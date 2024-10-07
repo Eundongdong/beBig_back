@@ -151,7 +151,14 @@ public class MyPageController {
                 myPageService.saveMyPageSocial(userId, userIntro, userNickname);
             } else {
                 String password = (String) requestBody.get("user_password");
-                myPageService.saveMyPageGeneral(userId, userIntro, userNickname, password);
+
+                // 비밀번호가 존재할 때만 업데이트
+                if (password != null && !password.isEmpty()) {
+                    myPageService.saveMyPageGeneral(userId, userIntro, userNickname, password);
+                } else {
+                    // 비밀번호가 없으면 비밀번호를 제외하고 업데이트
+                    myPageService.saveMyPageGeneralWithoutPassword(userId, userIntro, userNickname);
+                }
             }
             return ResponseEntity.ok("success");
         } catch (Exception e) {
@@ -177,4 +184,39 @@ public class MyPageController {
         }
     }
 
+    //로그인된 사용자의 userId확인 하는 컨트롤러
+    @GetMapping("/logged-in-user-id")
+    public ResponseEntity<Long> getLoggedInUserId(@RequestHeader("Authorization") String token) {
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+            return ResponseEntity.ok(userId);
+        } catch (Exception e) {
+            log.error("서버 에러 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // 공개, 비공개 바꿔주는 컨트롤러
+    @PostMapping("/update-visibility")
+    public ResponseEntity<String> updateVisibility(@RequestHeader("Authorization") String token,
+                                                   @RequestBody Map<String, Object> requestBody) {
+
+
+        try {
+            long userId = jwtUtil.extractUserIdFromToken(token);
+
+            // visibility 값을 정수형으로 변환
+            Integer visibility = (Integer) requestBody.get("visibility");
+            if (visibility == null) {
+                log.error("Visibility 값이 null입니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Visibility 값이 누락되었습니다.");
+            }
+
+            myPageService.updateVisibility(userId, visibility);  // 서비스에서 상태 업데이트
+            return ResponseEntity.ok("Visibility updated successfully");
+        } catch (Exception e) {
+            log.error("Error updating visibility", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update visibility");
+        }
+    }
 }

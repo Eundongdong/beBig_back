@@ -90,5 +90,15 @@
         where user_id = #{userId};
     </select>
 
+    <update id="saveMyPageGeneralWithoutPassword">
+        UPDATE user
+        SET user_intro = #{userIntro}, user_nickname = #{userNickname}
+        WHERE user_id = #{userId}
+    </update>
 
+    <update id="updateVisibility">
+        UPDATE user
+        SET user_visibility = #{userVisibility}
+        WHERE user_id = #{userId}
+    </update>
 </mapper>
