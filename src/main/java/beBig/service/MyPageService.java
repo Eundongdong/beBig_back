@@ -26,4 +26,8 @@ public interface MyPageService {
     void saveMyPageGeneral(long userId, String userIntro, String userNickname, String password);
 
     boolean checkPassword(String password, long userId);
+
+    void saveMyPageGeneralWithoutPassword(long userId, String userIntro, String userNickname);
+
+    void updateVisibility(long userId, int userVisibility);
 }

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -111,9 +112,6 @@ public class AssetServiceImp implements AssetService {
     }
 
     public SpendingPatternsResponseDto calculateSpendingPatterns(List<TransactionVo> transactionVoList, int year) {
-        // 날짜 포맷터 정의
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
         // 현재 날짜 기준으로 연도와 월 정보를 가져옴
         LocalDate now = LocalDate.now();
         log.info("now: {}", now);
@@ -132,14 +130,18 @@ public class AssetServiceImp implements AssetService {
         // 월별로 그룹화하여 금액 합산 (해당 년도만 필터링)
         Map<String, Long> monthlySums = transactionVoList.stream()
                 .filter(t -> {
-                    // String을 LocalDate로 변환하여 해당 연도에 맞는 거래만 필터링
-                    LocalDate date = LocalDate.parse((CharSequence) t.getTransactionDate(), formatter);
+                    // Date를 LocalDate로 변환하여 해당 연도에 맞는 거래만 필터링
+                    LocalDate date = t.getTransactionDate().toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
                     return date.getYear() == year;
                 })
                 .collect(Collectors.groupingBy(
                         t -> {
-                            // yyyy-MM 형식으로 월 추출
-                            LocalDate date = LocalDate.parse((CharSequence) t.getTransactionDate(), formatter);
+                            // Date를 LocalDate로 변환 후 yyyy-MM 형식으로 월 추출
+                            LocalDate date = t.getTransactionDate().toInstant()
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDate();
                             return date.format(DateTimeFormatter.ofPattern("yyyy-MM"));
                         },
                         Collectors.summingLong(TransactionVo::getTransactionAmount)
@@ -180,6 +182,7 @@ public class AssetServiceImp implements AssetService {
         // DTO로 결과 반환
         return new SpendingPatternsResponseDto(monthlySumList, monthlyAverage, previousMonthDiff);
     }
+
 
     /**
      * 사용자 유형별 예/적금 상품 추천
