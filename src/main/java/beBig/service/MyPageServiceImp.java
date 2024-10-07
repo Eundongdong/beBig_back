@@ -107,6 +107,20 @@ public class MyPageServiceImp implements MyPageService {
         return bCryptPasswordEncoder.matches(password, realPassword);
     }
 
+    @Override
+    public void saveMyPageGeneralWithoutPassword(long userId, String userIntro, String userNickname) {
+        myPageMapper.saveMyPageGeneralWithoutPassword(userId, userIntro, userNickname);
+    }
 
+    @Override
+    public void updateVisibility(long userId, int userVisibility) {
+        try {
+            myPageMapper.updateVisibility(userId, userVisibility); // Mapper 호출하여 DB 업데이트
+            log.info("User visibility updated for userId: {}, newVisibility: {}", userId, userVisibility);
+        } catch (Exception e) {
+            log.error("Error updating visibility for userId: {}", userId, e);
+            throw new RuntimeException("Visibility update failed.");
+        }
+    }
 
 }

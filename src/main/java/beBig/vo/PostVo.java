@@ -11,6 +11,7 @@ import java.util.List;
 public class PostVo {
     private Long postId;
     private Long userId;
+    private String userNickname;
     private String postTitle;
     private String postContent;
     private String postCreatedTime; // 추후 유틸 클래스를 통해 Date로 변환예정

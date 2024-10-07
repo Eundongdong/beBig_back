@@ -28,11 +28,13 @@ public class UserServiceImp implements UserService {
 
     private final SqlSessionTemplate sqlSessionTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImp(SqlSessionTemplate sqlSessionTemplate, PasswordEncoder passwordEncoder) {
+    public UserServiceImp(SqlSessionTemplate sqlSessionTemplate, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.sqlSessionTemplate = sqlSessionTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     // 유저 등록(회원가입)
@@ -184,6 +186,31 @@ public class UserServiceImp implements UserService {
     public Long findUserIdByKakaoId(String kakaoId) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.getUserIdByKaKaoId(kakaoId);
+    }
+
+    @Override
+    // db에서 refreshToken 지우기 (로그아웃시)
+    public void removeRefreshToken(String refreshToken) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        userMapper.clearRefreshTokenRT(refreshToken);
+        userMapper.clearRefreshTokenUser(refreshToken);
+    }
+
+    @Override
+    public Long findUserIdByUserLoginId(String userLoginId) {
+        return userMapper.findUserIdByUserLoginId(userLoginId);
+    }
+
+    @Override
+    public void deleteRefreshTokenBeforeLogin(Long userId) {
+        if (checkIfRefreshTokenExistsByUserId(userId)) {
+            userMapper.clearRefreshTokenByUserId(userId);
+        }
+    }
+
+    @Override
+    public boolean checkIfRefreshTokenExistsByUserId(Long userId) {
+        return userMapper.countRefreshTokenByUserId(userId) > 0;
     }
 
     @Override
