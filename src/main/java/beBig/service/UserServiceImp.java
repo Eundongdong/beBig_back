@@ -156,11 +156,14 @@ public class UserServiceImp implements UserService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("email", email);
-
+        log.info(params.toString());
         String userId = userMapper.findUserLoginIdByNameAndEmail(params);
-
-        if (userId != null && userId.length() > 4) {
-            return userId.substring(0, userId.length() - 4) + "****";
+        log.info(userId);
+        if (userId != null) {
+            if(userId.length() > 4){
+                return userId.substring(0, userId.length() - 4) + "****";
+            }
+            return userId.substring(0, userId.length() - 1) + "*";
         }
         return null;
     }
