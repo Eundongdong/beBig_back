@@ -17,9 +17,9 @@ public interface HomeService {
 
     List<AccountResponseDto> showMyAccount(Long userId) throws Exception;
 
-    AccountTransactionDto getTransactionList(Long userId, String accountNum);
+    boolean saveTransactions(Long userId, String accountNum, int days) throws Exception;
 
-    boolean saveTransactions(Long userId, String accountNum) throws Exception;
+    AccountTransactionDto getTransactionList(Long userId, String accountNum);
 
     List<FinTestVo> findMission();
 
