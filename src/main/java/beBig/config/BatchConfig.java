@@ -9,42 +9,26 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableBatchProcessing
 public class BatchConfig extends DefaultBatchConfigurer {
-
-    @Autowired
-    private HomeService homeService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private MissionService missionService;
-
+    private final HomeService homeService;
+    private final UserService userService;
+    private final MissionService missionService;
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
 
-    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory) {
+    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, HomeService homeService, UserService userService, MissionService missionService) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
+        this.homeService = homeService;
+        this.userService = userService;
+        this.missionService = missionService;
     }
 
-    // HomeService.updateTransactions()를 수행하는 Step
-    @Bean
-    public Step transactionUpdateStep() {
-        return stepBuilderFactory.get("transactionUpdateStep")
-                .tasklet((contribution, chunkContext) -> {
-                    homeService.updateTransactions(); // HomeService의 메서드 호출
-                    return null;
-                }).build();
-    }
-
-    // 거래내역 업데이트 Job 정의
     @Bean(name = "transactionUpdateJob")
     public Job transactionUpdateJob() {
         return jobBuilderFactory.get("transactionUpdateJob")
@@ -52,21 +36,35 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 .build();
     }
 
-    // 사용자 나이 업데이트를 위한 Step
     @Bean
-    public Step ageUpdateStep() {
-        return stepBuilderFactory.get("ageUpdateStep")
+    public Step transactionUpdateStep() {
+        return stepBuilderFactory.get("transactionUpdateStep")
                 .tasklet((contribution, chunkContext) -> {
-                    userService.updateUserAges(); // UserService의 메서드 호출
+                    homeService.updateTransactions();
                     return null;
                 }).build();
     }
 
-    // 나이 업데이트 Job 정의
     @Bean(name = "ageUpdateJob")
     public Job ageUpdateJob() {
         return jobBuilderFactory.get("ageUpdateJob")
                 .start(ageUpdateStep())
+                .build();
+    }
+
+    @Bean
+    public Step ageUpdateStep() {
+        return stepBuilderFactory.get("ageUpdateStep")
+                .tasklet((contribution, chunkContext) -> {
+                    userService.updateUserAges();
+                    return null;
+                }).build();
+    }
+
+    @Bean(name = "assignDailyMissionJob")
+    public Job assignDailyMissionJob() {
+        return jobBuilderFactory.get("assignDailyMissionJob")
+                .start(assignDailyMissionStep())
                 .build();
     }
 
@@ -78,13 +76,5 @@ public class BatchConfig extends DefaultBatchConfigurer {
                     return null;
                 }).build();
     }
-
-    // 일일 미션 업데이트 Job 정의
-    @Bean
-    public Job assignDailyMissionJob() {
-        return jobBuilderFactory.get("assignDailyMissionJob")
-                .start(assignDailyMissionStep())
-                .build();
-    }
-
 }
+

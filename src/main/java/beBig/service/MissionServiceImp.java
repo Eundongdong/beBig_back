@@ -18,46 +18,42 @@ import java.util.List;
 @Service
 public class MissionServiceImp implements MissionService {
     private final SqlSessionTemplate sqlSessionTemplate;
-    private final MissionMapper missionMapper;
 
     @Autowired
-    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate, MissionMapper missionMapper) {
+    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
-        this.missionMapper = missionMapper;
     }
-
 
     //월간미션
     @Override
     public MonthlyMissionResponseDto showMonthlyMission(long userId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         MonthlyMissionResponseDto monthlyMissionResponseDto = missionMapper.getPersonalMonthlyMission(userId);
         return monthlyMissionResponseDto;
     }
 
-
     @Override
     public List<DailyMissionResponseDto> showDailyMission(long userId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
 
         return missionMapper.getPersonalDailyMission(userId);
     }
 
     @Override
     public void completeMonthlyMission(long personalMissionId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         missionMapper.completeMonthlyMission(personalMissionId);
     }
 
     @Override
     public void completeDailyMission(long personalMissionId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         missionMapper.completeDailyMonthlyMission(personalMissionId);
     }
 
     @Override
     public double findRate(long userId, long missionId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         int missionType = missionMapper.findMissionCategoryByMissionId(missionId);
         if (missionType == 2) {
             return missionMapper.findSaveRateByUserIdAndMissionId(userId, missionId);
@@ -69,14 +65,14 @@ public class MissionServiceImp implements MissionService {
 
     @Override
     public int findSalary(long userId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         return missionMapper.findSalaryByUserId(userId);
     }
 
     //점수계산
     @Override
     public int updateScore(long userId, int amount) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         //월별점수가져옴
         int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId) + amount;
         missionMapper.updateCurrentMissionMonthScoreByUserId(userId, currentScore);
@@ -85,18 +81,19 @@ public class MissionServiceImp implements MissionService {
 
     @Override
     public long findIsCompleted(long personalMissionId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         return missionMapper.findMissionIsCompletedByPersonalMissionId(personalMissionId);
     }
 
     @Override
     public int findCurrentMonthScore(long userId) {
-        MissionMapper missonMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         return missionMapper.findCurrentMissionMonthScoreByUserId(userId);
     }
 
     // 전체 사용자 업데이트
     public void assignDailyMission() {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);  // Mapper를 동적으로 가져옴
         List<Long> userIds = missionMapper.findAllUsersWithDailyMissions(); // 모든 사용자 ID 조회
 
         for (Long userId : userIds) {
@@ -106,6 +103,7 @@ public class MissionServiceImp implements MissionService {
 
     // 사용자에 대한 미션 갱신
     public void updateDailyMissionForUser(Long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);  // Mapper를 동적으로 가져옴
         // type이 2인 미션을 랜덤으로 3개 가져옴
         List<Integer> dailyMissions = missionMapper.findRandomMissionsByType(2, 3);
 
@@ -122,6 +120,7 @@ public class MissionServiceImp implements MissionService {
 
     // 신규 미션 추가
     public void addDailyMissions(Long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);  // Mapper를 동적으로 가져옴
         boolean isAssetAndSurveyLoaded = missionMapper.countUserAssetStatus(userId) > 0;
 
         if (isAssetAndSurveyLoaded) {

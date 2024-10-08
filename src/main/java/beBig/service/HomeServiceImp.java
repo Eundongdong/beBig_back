@@ -84,7 +84,7 @@ public class HomeServiceImp implements HomeService {
 
     // 전체 거래내역 업데이트
     @Override
-    public void updateTransactions() throws Exception {
+    public void updateTransactions() {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
 

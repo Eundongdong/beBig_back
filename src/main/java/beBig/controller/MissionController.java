@@ -149,7 +149,7 @@ public class MissionController {
     }
 
     // 요청시 user 테이블의 상태를 검사하고 일일미션 3개를 추가함
-    @PostMapping("/update-mission")
+    @GetMapping("/update-mission")
     public ResponseEntity<String> updateMission(@RequestHeader("Authorization") String token) {
         Long userId = jwtUtil.extractUserIdFromToken(token);
         try {
