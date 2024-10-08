@@ -49,7 +49,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(transactionUpdateJobDetail)
                 .withIdentity("transactionUpdateTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 51 9 * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0/6 * * ?"))
                 .startNow()
                 .build();
     }
@@ -59,7 +59,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(ageUpdateJobDetail)
                 .withIdentity("ageUpdateTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 51 9 * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1 1 ?"))
                 .startNow()
                 .build();
     }
@@ -69,7 +69,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(assignDailyMissionJobDetail)
                 .withIdentity("assignDailyMissionTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 51 9 * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
                 .startNow()
                 .build();
     }
