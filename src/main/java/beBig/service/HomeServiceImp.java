@@ -27,6 +27,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class HomeServiceImp implements HomeService {
 
+    private final MissionService missionService;
     private final SqlSessionTemplate sqlSessionTemplate;
     private final CodefApiRequester codefApiRequester;
 
@@ -69,6 +70,7 @@ public class HomeServiceImp implements HomeService {
             accountMapper.insertAccount(accountVo);
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
         }
+        missionService.addDailyMissions(userId);
         return true;
     }
 
@@ -256,5 +258,6 @@ public class HomeServiceImp implements HomeService {
     public void saveUserFinType(Long userId, int userFinType) {
         HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
         homeMapper.saveFinTypeWithUserId(userId, userFinType);
+        missionService.addDailyMissions(userId);
     }
 }

@@ -121,16 +121,23 @@ public class MissionServiceImp implements MissionService {
     // 신규 미션 추가
     public void addDailyMissions(Long userId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);  // Mapper를 동적으로 가져옴
+        // 자산 상태 체크
         boolean isAssetAndSurveyLoaded = missionMapper.countUserAssetStatus(userId) > 0;
 
+        // 자산과 설문조사가 모두 완료된 경우
         if (isAssetAndSurveyLoaded) {
-            // type이 2인 미션을 랜덤으로 3개 가져옴
-            List<Integer> dailyMissions = missionMapper.findRandomMissionsByType(2, 3);
+            // 기존 미션이 있는지 확인하기 위해 count 쿼리 사용
+            int existingMissionCount = missionMapper.findExistingDailyMissionsCount(userId); // 새로운 메서드 추가
 
-            // 신규 미션 삽입
-            for (int dailyMission : dailyMissions) {
-                missionMapper.insertDailyMission(userId, dailyMission);
+            // 기존 미션이 없을 경우
+            if (existingMissionCount == 0) {
+                List<Integer> dailyMissions = missionMapper.findRandomMissionsByType(2, 3);
+                // 신규 미션 삽입
+                for (int dailyMission : dailyMissions) {
+                    missionMapper.insertDailyMission(userId, dailyMission);
+                }
             }
         }
+
     }
 }

@@ -51,5 +51,7 @@ public interface MissionMapper {
 
     // 신규 미션 삽입
     void insertDailyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
+
+    int findExistingDailyMissionsCount(@Param("userId") Long userId);
 }
 

@@ -143,4 +143,10 @@
         AND fin_type_code > 0
         AND user_connected_id IS NOT NULL;
     </select>
+
+    <select id="findExistingDailyMissionsCount" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM personal_daily_mission
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

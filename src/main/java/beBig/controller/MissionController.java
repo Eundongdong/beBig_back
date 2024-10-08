@@ -147,18 +147,4 @@ public class MissionController {
         LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
         return lastDayOfMonth.getDayOfMonth() - firstDayOfMonth.getDayOfMonth() + 1;
     }
-
-    // 요청시 user 테이블의 상태를 검사하고 일일미션 3개를 추가함
-    @GetMapping("/update-mission")
-    public ResponseEntity<String> updateMission(@RequestHeader("Authorization") String token) {
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        try {
-            // 사용자 ID와 미션 정보를 바탕으로 업데이트 수행
-            missionService.addDailyMissions(userId);
-            return ResponseEntity.ok("미션이 성공적으로 업데이트되었습니다.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("미션 업데이트 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
 }
