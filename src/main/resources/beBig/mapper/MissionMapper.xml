@@ -33,9 +33,9 @@
     </select>
 
     <!-- Personal Monthly Mission 미션바꾸기 쿼리 -->
-    <select id="completeMonthlyMission" parameterType="long">
+    <select id="completeMonthlyMission">
         UPDATE personal_monthly_mission
-        SET personal_monthly_mission_completed = 1 - personal_monthly_mission_completed
+        SET personal_monthly_mission_completed = #{personalMonthlyMissionCompleted}
         WHERE personal_monthly_mission_id = #{personalMissionId};
     </select>
 
@@ -135,18 +135,110 @@
         VALUES (#{userId}, #{missionId}, 0);
     </insert>
 
+    <!-- 신규 미션 삽입 -->
+    <insert id="insertMonthlyMission" parameterType="map">
+        INSERT INTO personal_monthly_mission (user_id, mission_id, personal_monthly_mission_completed)
+        VALUES (#{userId}, #{missionId}, 0);
+    </insert>
+
+
     <!-- 사용자 자산, 유형 연결 상태 체크 -->
     <select id="countUserAssetStatus" parameterType="long" resultType="int">
         SELECT COUNT(*)
         FROM user
         WHERE user_id = #{userId}
-        AND fin_type_code > 0
-        AND user_connected_id IS NOT NULL;
+          AND fin_type_code > 0
+          AND user_connected_id IS NOT NULL;
     </select>
 
+    <!-- 사용자의 일일 미션 완료 갯수 카운트-->
     <select id="findExistingDailyMissionsCount" parameterType="long" resultType="int">
         SELECT COUNT(*)
         FROM personal_daily_mission
         WHERE user_id = #{userId}
     </select>
+
+    <!-- 개인 월간 미션 수 카운트 -->
+    <select id="countPersonalMonthlyMission" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 현재 월간 미션 ID 가져오기 -->
+    <select id="getCurrentMonthlyMissionId" parameterType="long" resultType="int">
+        SELECT missionId
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 월간 미션 업데이트 -->
+    <update id="updateMonthlyMission">
+        UPDATE personal_monthly_mission
+        SET mission_id = #{missionId}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 현재 월간 미션 정보 가져오기 -->
+    <select id="getCurrentMonthlyMission" parameterType="long" resultType="beBig.vo.PersonalMonthlyMissionVo">
+        SELECT *
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 커뮤니티 글 수 카운트 -->
+    <select id="countCommunityPosts" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 좋아요 수 카운트 -->
+    <select id="countPostLikesInMonth" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE user_id = #{userId}
+    </select>
+
+<!--    &lt;!&ndash; 소비 차이 계산 &ndash;&gt;-->
+<!--    <select id="calculateSpendingDifference" parameterType="long" resultType="int">-->
+<!--        SELECT COALESCE(SUM(spending), 0) - COALESCE(SUM(budget), 0)-->
+<!--        FROM UserSpending-->
+<!--        WHERE userId = #{userId}-->
+<!--    </select>-->
+
+<!--    &lt;!&ndash; 저축 차이 계산 &ndash;&gt;-->
+<!--    <select id="calculateSavingDifference" parameterType="long" resultType="int">-->
+<!--        SELECT COALESCE(SUM(saving), 0) - COALESCE(SUM(goal), 0)-->
+<!--        FROM UserSaving-->
+<!--        WHERE userId = #{userId}-->
+<!--    </select>-->
+
+    <!-- 데일리 미션 완료 수 카운트 -->
+    <select id="countCompletedDailyMissions" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM personal_daily_mission
+        WHERE user_id = #{userId}
+          AND personal_daily_mission_completed = 1
+    </select>
+
+    <!-- 모든 사용자 ID 가져오기 -->
+    <select id="findAllUsersWithMonthlyMissions" resultType="long">
+        SELECT DISTINCT user_id
+        FROM personal_monthly_mission
+    </select>
+
+<!--    &lt;!&ndash; 저축 계좌 수 카운트 &ndash;&gt;-->
+<!--    <select id="countSavingsAccounts" parameterType="long" resultType="int">-->
+<!--        SELECT COUNT(*)-->
+<!--        FROM SavingsAccounts-->
+<!--        WHERE userId = #{userId}-->
+<!--    </select>-->
+
+    <!-- 월간 미션 상태 업데이트 -->
+    <update id="updateMonthlyMissionStatus">
+        UPDATE personal_monthly_mission
+        SET personal_monthly_mission_completed = #{status}
+        WHERE personal_monthly_mission_id = #{personalMonthlyMissionId}
+    </update>
 </mapper>

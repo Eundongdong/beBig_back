@@ -4,14 +4,12 @@ package beBig.service;
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.mapper.MissionMapper;
-import beBig.vo.MissionVo;
 import beBig.vo.PersonalMonthlyMissionVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -42,13 +40,13 @@ public class MissionServiceImp implements MissionService {
     @Override
     public void completeMonthlyMission(long personalMissionId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
-        missionMapper.completeMonthlyMission(personalMissionId);
+        missionMapper.completeMonthlyMission(personalMissionId, 1);
     }
 
     @Override
     public void completeDailyMission(long personalMissionId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
-        missionMapper.completeDailyMonthlyMission(personalMissionId);
+        missionMapper.completeDailyMission(personalMissionId);
     }
 
     @Override
@@ -136,8 +134,92 @@ public class MissionServiceImp implements MissionService {
                 for (int dailyMission : dailyMissions) {
                     missionMapper.insertDailyMission(userId, dailyMission);
                 }
+                generateOrUpdateMonthlyMission(userId);
             }
         }
+    }
 
+    // 월간 미션 생성 및 업데이트 로직 추가
+    public void generateOrUpdateMonthlyMission(Long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        // 기존 월간 미션이 있는지 확인
+        log.info("generateOr어쩌고 호출완료");
+        int existingMonthlyMissionCount = missionMapper.countPersonalMonthlyMission(userId);
+
+        if (existingMonthlyMissionCount == 0) {
+            // 신규 미션을 생성해야 할 경우 첫 번째 미션을 할당
+            missionMapper.insertMonthlyMission(userId, 1);
+            log.info("1번미션 할당");
+        } else {
+            // 기존 미션이 있을 경우 업데이트 (missionId % 6) + 1
+            int currentMissionId = missionMapper.getCurrentMonthlyMissionId(userId);
+            int nextMissionId = (currentMissionId % 6) + 1;
+            missionMapper.updateMonthlyMission(userId, nextMissionId);
+        }
+    }
+
+    public void checkMonthlyMissionCompletion(Long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        // 사용자에게 할당된 월간 미션 ID를 가져옴
+        PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
+
+        // 미션 ID에 따라 성공 여부 판단
+        switch (currentMission.getMissionId()) {
+            case 1: // 새로운 예/적금 가입
+                if (missionMapper.countSavingsAccounts(userId) > 0) {
+                    missionMapper.completeMonthlyMission(currentMission.getPersonalMonthlyMissionId(), 1); // 성공(1)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                }
+                break;
+            case 2: // 커뮤니티 글 4개 이상 작성
+                if (missionMapper.countCommunityPosts(userId) >= 4) {
+                    missionMapper.completeMonthlyMission(currentMission.getPersonalMonthlyMissionId(), 1); // 성공(1)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                }
+                break;
+            case 3: // 좋아요 50개 이상 받기
+                if (missionMapper.countPostLikesInMonth(userId) >= 50) {
+                    missionMapper.completeMonthlyMission(currentMission.getPersonalMonthlyMissionId(), 1); // 성공(1)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                }
+                break;
+            case 4: // 소비 n원 줄이기
+                if (missionMapper.calculateSpendingDifference(userId) < 0) {
+                    missionMapper.completeMonthlyMission(currentMission.getPersonalMonthlyMissionId(), 1); // 성공(1)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                }
+                break;
+            case 5: // n원 저축하기
+                if (missionMapper.calculateSavingDifference(userId) < 0) {
+                    missionMapper.completeMonthlyMission(currentMission.getPersonalMonthlyMissionId(), 1); // 성공(1)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                }
+                break;
+            case 6: // 매일 데일리 미션 수행
+                if (missionMapper.countCompletedDailyMissions(userId) > 0) {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 0); // 진행중(0)
+                } else {
+                    missionMapper.updateMonthlyMissionStatus(currentMission.getPersonalMonthlyMissionId(), 2); // 실패(2)
+                }
+                break;
+            default:
+                log.warn("Unknown mission ID: " + currentMission.getMissionId());
+        }
+    }
+
+    // 전체 사용자에 대한 월간 미션 갱신 및 검증 -> batch에서 사용
+    public void updateAllMonthlyMissions() {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        List<Long> userIds = missionMapper.findAllUsersWithMonthlyMissions();
+
+        for (Long userId : userIds) {
+            generateOrUpdateMonthlyMission(userId); // 월간 미션 갱신
+            checkMonthlyMissionCompletion(userId); // 미션 성공 여부 확인
+        }
     }
 }
