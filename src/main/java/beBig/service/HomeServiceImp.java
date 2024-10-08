@@ -67,13 +67,20 @@ public class HomeServiceImp implements HomeService {
 
         for (CodefAccountDto accountInfo : codefAccountDtoList) {
             AccountVo accountVo = mapToAccountVo(userId, accountInfo);
-            accountMapper.insertAccount(accountVo);
+            accountMapper.insertAccount(accountVo); // 계좌 등록
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
+
+            // 계좌 등록 후, 최근 60일간 거래 내역 저장
+            try {
+                saveTransactions(userId, accountVo.getAccountNum(), 60); // 60일간 거래 내역 저장
+            } catch (Exception e) {
+                log.error("계좌 {}의 60일간 거래 내역 저장 중 오류 발생: {}", accountVo.getAccountNum(), e.getMessage());
+            }
         }
+
         missionService.addDailyMissions(userId);
         return true;
     }
-
     private AccountVo mapToAccountVo(Long userId, CodefAccountDto accountInfo) {
         AccountVo accountVo = new AccountVo();
         accountVo.setAccountNum(accountInfo.getResAccount());
@@ -88,7 +95,6 @@ public class HomeServiceImp implements HomeService {
     @Override
     public void updateTransactions() {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
 
         // 모든 계좌 조회
         List<AccountVo> accountList = accountMapper.findAllAccounts(); // 모든 계좌를 조회하는 메서드 필요
@@ -103,8 +109,8 @@ public class HomeServiceImp implements HomeService {
             String accountNum = account.getAccountNum();
 
             try {
-                // saveTransactions 메서드를 호출하여 거래 내역 저장
-                saveTransactions(userId, accountNum);
+                // saveTransactions 메서드를 호출하여 1일간 거래 내역 저장
+                saveTransactions(userId, accountNum, 1);
             } catch (Exception e) {
                 log.error("계좌 {}의 거래 내역 저장 중 오류 발생: {}", accountNum, e.getMessage());
                 // 오류 발생 시 다음 계좌로 넘어감
@@ -113,8 +119,8 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public boolean saveTransactions(Long userId, String accountNum) throws Exception {
-        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
+    public boolean saveTransactions(Long userId, String accountNum, int days) throws Exception {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
         // 1. 계좌번호를 사용하여 bankId 조회
         int bankId = accountMapper.findBankIdByAccountNum(accountNum);
@@ -127,15 +133,16 @@ public class HomeServiceImp implements HomeService {
         requestDto.setConnectedId(userInfo.getUserConnectedId());
         requestDto.setOrganization(bankCode);
 
-        // 날짜 설정 (최근 3일)
+        // 날짜 설정 (최근 {days}일)
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(1);
+        LocalDate startDate = endDate.minusDays(days);  // 입력 받은 일수만큼 이전으로 설정
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         requestDto.setStartDate(startDate.format(formatter));
         requestDto.setEndDate(endDate.format(formatter));
         requestDto.setOrderBy("0");
 
         log.info(requestDto.toString());
+
         // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
