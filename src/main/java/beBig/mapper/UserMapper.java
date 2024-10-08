@@ -53,6 +53,10 @@ public interface UserMapper {
 
     void clearRefreshTokenUser(@Param("refreshToken") String refreshToken);
 
+    List<UserVo> getAllUsers();
+
+    void updateUserAgeRange(@Param("userId")Long userId, @Param("ageRange")int ageRange);
+
     Long findUserIdByUserLoginId(@Param("userLoginId") String userLoginId);
 
     void clearRefreshTokenByUserId(@Param("userId") Long userId);

@@ -24,6 +24,8 @@ public interface UserService {
 
     Long findUserIdByKakaoId(String kakaoId);
 
+    void updateUserAges();
+
     void removeRefreshToken(String refreshToken);
 
     Long findUserIdByUserLoginId(String userLoginId);

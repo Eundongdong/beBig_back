@@ -183,7 +183,6 @@ public class AssetServiceImp implements AssetService {
         return new SpendingPatternsResponseDto(monthlySumList, monthlyAverage, previousMonthDiff);
     }
 
-
     /**
      * 사용자 유형별 예/적금 상품 추천
      *

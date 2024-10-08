@@ -26,4 +26,6 @@ public interface HomeService {
     FinInfoResponseDto findFinTypeByUserId(Long userId);
 
     void saveUserFinType(Long userId, int userFinType);
+
+    void updateTransactions() throws Exception;
 }

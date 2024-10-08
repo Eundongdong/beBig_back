@@ -24,4 +24,10 @@ public interface MissionService {
     long findIsCompleted(long personalMissionId);
 
     int findCurrentMonthScore(long userId);
+
+    void assignDailyMission();
+
+    void updateDailyMissionForUser(Long userId);
+
+    void addDailyMissions(Long userId);
 }

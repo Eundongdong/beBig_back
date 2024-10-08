@@ -27,6 +27,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class HomeServiceImp implements HomeService {
 
+    private final MissionService missionService;
     private final SqlSessionTemplate sqlSessionTemplate;
     private final CodefApiRequester codefApiRequester;
 
@@ -69,6 +70,7 @@ public class HomeServiceImp implements HomeService {
             accountMapper.insertAccount(accountVo);
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
         }
+        missionService.addDailyMissions(userId);
         return true;
     }
 
@@ -82,25 +84,58 @@ public class HomeServiceImp implements HomeService {
         return accountVo;
     }
 
+    // 전체 거래내역 업데이트
+    @Override
+    public void updateTransactions() {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+
+        // 모든 계좌 조회
+        List<AccountVo> accountList = accountMapper.findAllAccounts(); // 모든 계좌를 조회하는 메서드 필요
+
+        if (accountList == null || accountList.isEmpty()) {
+            log.warn("등록된 계좌가 없습니다.");
+            return; // 계좌가 없으면 종료
+        }
+
+        for (AccountVo account : accountList) {
+            Long userId = account.getUserId();
+            String accountNum = account.getAccountNum();
+
+            try {
+                // saveTransactions 메서드를 호출하여 거래 내역 저장
+                saveTransactions(userId, accountNum);
+            } catch (Exception e) {
+                log.error("계좌 {}의 거래 내역 저장 중 오류 발생: {}", accountNum, e.getMessage());
+                // 오류 발생 시 다음 계좌로 넘어감
+            }
+        }
+    }
+
     @Override
     public boolean saveTransactions(Long userId, String accountNum) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class); // 매퍼 가져오기
+
+        // 1. 계좌번호를 사용하여 bankId 조회
+        int bankId = accountMapper.findBankIdByAccountNum(accountNum);
+        String bankCode = accountMapper.findBankCodeByBankId(bankId);
 
         // 거래 내역 요청 객체 생성
         CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
         UserVo userInfo = getUserInfo(userId);
         requestDto.setAccount(accountNum);  // 추출된 accountNum 사용
         requestDto.setConnectedId(userInfo.getUserConnectedId());
-        requestDto.setOrganization("0004");
+        requestDto.setOrganization(bankCode);
 
         // 날짜 설정 (최근 3일)
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(3);
+        LocalDate startDate = endDate.minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         requestDto.setStartDate(startDate.format(formatter));
         requestDto.setEndDate(endDate.format(formatter));
         requestDto.setOrderBy("0");
 
+        log.info(requestDto.toString());
         // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
@@ -121,12 +156,13 @@ public class HomeServiceImp implements HomeService {
                 accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
             } else {
                 log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
-                break;
             }
         }
 
         return true; // 성공적으로 저장된 경우
     }
+
+
 
     private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
         List<TransactionVo> transactionList = new ArrayList<>();
@@ -222,5 +258,6 @@ public class HomeServiceImp implements HomeService {
     public void saveUserFinType(Long userId, int userFinType) {
         HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
         homeMapper.saveFinTypeWithUserId(userId, userFinType);
+        missionService.addDailyMissions(userId);
     }
 }

@@ -125,7 +125,6 @@
         where rt.refresh_token = #{refreshToken};
     </select>
 
-
     <!-- 같은 연령대 유저조회하는 쿼리-->
     <select id="findBySameAgeRange" resultType="UserVo">
         SELECT *
@@ -139,8 +138,6 @@
         INSERT INTO refresh_token (user_id, refresh_token, expiry_date)
         VALUES (#{userId}, #{refreshToken}, #{expiryDate});
     </insert>
-
-
 
     <update id="saveRefreshTokenUser" parameterType="map">
         UPDATE user
@@ -158,6 +155,19 @@
         UPDATE user
         SET refresh_token = null
         WHERE refresh_token = #{refreshToken};
+    </update>
+
+    <!-- 모든 사용자 정보를 가져오는 쿼리 -->
+    <select id="getAllUsers" resultType="UserVo">
+        SELECT user_id, user_birth, user_age_range
+        FROM user
+    </select>
+
+    <!-- 사용자 나이 범위 업데이트 쿼리 -->
+    <update id="updateUserAgeRange" parameterType="map">
+        UPDATE user
+        SET user_age_range = #{ageRange}
+        WHERE user_id = #{userId}
     </update>
 
     <delete id="clearRefreshTokenByUserId" parameterType="long">
