@@ -2,9 +2,8 @@ package beBig.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.*;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -13,25 +12,32 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.sql.DataSource;
 
 @Configuration
+@MapperScan(basePackages = "beBig.mapper")
 @PropertySource({"classpath:/application.properties"})
-//@MapperScan(basePackages = {})
 public class RootConfig {
 
     @Autowired
     ApplicationContext applicationContext;
 
     @Bean
-    public SqlSessionFactory sqlSessionFactory() throws Exception {
+    public SqlSessionFactoryBean sqlSessionFactory() {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(
                 applicationContext.getResource("classpath:/mybatis-config.xml"));
         sqlSessionFactory.setDataSource(dataSource());
-        return (SqlSessionFactory) sqlSessionFactory.getObject();
+        return sqlSessionFactory;
     }
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate() throws Exception {
+        return new SqlSessionTemplate(sqlSessionFactory().getObject());
+    }
+
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
@@ -55,5 +61,4 @@ public class RootConfig {
         HikariDataSource dataSource = new HikariDataSource(config);
         return dataSource;
     }
-
 }
