@@ -189,9 +189,10 @@ public class MyPageController {
     public ResponseEntity<Long> getLoggedInUserId(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
+            log.info("Extracted userId: {}", userId);  // 추가 로그
             return ResponseEntity.ok(userId);
         } catch (Exception e) {
-            log.error("서버 에러 발생: {}", e.getMessage());
+            log.error("logged-in-user-id: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -217,6 +218,23 @@ public class MyPageController {
         } catch (Exception e) {
             log.error("Error updating visibility", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update visibility");
+        }
+    }
+
+    // 특정 사용자의 프로필을 조회하는 엔드포인트
+    @GetMapping("/info/{userId}")
+    public ResponseEntity<UserProfileResponseDto> getMypageByUserId(@PathVariable long userId) {
+        try {
+            UserProfileResponseDto dto = myPageService.findProfileByUserId(userId);
+            log.info("/info/{userId} dto : {}", dto);
+            if (dto != null) {
+                return ResponseEntity.status(HttpStatus.OK).body(dto);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            log.info("에러 메시지: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
