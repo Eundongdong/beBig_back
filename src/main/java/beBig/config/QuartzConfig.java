@@ -49,7 +49,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(transactionUpdateJobDetail)
                 .withIdentity("transactionUpdateTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 10/12 * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 12 * * ?"))
                 .startNow()
                 .build();
     }
