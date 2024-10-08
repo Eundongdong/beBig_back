@@ -46,4 +46,107 @@
         WHERE personal_daily_mission_id = #{personalMissionId};
     </select>
 
+    <!-- Personal Daily Mission 미션 완료여부 확인-->
+    <select id="findMissionIsCompletedByPersonalMissionId" parameterType="long" resultType="long">
+        SELECT personal_daily_mission_completed
+        FROM personal_daily_mission
+        WHERE personal_daily_mission_id = #{personalMissionId};
+    </select>
+
+    <!-- UserId에 따른 Salary 조회 -->
+    <select id="findSalaryByUserId" resultType="int">
+        SELECT user_salary
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- userId와 missionId에 따른 저축 비율 조회 -->
+    <select id="findSaveRateByUserIdAndMissionId" resultType="double">
+        SELECT u.fin_type_save_rate
+        FROM user u
+                 JOIN mission m ON u.fin_type_code = m.mission_category
+        WHERE u.user_id = #{userId}
+          AND m.mission_id = #{missionId}
+    </select>
+
+    <!-- userId와 missionId에 따른 사용 비율 조회 -->
+    <select id="findUseRateByUserIdAndMissionId" resultType="double">
+        SELECT u.fin_type_use_rate
+        FROM user u
+                 JOIN mission m ON u.fin_type_code = m.mission_category
+        WHERE u.user_id = #{userId}
+          AND m.mission_id = #{missionId}
+    </select>
+
+
+    <!-- missionId에 따른 미션 카테고리 조회 -->
+    <select id="findMissionCategoryByMissionId" resultType="int">
+        SELECT mission_category
+        FROM mission
+        WHERE mission_id = #{missionId}
+    </select>
+
+    <!-- user_mission_current_month_score 가져오기 -->
+    <select id="findCurrentMissionMonthScoreByUserId" resultType="int" parameterType="long">
+        SELECT user_mission_current_month_score
+        FROM user
+        WHERE user_id = #{userId};
+    </select>
+
+    <!-- user_mission_current_month_score 업데이트 -->
+    <update id="updateCurrentMissionMonthScoreByUserId" parameterType="map">
+        UPDATE user
+        SET user_mission_current_month_score = #{score}
+        WHERE user_id = #{userId};
+    </update>
+
+    <!-- 모든 사용자 ID 조회 -->
+    <select id="findAllUsersWithDailyMissions" resultType="long">
+        SELECT DISTINCT user_id
+        FROM personal_daily_mission
+    </select>
+
+    <!-- 랜덤 미션 조회 -->
+    <select id="findRandomMissionsByType" parameterType="map" resultType="int">
+        SELECT m.mission_id
+        FROM mission m
+        WHERE m.mission_type = #{missionType}
+        ORDER BY RAND() LIMIT #{count}; <!-- type에 맞는 미션을 랜덤으로 지정된 개수만큼 조회 -->
+    </select>
+
+    <!-- 사용자 ID에 대한 기존 일일 미션 ID 조회 -->
+    <select id="findExistingDailyMissions" parameterType="long" resultType="int">
+        SELECT personal_daily_mission_id
+        FROM personal_daily_mission
+        WHERE user_id = #{userId}; <!-- 특정 사용자에 대한 미션 ID 조회 -->
+    </select>
+
+    <!-- 기존 사용자의 일일 미션 업데이트 -->
+    <update id="updateDailyMission" parameterType="map">
+        UPDATE personal_daily_mission
+        SET mission_id = #{missionId}, personal_daily_mission_completed = 0
+        WHERE user_id = #{userId}
+        AND personal_daily_mission_id = #{personalDailyMissionId}; <!-- 개인 일일 미션 ID로 정확하게 업데이트 -->
+    </update>
+
+    <!-- 신규 미션 삽입 -->
+    <insert id="insertDailyMission" parameterType="map">
+        INSERT INTO personal_daily_mission (user_id, mission_id, personal_daily_mission_completed)
+        VALUES (#{userId}, #{missionId}, 0);
+    </insert>
+
+    <!-- 사용자 자산, 유형 연결 상태 체크 -->
+    <select id="countUserAssetStatus" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM user
+        WHERE user_id = #{userId}
+        AND fin_type_code > 0
+        AND user_connected_id IS NOT NULL;
+    </select>
+
+    <select id="findExistingDailyMissionsCount" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM personal_daily_mission
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

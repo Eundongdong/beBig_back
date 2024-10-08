@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.SavingsProductMapper">
+
+    <insert id="insertSavingsProduct" parameterType="beBig.dto.SavingsProductDto">
+        INSERT INTO savings_product (savings_product_code, bank_id, savings_product_name, savings_product_type, savings_product_term, savings_product_rate, savings_product_max_rate)
+        VALUES (#{savingsProductCode}, #{bankId}, #{savingsProductName}, #{savingsProductType}, #{savingsProductTerm}, #{savingsProductRate}, #{savingsProductMaxRate})
+    </insert>
+    <!-- 주거래 은행 및 다른 은행에서 추천 상품 2개씩 가져오기 -->
+    <select id="getTop2RecommendedSavingsProduct" parameterType="map" resultType="SavingsProductVo">
+        SELECT sp.*, b.bank_url
+        FROM savings_product sp
+        JOIN bank b ON sp.bank_id = b.bank_id
+        WHERE sp.bank_id = #{bankId}
+        ORDER BY sp.savings_product_max_rate DESC,
+                 CASE
+                     WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN sp.savings_product_term
+                     ELSE 9999
+                     END ASC,
+                 CASE
+                     WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN sp.savings_product_term
+                     ELSE 0
+                     END DESC
+            LIMIT 2
+    </select>
+
+
+</mapper>

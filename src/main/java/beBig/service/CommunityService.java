@@ -1,15 +1,14 @@
 package beBig.service;
 
-import beBig.dto.LikeRequestDto;
+import beBig.dto.response.PostListResponseDto;
 import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.vo.PostVo;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface CommunityService {
-    public List<PostVo> showList(int postCategory, int finTypeCode);
+    public PostListResponseDto showList(int postCategory, int finTypeCode, int page, int pageSize, String sortType);
     public PostVo showDetail(Long postId);
     public void updateLike(long userId, long postId);
     public void write(PostVo post) throws AmazonS3UploadException;

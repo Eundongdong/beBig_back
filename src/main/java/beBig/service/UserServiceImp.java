@@ -1,7 +1,10 @@
 package beBig.service;
 
-import beBig.form.UserForm;
+import beBig.dto.UserDto;
+import beBig.dto.response.FinInfoResponseDto;
 import beBig.mapper.UserMapper;
+import beBig.vo.FinTestVo;
+import beBig.vo.FinTypeVo;
 import beBig.vo.UserVo;
 import beBig.vo.UtilVo;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,9 @@ import org.springframework.stereotype.Service;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -22,30 +28,32 @@ public class UserServiceImp implements UserService {
 
     private final SqlSessionTemplate sqlSessionTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserServiceImp(SqlSessionTemplate sqlSessionTemplate, PasswordEncoder passwordEncoder) {
+    public UserServiceImp(SqlSessionTemplate sqlSessionTemplate, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.sqlSessionTemplate = sqlSessionTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     // 유저 등록(회원가입)
     @Override
-    public void registerUser(UserForm userForm) throws Exception {
+    public void registerUser(UserDto userDto) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        String encryptedPassword = passwordEncoder.encode(userForm.getPassword());
+        String encryptedPassword = passwordEncoder.encode(userDto.getPassword());
         // 새로운 사용자 객체 생성
         UserVo user = new UserVo();
-        user.setUserName(userForm.getName());
-        user.setUserNickname(userForm.getNickname());
-        user.setUserLoginId(userForm.getUserLoginId());
+        user.setUserName(userDto.getName());
+        user.setUserNickname(userDto.getNickname());
+        user.setUserLoginId(userDto.getUserLoginId());
         user.setUserPassword(encryptedPassword); // 비밀번호 암호화 필요
-        user.setUserEmail(userForm.getEmail());
-        user.setUserGender(userForm.isGender());
-        user.setUserBirth(userForm.getBirth());
+        user.setUserEmail(userDto.getEmail());
+        user.setUserGender(userDto.isGender());
+        user.setUserBirth(userDto.getBirth());
         user.setFinTypeCode(0);
         user.setUserBadgeCode(0);
-        user.setUserLoginType(userForm.getUserLoginType());
+        user.setUserLoginType(userDto.getUserLoginType());
         // 사용자 정보 저장
         userMapper.insert(user);
         log.info("user 저장성공: {}", user.getUserName());
@@ -151,11 +159,14 @@ public class UserServiceImp implements UserService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("email", email);
-
+        log.info(params.toString());
         String userId = userMapper.findUserLoginIdByNameAndEmail(params);
-
-        if (userId != null && userId.length() > 4) {
-            return userId.substring(0, userId.length() - 4) + "****";
+        log.info(userId);
+        if (userId != null) {
+            if(userId.length() > 4){
+                return userId.substring(0, userId.length() - 4) + "****";
+            }
+            return userId.substring(0, userId.length() - 1) + "*";
         }
         return null;
     }
@@ -172,6 +183,61 @@ public class UserServiceImp implements UserService {
     public List<UtilVo> getUtilTerms() {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         return userMapper.getUtilTerms();
+    }
+
+    @Override
+    public Long findUserIdByKakaoId(String kakaoId) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        return userMapper.getUserIdByKaKaoId(kakaoId);
+    }
+
+    @Override
+    // db에서 refreshToken 지우기 (로그아웃시)
+    public void removeRefreshToken(String refreshToken) {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        userMapper.clearRefreshTokenRT(refreshToken);
+        userMapper.clearRefreshTokenUser(refreshToken);
+    }
+
+    @Override
+    public Long findUserIdByUserLoginId(String userLoginId) {
+        return userMapper.findUserIdByUserLoginId(userLoginId);
+    }
+
+    @Override
+    public void deleteRefreshTokenBeforeLogin(Long userId) {
+        if (checkIfRefreshTokenExistsByUserId(userId)) {
+            userMapper.clearRefreshTokenByUserId(userId);
+        }
+    }
+
+    @Override
+    public boolean checkIfRefreshTokenExistsByUserId(Long userId) {
+        return userMapper.countRefreshTokenByUserId(userId) > 0;
+    }
+
+    @Override
+    public void updateUserAges() {
+        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        List<UserVo> users = userMapper.getAllUsers();
+
+        for (UserVo user : users) {
+            Date birthDate = user.getUserBirth();
+            if (birthDate != null) { // null 체크
+                LocalDate localBirthDate = (birthDate).toLocalDate();
+                int birthYear = localBirthDate.getYear();
+                int age = currentYear - birthYear; // 나이 계산
+
+                // 나이에 따라 나이 범위 설정
+                int ageRange = (age / 10) * 10;
+
+
+                userMapper.updateUserAgeRange(user.getUserId(), ageRange);
+                log.info("updated :" + user.getUserLoginId() + " - age range: " + ageRange);
+            }
+        }
     }
 
 

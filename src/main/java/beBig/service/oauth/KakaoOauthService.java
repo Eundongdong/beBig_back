@@ -3,19 +3,21 @@ package beBig.service.oauth;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+@Slf4j
 @Service
 public class KakaoOauthService {
 
-    // 카카오 REST API 키
+    // 카카오 REST API 키 <- 형이 바꿔야함
     private String REST_API_KEY = "f8156e1595fd76d2b241ad4b4f3c4ca6";
 
-    // 카카오 로그인 후 리다이렉트될 URI
+    // 카카오 로그인 후 리다이렉트될 URI <-이것도 형네주소
     private String REDIRECT_URI = "http://localhost:5173/user";
 
     public String getAccessToken(String authorize_code) {
@@ -152,5 +154,52 @@ public class KakaoOauthService {
         }
 
         return userInfo;  // 사용자 정보 반환 (오류 발생 시에도 수집된 정보 반환)
+    }
+
+    public Long kakaoLogout(String loginToken) {
+        String logoutURL = "https://kapi.kakao.com/v1/user/logout";
+
+        try {
+            URL url = new URL(logoutURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + loginToken); // Bearer 토큰 설정
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"); // Content-Type 설정
+
+            conn.setDoOutput(false);
+
+            int responseCode = conn.getResponseCode();
+            log.info("유저 정보 요청 응답 코드 : {}", responseCode);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder result = new StringBuilder();
+            String line;
+
+            // 응답 데이터를 result에 저장
+            while ((line = br.readLine()) != null) {
+                result.append(line);
+            }
+            br.close();
+
+            log.info("응답 Body 내용: {}", result.toString());
+
+            // 응답 데이터를 JSON으로 파싱하여 'id' 값 추출
+            JsonObject jsonObject = JsonParser.parseString(result.toString()).getAsJsonObject();
+
+            // 'id' 값을 추출하여 반환
+            if (jsonObject.has("id")) {
+                Long id = jsonObject.get("id").getAsLong();
+                log.info("로그아웃 된 유저의 ID: {}", id);
+                return id;
+            } else {
+                log.info("응답에 'id' 필드가 없습니다.");
+                return -1L;
+            }
+
+        } catch (Exception e) {
+            log.error("로그아웃 요청 중 에러 발생: {}", e.getMessage());
+            return -1L;
+        }
     }
 }

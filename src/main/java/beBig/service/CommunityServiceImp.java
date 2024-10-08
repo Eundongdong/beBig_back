@@ -1,5 +1,6 @@
 package beBig.service;
 
+import beBig.dto.response.PostListResponseDto;
 import beBig.dto.response.PostResponseDto;
 import beBig.exception.AmazonS3UploadException;
 import beBig.exception.NoContentFoundException;
@@ -16,8 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,13 +55,20 @@ public class CommunityServiceImp implements CommunityService {
      *
      * @param postCategory 카테고리 필터 (없을 경우 기본값 -1)
      * @param finTypeCode 유형 필터 (없을 경우 기본값 -1)
+     * @param page 페이지 번호
+     * @param pageSize 몇 개 가져오는지
      * @return 필터에 맞는 게시글 목록
      */
     @Override
-    public List<PostVo> showList(int postCategory, int finTypeCode) {
+    public PostListResponseDto showList(int postCategory, int finTypeCode, int page,int pageSize, String sortType) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
+        //pageable 값 추가
+        params.put("limit", pageSize);
+        params.put("offset",page *pageSize);
+        params.put("sortType", sortType);
+
         if(postCategory != -1){
             // 카테고리 추가
             log.info("service category: " + postCategory);
@@ -73,14 +79,20 @@ public class CommunityServiceImp implements CommunityService {
             log.info("service finTypeCode: " + finTypeCode);
             params.put("finTypeCode", finTypeCode);
         }
+
+        List<PostVo> list;
+        PostListResponseDto postListResponseDto = new PostListResponseDto();
         // 전체 목록 조회(파라미터에 검색 필터가 없는 경우)
-        if (params.isEmpty()) {
-            return mapper.findAll();
-        }
         // 카테고리/유형별 조회(파라미터 검색 필터가 있는 경우)
-        else {
-            return mapper.findByPostCategoryAndFinTypeCode(params);
-        }
+        list =mapper.findByPostCategoryAndFinTypeCode(params);
+
+        postListResponseDto.setList(list);
+
+        //총 페이지 수 구하기
+        long totalPosts = mapper.findPostCountByPostCategoryAndFinTypeCode(params);
+        long totalPages = (long) Math.ceil((double) totalPosts /pageSize);
+        postListResponseDto.setTotalPage(totalPages);
+        return postListResponseDto;
     }
 
     /**

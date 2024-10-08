@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="beBig.mapper.DepositProductMapper">
+    <!--Api로 받아온 데이터를 deposit_product에 추가-->
+    <insert id="insert" parameterType="DepositProductVo">
+        INSERT INTO deposit_product (
+            deposit_product_code,
+            bank_id,
+            deposit_product_name,
+            deposit_product_term,
+            deposit_product_rate,
+            deposit_product_max_rate
+        ) VALUES (
+            #{depositProductCode},
+            #{depositProductBankId},
+            #{depositProductName},
+            #{depositProductTerm},
+            #{depositProductRate},
+            #{depositProductMaxRate}
+        )
+    </insert>
+    <!-- 주거래 은행 및 다른 은행에서 추천 상품 2개씩 가져오기 -->
+    <select id="getTop2RecommendedDepositProducts" parameterType="map" resultType="DepositProductVo">
+        SELECT dp.*, b.bank_url
+        FROM deposit_product dp
+        JOIN bank b ON dp.bank_id = b.bank_id
+        WHERE dp.bank_id = #{bankId}
+        ORDER BY dp.deposit_product_max_rate DESC,
+                 CASE
+                     WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN dp.deposit_product_term
+                     ELSE 9999
+                     END ASC,
+                 CASE
+                     WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN dp.deposit_product_term
+                     ELSE 0
+                     END DESC
+            LIMIT 2
+    </select>
+
+</mapper>
