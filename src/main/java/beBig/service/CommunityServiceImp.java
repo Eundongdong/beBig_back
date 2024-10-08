@@ -82,7 +82,7 @@ public class CommunityServiceImp implements CommunityService {
         List<PostVo> list;
         PostListResponseDto postListResponseDto = new PostListResponseDto();
         // 전체 목록 조회(파라미터에 검색 필터가 없는 경우)
-        if (params.isEmpty()) {
+        if (params.size() ==2) {
             list = mapper.findAll();
         }
         // 카테고리/유형별 조회(파라미터 검색 필터가 있는 경우)

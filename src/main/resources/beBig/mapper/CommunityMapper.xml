@@ -20,12 +20,15 @@
     </insert>
 
     <!-- 게시글 목록을 전부 조회하는 쿼리 -->
-    <select id="findAll" resultType="PostVo">
-        SELECT p.post_id, p.user_id, u.user_nickname, p.post_title, p.post_content, p.post_created_time,
-                p.post_like_hits, p.post_category, u.fin_type_code
-        FROM post p
-        JOIN user u ON p.user_id = u.user_id
-        ORDER BY p.post_id DESC
+    <select id="findAll" resultMap="findDetailMap">
+        SELECT post.post_id, post.user_id, user.user_nickname, post.post_title, post.post_content,
+               post.post_created_time, post.post_like_hits, post.post_category, user.fin_type_code,
+               image.image_path
+        FROM post
+        LEFT JOIN image ON post.post_id = image.post_id
+        JOIN user ON post.user_id = user.user_id
+        ORDER BY post.post_id DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- 게시글 세부 페이지를 받아오는 ResultMap -->
@@ -57,11 +60,13 @@
     </select>
 
     <!-- PostCategory와 FinTypeCode를 기준으로 게시글을 조회하는 쿼리  -->
-    <select id="findByPostCategoryAndFinTypeCode" resultType="PostVo" parameterType="map">
+    <select id="findByPostCategoryAndFinTypeCode" resultMap="findDetailMap" parameterType="map">
         SELECT p.post_id, p.user_id, u.user_nickname, p.post_title, p.post_content, p.post_created_time,
-                p.post_like_hits, p.post_category, u.fin_type_code AS finTypeCode
+                p.post_like_hits, p.post_category, u.fin_type_code
+                ,image.image_path
         FROM post p
         JOIN user u ON p.user_id = u.user_id
+        LEFT JOIN image ON p.post_id = image.post_id
         <where>
             <if test="postCategory != null">
                 p.post_category = #{postCategory}
