@@ -81,7 +81,7 @@
             </if>
         </where>
         <choose>
-            <when test="sortType == 'like'">
+            <when test="sortType == 'likeHits'">
                 ORDER BY p.post_like_hits DESC
             </when>
             <otherwise>

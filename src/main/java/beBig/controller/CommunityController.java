@@ -48,7 +48,8 @@ public class CommunityController {
         int page = offset.orElse(0);
         log.info("page: " + page);
         int pageSize = limit.orElse(10);
-        String sort = sortType.orElse("newest");
+        String sort = sortType.orElse("latest");
+        log.info("sort: " + sort);
 
         PostListResponseDto postListResponseDto = communityService.showList(category, type,page,pageSize, sort);
         if (postListResponseDto.getList() == null || postListResponseDto.getList().isEmpty()) {
