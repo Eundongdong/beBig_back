@@ -25,7 +25,8 @@
 
     <!-- userId를 받아서 특정 사용자의 게시물 정보를 조회하는 쿼리 -->
     <select id="findMyPagePost" resultType="beBig.dto.response.MyPagePostResponseDto" parameterType="long">
-        SELECT p.post_title              AS title,
+        SELECT p.post_id              AS postId,
+               p.post_title              AS title,
                DATE(p.post_updated_time) AS postTime,
                p.post_like_hits          AS postLikeHits
         FROM post p
@@ -35,9 +36,10 @@
     </select>
 
     <select id="findMyPageLikeHits" resultType="beBig.dto.response.MyPagePostResponseDto">
-        SELECT p.post_title              AS title,
-               DATE(p.post_updated_time) AS postTime,
-               p.post_like_hits          AS postLikeHits
+        SELECT  p.post_id                AS postId,
+                p.post_title              AS title,
+                DATE(p.post_updated_time) AS postTime,
+                p.post_like_hits          AS postLikeHits
         FROM like_hits lh
                  JOIN post p
                       ON lh.post_id = p.post_id
