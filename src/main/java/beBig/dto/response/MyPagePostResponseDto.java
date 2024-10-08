@@ -10,6 +10,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MyPagePostResponseDto {
+    private Long postId;
     private String title;
     private Date postTime;
     private int postLikeHits;
