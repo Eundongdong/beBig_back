@@ -105,9 +105,10 @@
         WHERE a.user_id = #{userId}
     </select>
 
-    <!-- 모든 계좌 조회 -->
     <select id="findAllAccounts" resultType="AccountVo">
-        SELECT *
-        FROM account
+        SELECT a.*
+        FROM account a
+        JOIN user u ON a.user_id = u.user_id
+        WHERE u.user_connected_id IS NOT NULL
     </select>
 </mapper>
