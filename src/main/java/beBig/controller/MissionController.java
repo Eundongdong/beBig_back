@@ -47,6 +47,20 @@ public class MissionController {
         }
     }
 
+    @GetMapping("/total/{userId}")
+    public ResponseEntity<?> monthlyMissionTotalByUserId(@PathVariable long userId) {
+        try {
+            int restDays = getRestDaysInCurrentMonth();
+            int currentScore = missionService.findCurrentMonthScore(userId);
+            TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", "application/json; charset=UTF-8");
+            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request.");
+        }
+    }
+
 
     @GetMapping("/monthly")
     public ResponseEntity<?> monthlyMission(@RequestHeader("Authorization") String token) {
