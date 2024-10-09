@@ -54,8 +54,6 @@ public interface MissionMapper {
 
     int findExistingDailyMissionsCount(@Param("userId") Long userId);
 
-    int countPersonalMonthlyMission(Long userId);
-
     // 신규 월간 미션 삽입
     void insertMonthlyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
 
@@ -78,10 +76,10 @@ public interface MissionMapper {
     int countPostLikesInMonth(@Param("userId")Long userId);
 
     // 소비 차이 계산
-    double calculateSpendingDifference(@Param("userId")Long userId);
+    int calculateSpendingDifference(@Param("userId")Long userId);
 
     // 저축 차이 계산
-    double calculateSavingDifference(@Param("userId")Long userId);
+    int calculateSavingDifference(@Param("userId")Long userId);
 
     // 데일리 미션 완료 수 카운트
     int countCompletedDailyMissions(@Param("userId")Long userId);
@@ -89,9 +87,9 @@ public interface MissionMapper {
     // 모든 사용자 ID 가져오기
     List<Long> findAllUsersWithMonthlyMissions();
 
-    // 저축 계좌 수 카운트
-    int countSavingsAccounts(@Param("userId")Long userId);
+//    // 저축 계좌 수 카운트
+//    int countSavingsAccounts(@Param("userId")Long userId);
 
-    void updateMonthlyMissionStatus(@Param("personalMonthlyMissionId")int personalMonthlyMissionId, int status);
+    void updateMonthlyMissionStatus(@Param("personalMonthlyMissionId")int personalMonthlyMissionId, @Param("status") int status);
 }
 

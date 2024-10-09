@@ -141,7 +141,6 @@
         VALUES (#{userId}, #{missionId}, 0);
     </insert>
 
-
     <!-- 사용자 자산, 유형 연결 상태 체크 -->
     <select id="countUserAssetStatus" parameterType="long" resultType="int">
         SELECT COUNT(*)
@@ -158,16 +157,9 @@
         WHERE user_id = #{userId}
     </select>
 
-    <!-- 개인 월간 미션 수 카운트 -->
-    <select id="countPersonalMonthlyMission" parameterType="long" resultType="int">
-        SELECT COUNT(*)
-        FROM personal_monthly_mission
-        WHERE user_id = #{userId}
-    </select>
-
     <!-- 현재 월간 미션 ID 가져오기 -->
     <select id="getCurrentMonthlyMissionId" parameterType="long" resultType="int">
-        SELECT missionId
+        SELECT mission_id
         FROM personal_monthly_mission
         WHERE user_id = #{userId}
     </select>
@@ -200,19 +192,46 @@
         WHERE user_id = #{userId}
     </select>
 
-<!--    &lt;!&ndash; 소비 차이 계산 &ndash;&gt;-->
-<!--    <select id="calculateSpendingDifference" parameterType="long" resultType="int">-->
-<!--        SELECT COALESCE(SUM(spending), 0) - COALESCE(SUM(budget), 0)-->
-<!--        FROM UserSpending-->
-<!--        WHERE userId = #{userId}-->
-<!--    </select>-->
+    <select id="calculateSpendingDifference" resultType="int">
+        SELECT
+        (SUM(CASE
+        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) - 1 AND YEAR(t.transaction_date) = YEAR(CURDATE())
+        THEN t.transaction_balance
+        ELSE 0
+        END) -
+        SUM(CASE
+        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) AND YEAR(t.transaction_date) = YEAR(CURDATE())
+        THEN t.transaction_balance
+        ELSE 0
+        END)) AS spending_difference
+        FROM transaction t
+        JOIN account a ON t.account_num = a.account_num
+        WHERE a.user_id = #{userId}
+        AND t.transaction_type = '출금'
+        AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+        AND CURDATE() >= t.transaction_date;
+    </select>
 
-<!--    &lt;!&ndash; 저축 차이 계산 &ndash;&gt;-->
-<!--    <select id="calculateSavingDifference" parameterType="long" resultType="int">-->
-<!--        SELECT COALESCE(SUM(saving), 0) - COALESCE(SUM(goal), 0)-->
-<!--        FROM UserSaving-->
-<!--        WHERE userId = #{userId}-->
-<!--    </select>-->
+
+    <!-- 이번달 저축 금액 계산-->
+    <select id="calculateSavingDifference" resultType="int">
+        SELECT
+            (SELECT transaction_balance
+             FROM transaction
+             WHERE user_id = #{userId}
+               AND transaction_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+             ORDER BY transaction_date ASC
+                LIMIT 1) AS first_day_balance,
+
+        (SELECT transaction_balance
+         FROM transaction
+         WHERE user_id = #{userId}
+                ORDER BY transaction_date DESC
+                LIMIT 1) AS current_balance,
+
+             (current_balance - first_day_balance) AS saving_difference
+        FROM dual
+    </select>
 
     <!-- 데일리 미션 완료 수 카운트 -->
     <select id="countCompletedDailyMissions" parameterType="long" resultType="int">
@@ -222,7 +241,7 @@
           AND personal_daily_mission_completed = 1
     </select>
 
-    <!-- 모든 사용자 ID 가져오기 -->
+    <!-- 월간미션 테이블 모든 사용자 ID 가져오기 -->
     <select id="findAllUsersWithMonthlyMissions" resultType="long">
         SELECT DISTINCT user_id
         FROM personal_monthly_mission

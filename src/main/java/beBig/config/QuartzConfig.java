@@ -1,8 +1,6 @@
 package beBig.config;
 
-import beBig.job.AgeUpdateJob;
-import beBig.job.AssignDailyMissionJob;
-import beBig.job.TransactionUpdateJob;
+import beBig.job.*;
 import org.quartz.JobDetail;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -48,6 +46,30 @@ public class QuartzConfig {
     }
 
     @Bean
+    public JobDetail updateMonthlyMissionJobDetail() {
+        return JobBuilder.newJob(UpdateMonthlyMissionJob.class)
+                .withIdentity("updateMonthlyMissionJob")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public JobDetail dailyCheckMonthlyMissionsJobDetail() {
+        return JobBuilder.newJob(DailyCheckMonthlyMissionsJob.class)
+                .withIdentity("dailyCheckMonthlyMissionsJob")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public JobDetail checkEndOfMonthMissionsJobDetail() {
+        return JobBuilder.newJob(CheckEndOfMonthMissionsJob.class)
+                .withIdentity("checkEndOfMonthMissionsJob")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
     public CronTrigger transactionUpdateTrigger(JobDetail transactionUpdateJobDetail) {
         return TriggerBuilder.newTrigger()
                 .forJob(transactionUpdateJobDetail)
@@ -78,13 +100,48 @@ public class QuartzConfig {
     }
 
     @Bean
+    public CronTrigger updateMonthlyMissionTrigger(JobDetail updateMonthlyMissionJobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(updateMonthlyMissionJobDetail)
+                .withIdentity("updateMonthlyMissionTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 1 * * ?")) // 매달 1일에 실행
+                .startNow()
+                .build();
+    }
+
+    @Bean
+    public CronTrigger dailyCheckMonthlyMissionsTrigger(JobDetail dailyCheckMonthlyMissionsJobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(dailyCheckMonthlyMissionsJobDetail)
+                .withIdentity("dailyCheckMonthlyMissionsTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 9 23 * * ?")) // 매일 23시 50분에 실행 -> 더 빈번하게 해도 될거같음
+                .startNow()
+                .build();
+    }
+
+    @Bean
+    public CronTrigger checkEndOfMonthMissionsTrigger(JobDetail checkEndOfMonthMissionsJobDetail) {
+        return TriggerBuilder.newTrigger()
+                .forJob(checkEndOfMonthMissionsJobDetail)
+                .withIdentity("checkEndOfMonthMissionsTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 50 23 L * ?")) // 매달 마지막날 23:50에 실행
+                .startNow()
+                .build();
+    }
+
+    @Bean
     public SchedulerFactoryBean schedulerFactory(CronTrigger transactionUpdateTrigger, JobDetail transactionUpdateJobDetail,
                                                  CronTrigger ageUpdateTrigger, JobDetail ageUpdateJobDetail,
-                                                 CronTrigger assignDailyMissionTrigger, JobDetail assignDailyMissionJobDetail) {
+                                                 CronTrigger assignDailyMissionTrigger, JobDetail assignDailyMissionJobDetail,
+                                                 CronTrigger updateMonthlyMissionTrigger, JobDetail updateMonthlyMissionJobDetail,
+                                                 CronTrigger dailyCheckMonthlyMissionsTrigger, JobDetail dailyCheckMonthlyMissionsJobDetail,
+                                                 CronTrigger checkEndOfMonthMissionsTrigger, JobDetail checkEndOfMonthMissionsJobDetail) {
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
         schedulerFactory.setJobFactory(jobFactory);
-        schedulerFactory.setJobDetails(transactionUpdateJobDetail, ageUpdateJobDetail, assignDailyMissionJobDetail);
-        schedulerFactory.setTriggers(transactionUpdateTrigger, ageUpdateTrigger, assignDailyMissionTrigger);
+        schedulerFactory.setJobDetails(transactionUpdateJobDetail, ageUpdateJobDetail, assignDailyMissionJobDetail,
+                updateMonthlyMissionJobDetail, dailyCheckMonthlyMissionsJobDetail, checkEndOfMonthMissionsJobDetail);
+        schedulerFactory.setTriggers(transactionUpdateTrigger, ageUpdateTrigger, assignDailyMissionTrigger,
+                updateMonthlyMissionTrigger,dailyCheckMonthlyMissionsTrigger, checkEndOfMonthMissionsTrigger);
 
         // 한국 표준시(KRT) 설정
         Properties quartzProperties = new Properties();
