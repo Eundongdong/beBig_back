@@ -183,14 +183,18 @@
         SELECT COUNT(*)
         FROM post
         WHERE user_id = #{userId}
+          AND DATE_FORMAT(post_created_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
     </select>
+
 
     <!-- 좋아요 수 카운트 -->
     <select id="countPostLikesInMonth" parameterType="long" resultType="int">
-        SELECT COUNT(*)
+        SELECT SUM(post_like_hits)
         FROM post
         WHERE user_id = #{userId}
+          AND DATE_FORMAT(post_created_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
     </select>
+
 
     <select id="calculateSpendingDifference" resultType="int">
         SELECT
