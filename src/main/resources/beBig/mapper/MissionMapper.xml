@@ -149,4 +149,59 @@
         FROM personal_daily_mission
         WHERE user_id = #{userId}
     </select>
+
+    <select id="findMonthlyMissionIdByUserId" parameterType="long" resultMap="int">
+        select mission_id
+        from personal_monthly_mission
+        where user_id = #{userId}
+    </select>
+
+    <select id="getMonthlyConsumption" resultType="int">
+        SELECT SUM(amount)
+        FROM consumption
+        WHERE MONTH(consumption_date) = #{thisMonth}
+          AND user_id = #{userId}
+    </select>
+
+    <select id="getAccountListByUserId" resultMap="String">
+        SELECT account_num
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getMonthlyConsumption" resultType="int">
+        SELECT SUM(transaction_amount)
+        FROM transaction
+        WHERE YEAR(transaction_date) = YEAR(CURDATE())
+          AND MONTH(transaction_date) = #{thisMonth}
+          AND account_num = #{accountNum}
+          AND transaction_type = '출금'
+    </select>
+
+    <select id="countUserPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE YEAR (post_created_time) = YEAR (CURDATE())
+          AND MONTH (post_created_time) = #{thisMonth}
+          AND user_id = #{userId}
+    </select>
+
+    <select id="countUserLikes" resultType="int">
+        SELECT SUM(post_like_hits)
+        FROM post
+        WHERE YEAR(post_created_time) = YEAR(CURDATE())
+        AND MONTH(post_created_time) = #{thisMonth}
+          AND user_id = #{userId}
+    </select>
+
+    <select id="getDailyConsumption" resultType="int">
+        SELECT SUM(transaction_amount)
+        FROM transaction
+        WHERE YEAR(transaction_date) = YEAR(CURDATE())
+          AND MONTH(transaction_date) = #{thisMonth}
+          AND DAY(transaction_date) = #{day}
+          AND account_num = #{accountNum}
+          AND transaction_type = '출금'
+    </select>
+
 </mapper>
