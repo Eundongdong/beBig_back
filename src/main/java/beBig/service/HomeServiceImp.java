@@ -111,6 +111,7 @@ public class HomeServiceImp implements HomeService {
             try {
                 // saveTransactions 메서드를 호출하여 1일간 거래 내역 저장
                 saveTransactions(userId, accountNum, 1);
+                log.info(userId + "의 거래내역 update : " + accountNum);
             } catch (Exception e) {
                 log.error("계좌 {}의 거래 내역 저장 중 오류 발생: {}", accountNum, e.getMessage());
                 // 오류 발생 시 다음 계좌로 넘어감
