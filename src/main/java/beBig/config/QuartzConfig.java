@@ -14,6 +14,9 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Properties;
+import java.util.TimeZone;
+
 @Configuration
 public class QuartzConfig {
 
@@ -82,6 +85,12 @@ public class QuartzConfig {
         schedulerFactory.setJobFactory(jobFactory);
         schedulerFactory.setJobDetails(transactionUpdateJobDetail, ageUpdateJobDetail, assignDailyMissionJobDetail);
         schedulerFactory.setTriggers(transactionUpdateTrigger, ageUpdateTrigger, assignDailyMissionTrigger);
+
+        // 한국 표준시(KRT) 설정
+        Properties quartzProperties = new Properties();
+        quartzProperties.setProperty("org.quartz.scheduler.timeZone", TimeZone.getTimeZone("Asia/Seoul").getID());
+        schedulerFactory.setQuartzProperties(quartzProperties);
+
         return schedulerFactory;
     }
 
