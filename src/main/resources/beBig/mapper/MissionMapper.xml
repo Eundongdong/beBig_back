@@ -40,7 +40,7 @@
     </select>
 
     <!-- Personal Daily Mission 미션바꾸기 쿼리 -->
-    <select id="completeDailyMonthlyMission" parameterType="long">
+    <select id="completeDailyMission" parameterType="long">
         UPDATE personal_daily_mission
         SET personal_daily_mission_completed = 1 - personal_daily_mission_completed
         WHERE personal_daily_mission_id = #{personalMissionId};
