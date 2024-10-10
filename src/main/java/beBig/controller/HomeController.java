@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin("*")
 @Controller
@@ -50,43 +51,31 @@ public class HomeController {
         }
     }
 
-    @PostMapping("/account")
-    public ResponseEntity<?> getAccount(@RequestHeader("Authorization") String token,
+    @PostMapping("/account/add")
+    public ResponseEntity<?> addAccount(@RequestHeader("Authorization") String token,
                                         @RequestBody AccountRequestDto accountRequestDto) {
         try {
+            // 1. JWT 토큰에서 userId 추출
             Long userId = jwtUtil.extractUserIdFromToken(token);
-            List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
-            if (accountList.size() == 0 || accountList == null) {
+
+            // 2. 계좌 정보 가져오고, DB에 저장 후 반환
+            List<CodefAccountDto> accountList = homeService.addAccount(userId, accountRequestDto);
+
+            // 3. 계좌 정보가 없을 때 처리
+            if (accountList == null || accountList.isEmpty()) {
                 log.info("등록된 계좌가 없습니다.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("아이디/비밀번호를 확인하세요.");
             }
 
+            // 4. 성공적으로 저장 후 프론트엔드로 반환
             return ResponseEntity.ok(accountList);
         } catch (Exception e) {
-            // 에러 발생 시 메시지를 클라이언트로 전달
-            log.error("Error occurred: ", e);  // 에러 로그 출력
+            // 에러 발생 시 처리
+            log.error("Error occurred: ", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    // 계좌를 db에 등록
-    @PostMapping("/account/add")
-    public ResponseEntity<?> addAccount(@RequestHeader("Authorization") String token,
-                                        @RequestBody List<CodefAccountDto> codefAccountDtoList) {
-        try {
-            Long userId = jwtUtil.extractUserIdFromToken(token);
-            boolean isAdded = homeService.addAccountToDB(userId, codefAccountDtoList);
-
-            if (isAdded) {
-                return ResponseEntity.ok("계좌 추가 완료");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 추가 실패");
-            }
-        } catch (Exception e) {
-            log.error("계좌 추가 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 추가 중 오류가 발생했습니다.");
-        }
-    }
 
     // 계좌 목록 불러오기
     @GetMapping("/account/list")
@@ -108,10 +97,14 @@ public class HomeController {
     // 계좌별 거래내역 조회
     @GetMapping("/account/{accountNum}/transactions")
     public ResponseEntity<?> getTransactionList(@RequestHeader("Authorization") String token,
-                                                @PathVariable String accountNum) {
+                                                @PathVariable String accountNum
+                                                ,@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit
+                                                ,@RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset) {
+        int page = offset.orElse(0);
+        int pageSize = limit.orElse(10);
         try {
             Long userId = jwtUtil.extractUserIdFromToken(token);
-            AccountTransactionDto response = homeService.getTransactionList(userId, accountNum);
+            AccountTransactionDto response = homeService.getTransactionList(userId, accountNum, page, pageSize);
 
             if (response == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("거래 내역을 찾을 수 없습니다.");
@@ -197,8 +190,9 @@ public class HomeController {
                 log.error("user_fin_type 값이 없습니다.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_fin_type 값이 필요합니다.");
             }
+            Integer userIncome = Integer.parseInt((String) requestBody.get("user_income"));
             log.info("userFinType: {}", userFinType);
-            homeService.saveUserFinType(userId, userFinType);
+            homeService.saveUserFinType(userId, userFinType,userIncome);
 
             return ResponseEntity.ok("success");
         } catch (JwtException e) {

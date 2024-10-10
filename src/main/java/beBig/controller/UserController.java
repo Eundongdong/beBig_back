@@ -296,6 +296,25 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
         }
     }
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmailIsDuplicate(@RequestParam String email) {
+        boolean isDuplicate = userService.isEmailDuplicate(email);
+        if (isDuplicate) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이메일이 이미 사용 중입니다.");
+        } else {
+            return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        }
+    }
+
+    @GetMapping("/check-nickname")
+    public ResponseEntity<?> checkNicknameIsDuplicate(@RequestParam String nickname) {
+        boolean isDuplicate = userService.isNicknameDuplicate(nickname);
+        if (isDuplicate) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("닉네임이 이미 사용 중입니다.");
+        } else {
+            return ResponseEntity.ok("사용 가능한 닉네임입니다.");
+        }
+    }
 
 
 //    @GetMapping("/social-signup/info")

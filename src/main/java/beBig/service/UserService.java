@@ -34,4 +34,7 @@ public interface UserService {
 
     boolean checkIfRefreshTokenExistsByUserId(Long userId);
 
+    boolean isEmailDuplicate(String email);
+
+    boolean isNicknameDuplicate(String nickname);
 }

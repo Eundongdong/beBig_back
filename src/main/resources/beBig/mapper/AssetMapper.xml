@@ -22,24 +22,45 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="findAccountTypeByAccountNum" parameterType="string" resultType="string">
+        SELECT account_type
+        FROM account
+        WHERE account_num = #{accountNum}
+    </select>
     <!-- 최근 입금/출금 거래 내역 잔액 조회 -->
     <select id="showLatestCashBalance" parameterType="map" resultType="Long">
-        SELECT transaction_balance
-        FROM transaction
-        WHERE account_num = #{accountNum} AND transaction_type IN ('입금', '출금')
-        ORDER BY transaction_date DESC
-            LIMIT 1
+        SELECT t.transaction_balance
+        FROM transaction t
+        JOIN account a ON t.account_num = a.account_num
+        WHERE t.account_num = #{accountNum}
+        AND a.account_type = '11'
+        AND t.transaction_type IN ('입금', '출금')
+        ORDER BY t.transaction_date DESC
+        LIMIT 1
     </select>
 
     <!-- 최근 예금/적금 거래 내역 잔액 조회 -->
     <select id="showLatestDepositBalance" parameterType="map" resultType="Long">
-        SELECT transaction_balance
-        FROM transaction
-        WHERE account_num = #{accountNum} AND transaction_type IN ('예금', '적금')
-        ORDER BY transaction_date DESC
-            LIMIT 1
+        SELECT t.transaction_balance
+        FROM transaction t
+        JOIN account a ON t.account_num = a.account_num
+        WHERE t.account_num = #{accountNum}
+        AND a.account_type = '12'
+        AND t.transaction_type IN ('입금', '출금')
+        ORDER BY t.transaction_date DESC
+        LIMIT 1
     </select>
 
+    <select id="showLatestEtcBalance" parameterType="map" resultType="Long">
+        SELECT t.transaction_balance
+        FROM transaction t
+        JOIN account a ON t.account_num = a.account_num
+        WHERE t.account_num = #{accountNum}
+        AND a.account_type = '14'
+        AND t.transaction_type IN ('입금', '출금')
+        ORDER BY t.transaction_date DESC
+        LIMIT 1
+    </select>
     <!-- accountNum으로 Transaction 출금 정보를 조회하는 쿼리 -->
     <!-- 출금만 가져옴-->
     <select id="findTransactionsByAccountNum" resultType="TransactionVo">

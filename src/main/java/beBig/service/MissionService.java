@@ -19,7 +19,7 @@ public interface MissionService {
     int findSalary(long userId);
 
     //점수계산
-    int updateScore(long userId, int amount);
+    void updateScore(long userId, int amount);
 
     long findIsCompleted(long personalMissionId);
 
@@ -30,4 +30,22 @@ public interface MissionService {
     void updateDailyMissionForUser(Long userId);
 
     void addDailyMissions(Long userId);
+
+    // 월간 미션 업데이트 - 월초 batch
+    void updateMonthlyMissionForAllUsers();
+
+    void dailyCheckMonthlyMissions();
+
+    void checkEndOfMonthMissions();
+
+    // 충돌방지 업뎃..
+    int getRestDaysInCurrentMonth();
+
+    int getDaysInCurrentMonth();
+
+    String replaceNWithNumber(String s, int number, double rate);
+
+    long getMonthlyMissionNumber(long userId);
+
+    boolean hasMonthlyMissionSucceeded(long missionId, long userId);
 }

@@ -26,8 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static beBig.controller.MissionController.getRestDaysInCurrentMonth;
-
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/mypage")
@@ -71,7 +69,7 @@ public class MyPageController {
     public ResponseEntity<?> monthlyMissionTotal(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
-            int restDays = getRestDaysInCurrentMonth();
+            int restDays = missionService.getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
             HttpHeaders headers = new HttpHeaders();
@@ -94,10 +92,32 @@ public class MyPageController {
         }
     }
 
+    @GetMapping("/posts/{userId}")
+    public ResponseEntity<List<MyPagePostResponseDto>> myPostsByUserId(@PathVariable long userId) {
+        try {
+            List<MyPagePostResponseDto> dto = myPageService.findMyPostByUserId(userId);
+            return ResponseEntity.status(HttpStatus.OK).body(dto);
+        } catch (Exception e) {
+            log.error("게시물 조회 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+
     @GetMapping("/mylikehits")
     public ResponseEntity<List<MyPagePostResponseDto>> myLikeHits(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
+            List<MyPagePostResponseDto> dto = myPageService.findMyLikeHitsByUserId(userId);
+            return ResponseEntity.status(HttpStatus.OK).body(dto);
+        } catch (Exception e) {
+            log.error("좋아요 수 조회 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/mylikehits/{userId}")
+    public ResponseEntity<List<MyPagePostResponseDto>> myLikeHitsByUserId(@PathVariable long userId) {
+        try {
             List<MyPagePostResponseDto> dto = myPageService.findMyLikeHitsByUserId(userId);
             return ResponseEntity.status(HttpStatus.OK).body(dto);
         } catch (Exception e) {

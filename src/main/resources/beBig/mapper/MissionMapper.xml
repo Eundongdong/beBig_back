@@ -33,14 +33,14 @@
     </select>
 
     <!-- Personal Monthly Mission 미션바꾸기 쿼리 -->
-    <select id="completeMonthlyMission" parameterType="long">
+    <select id="completeMonthlyMission">
         UPDATE personal_monthly_mission
-        SET personal_monthly_mission_completed = 1 - personal_monthly_mission_completed
+        SET personal_monthly_mission_completed = #{personalMonthlyMissionCompleted}
         WHERE personal_monthly_mission_id = #{personalMissionId};
     </select>
 
     <!-- Personal Daily Mission 미션바꾸기 쿼리 -->
-    <select id="completeDailyMonthlyMission" parameterType="long">
+    <select id="completeDailyMission" parameterType="long">
         UPDATE personal_daily_mission
         SET personal_daily_mission_completed = 1 - personal_daily_mission_completed
         WHERE personal_daily_mission_id = #{personalMissionId};
@@ -60,22 +60,20 @@
         WHERE user_id = #{userId}
     </select>
 
-    <!-- userId와 missionId에 따른 저축 비율 조회 -->
-    <select id="findSaveRateByUserIdAndMissionId" resultType="double">
-        SELECT u.fin_type_save_rate
-        FROM user u
-                 JOIN mission m ON u.fin_type_code = m.mission_category
-        WHERE u.user_id = #{userId}
-          AND m.mission_id = #{missionId}
+    <!-- userId의 저축 비율 조회 -->
+    <select id="findSaveRateByUserId" resultType="double">
+        select f.fin_type_save_rate
+        from user u
+                 join fin_type f on u.fin_type_code = f.fin_type_code
+        where u.user_id = #{userId};
     </select>
 
-    <!-- userId와 missionId에 따른 사용 비율 조회 -->
-    <select id="findUseRateByUserIdAndMissionId" resultType="double">
-        SELECT u.fin_type_use_rate
-        FROM user u
-                 JOIN mission m ON u.fin_type_code = m.mission_category
-        WHERE u.user_id = #{userId}
-          AND m.mission_id = #{missionId}
+    <!-- userId에 따른 사용 비율 조회 -->
+    <select id="findUseRateByUserId" resultType="double">
+        select f.fin_type_use_rate
+        from user u
+                 join fin_type f on u.fin_type_code = f.fin_type_code
+        where u.user_id = #{userId};
     </select>
 
 
@@ -135,18 +133,239 @@
         VALUES (#{userId}, #{missionId}, 0);
     </insert>
 
+    <!-- 신규 미션 삽입 -->
+    <insert id="insertMonthlyMission" parameterType="map">
+        INSERT INTO personal_monthly_mission (user_id, mission_id, personal_monthly_mission_completed)
+        VALUES (#{userId}, #{missionId}, 0);
+    </insert>
+
     <!-- 사용자 자산, 유형 연결 상태 체크 -->
     <select id="countUserAssetStatus" parameterType="long" resultType="int">
         SELECT COUNT(*)
         FROM user
         WHERE user_id = #{userId}
-        AND fin_type_code > 0
-        AND user_connected_id IS NOT NULL;
+          AND fin_type_code > 0
+          AND user_connected_id IS NOT NULL;
     </select>
 
+    <!-- 사용자의 일일 미션 완료 갯수 카운트-->
     <select id="findExistingDailyMissionsCount" parameterType="long" resultType="int">
         SELECT COUNT(*)
         FROM personal_daily_mission
         WHERE user_id = #{userId}
+    </select>
+
+    <!-- 현재 월간 미션 ID 가져오기 -->
+    <select id="getCurrentMonthlyMissionId" parameterType="long" resultType="int">
+        SELECT mission_id
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 월간 미션 업데이트 -->
+    <update id="updateMonthlyMission">
+        UPDATE personal_monthly_mission
+        SET mission_id = #{missionId}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 현재 월간 미션 정보 가져오기 -->
+    <select id="getCurrentMonthlyMission" parameterType="long" resultType="beBig.vo.PersonalMonthlyMissionVo">
+        SELECT *
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 커뮤니티 글 수 카운트 -->
+    <select id="countCommunityPosts" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE user_id = #{userId}
+          AND DATE_FORMAT(post_created_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+    </select>
+
+
+    <!-- 좋아요 수 카운트 -->
+    <select id="countPostLikesInMonth" parameterType="long" resultType="int">
+        SELECT SUM(post_like_hits)
+        FROM post
+        WHERE user_id = #{userId}
+          AND DATE_FORMAT(post_created_time, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+    </select>
+
+
+    <select id="calculateSpendingDifference" resultType="int">
+        SELECT (SUM(CASE
+                        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) - 1 AND
+                             YEAR(t.transaction_date) = YEAR(CURDATE())
+                            THEN t.transaction_balance
+                        ELSE 0
+            END) -
+                SUM(CASE
+                        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) AND YEAR(t.transaction_date) = YEAR(CURDATE())
+                            THEN t.transaction_balance
+                        ELSE 0
+                    END)) AS spending_difference
+        FROM transaction t
+                 JOIN account a ON t.account_num = a.account_num
+        WHERE a.user_id = #{userId}
+          AND t.transaction_type = '출금'
+          AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+          AND CURDATE() >= t.transaction_date;
+    </select>
+
+
+    <!-- 이번달 저축 금액 계산-->
+    <select id="calculateSavingDifference" resultType="int">
+        SELECT (SELECT transaction_balance
+                FROM transaction
+                WHERE user_id = #{userId}
+                  AND transaction_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                ORDER BY transaction_date ASC
+                LIMIT 1)                             AS first_day_balance,
+
+               (SELECT transaction_balance
+                FROM transaction
+                WHERE user_id = #{userId}
+                ORDER BY transaction_date DESC
+                LIMIT 1)                             AS current_balance,
+
+               (current_balance - first_day_balance) AS saving_difference
+        FROM dual
+    </select>
+
+    <!-- 데일리 미션 완료 수 카운트 -->
+    <select id="countCompletedDailyMissions" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM personal_daily_mission
+        WHERE user_id = #{userId}
+          AND personal_daily_mission_completed = 1
+    </select>
+
+    <!-- 월간미션 테이블 모든 사용자 ID 가져오기 -->
+    <select id="findAllUsersWithMonthlyMissions" resultType="long">
+        SELECT DISTINCT user_id
+        FROM personal_monthly_mission
+    </select>
+
+    <!--    &lt;!&ndash; 저축 계좌 수 카운트 &ndash;&gt;-->
+    <!--    <select id="countSavingsAccounts" parameterType="long" resultType="int">-->
+    <!--        SELECT COUNT(*)-->
+    <!--        FROM SavingsAccounts-->
+    <!--        WHERE userId = #{userId}-->
+    <!--    </select>-->
+
+    <!-- 월간 미션 상태 업데이트 -->
+    <update id="updateMonthlyMissionStatus">
+        UPDATE personal_monthly_mission
+        SET personal_monthly_mission_completed = #{status}
+        WHERE personal_monthly_mission_id = #{personalMonthlyMissionId}
+    </update>
+
+    <select id="findMonthlyMissionIdByUserId" parameterType="long" resultType="long">
+        SELECT mission_id
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getAccountListByUserId" parameterType="long" resultType="String">
+        SELECT account_num
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
+
+    <select id="getMonthlyConsumption" resultType="int">
+        SELECT COALESCE(SUM(transaction_amount), 0)
+        FROM transaction
+        WHERE YEAR(transaction_date) = #{thisYear}  <!-- Java에서 전달받은 thisYear -->
+        AND MONTH(transaction_date) = #{thisMonth} <!-- Java에서 전달받은 thisMonth -->
+        AND account_num = #{accountNum}
+        AND transaction_type = '출금'
+    </select>
+
+    <select id="countUserPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM post
+        WHERE YEAR(post_created_time) = #{thisYear} <!-- Java에서 전달받은 thisYear -->
+        AND MONTH(post_created_time) = #{thisMonth} <!-- Java에서 전달받은 thisMonth -->
+        AND user_id = #{userId}
+    </select>
+
+    <select id="countUserLikes" resultType="int">
+        SELECT COALESCE(SUM(post_like_hits), 0)
+        FROM post
+        WHERE YEAR(post_created_time) = #{thisYear} <!-- Java에서 전달받은 thisYear -->
+        AND MONTH(post_created_time) = #{thisMonth} <!-- Java에서 전달받은 thisMonth -->
+        AND user_id = #{userId}
+    </select>
+
+    <select id="getDailyConsumption" resultType="int">
+        SELECT COALESCE(SUM(transaction_amount), 0)
+        FROM transaction
+        WHERE YEAR(transaction_date) = #{thisYear} <!-- Java에서 전달받은 thisYear -->
+        AND MONTH(transaction_date) = #{thisMonth} <!-- Java에서 전달받은 thisMonth -->
+        AND DAY(transaction_date) = #{day}        <!-- Java에서 전달받은 day -->
+        AND account_num = #{accountNum}
+        AND transaction_type = '출금'
+    </select>
+
+    <select id="findPersonalMissionIdByUserId" parameterType="long" resultType="int">
+        SELECT personal_monthly_mission_id
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!--내림차순 -> 마지막날-->
+    <select id="findBalanceOnLastDay" parameterType="map" resultType="int">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE YEAR(transaction_date) = #{thisYear}
+          AND MONTH(transaction_date) = #{thisMonth}
+          AND DAY(transaction_date) = #{day}
+          AND account_num = #{accountNum}
+        ORDER BY transaction_date DESC
+        LIMIT 1;
+    </select>
+
+    <!--오름차순 -> 첫날날-->
+    <select id="findBalanceOnFirstDay" parameterType="map" resultType="int">
+        SELECT transaction_balance
+        FROM transaction
+        WHERE YEAR(transaction_date) = #{thisYear}
+          AND MONTH(transaction_date) = #{thisMonth}
+          AND DAY(transaction_date) = #{day}
+          AND account_num = #{accountNum}
+        ORDER BY transaction_date asc
+        LIMIT 1;
+    </select>
+
+    <!-- 월초에 previous_savings_account_count 값을 업데이트하는 SQL -->
+    <update id="updatePreviousSavingsAccountCount" parameterType="map">
+        UPDATE personal_monthly_mission
+        SET previous_savings_account_count = #{count}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateLastMonthScore" parameterType="long">
+        update user
+        set user_mission_last_month_score    = user_mission_current_month_score,
+            user_mission_current_month_score = 0
+        where user_id = #{userId}
+    </update>
+
+    <!-- previous_savings_account_count 값을 가져오는 SQL -->
+    <select id="getPreviousSavingsAccountCount" parameterType="long" resultType="int">
+        SELECT previous_savings_account_count
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 현재 account_type이 12인 계좌의 갯수를 가져오는 SQL -->
+    <select id="countCurrentSavingsAccounts" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM account
+        WHERE account_type = 12
+          AND user_id = #{userId}
     </select>
 </mapper>

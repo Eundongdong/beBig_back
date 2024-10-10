@@ -62,4 +62,8 @@ public interface UserMapper {
     void clearRefreshTokenByUserId(@Param("userId") Long userId);
 
     int countRefreshTokenByUserId(Long userId);
+
+    int checkDuplicateEmail(@Param("email") String email);
+
+    int checkDuplicateNickname(@Param("nickname")String nickname);
 }

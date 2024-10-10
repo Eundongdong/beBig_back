@@ -6,7 +6,8 @@
 <mapper namespace="beBig.mapper.HomeMapper">
     <update id="saveFinTypeWithUserId">
         UPDATE user
-        SET fin_type_code = #{userFinType}
+        SET fin_type_code = #{userFinType},
+            user_salary =#{userIncome}
         WHERE user_id = #{userId};
     </update>
     <select id="findFinTest" resultType="beBig.vo.FinTestVo">

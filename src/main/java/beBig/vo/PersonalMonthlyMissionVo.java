@@ -4,8 +4,9 @@ import lombok.Data;
 
 @Data
 public class PersonalMonthlyMissionVo {
-    private int personalMonthlyMissionNo;
     private int personalMonthlyMissionId;
-    //private Long personalMonthlyMissionUserId;
-    private boolean personalMonthlyMissionCompleted;
+    private int missionId;
+    private Long userId;
+    private int personalMonthlyMissionCompleted;
+    private int previous_savings_account_count;
 }

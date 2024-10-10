@@ -163,7 +163,7 @@ public class UserServiceImp implements UserService {
         String userId = userMapper.findUserLoginIdByNameAndEmail(params);
         log.info(userId);
         if (userId != null) {
-            if(userId.length() > 4){
+            if (userId.length() > 4) {
                 return userId.substring(0, userId.length() - 4) + "****";
             }
             return userId.substring(0, userId.length() - 1) + "*";
@@ -214,6 +214,24 @@ public class UserServiceImp implements UserService {
     @Override
     public boolean checkIfRefreshTokenExistsByUserId(Long userId) {
         return userMapper.countRefreshTokenByUserId(userId) > 0;
+    }
+
+    @Override
+    public boolean isEmailDuplicate(String email) {
+        int duplicateEmail = userMapper.checkDuplicateEmail(email);
+        if (duplicateEmail > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isNicknameDuplicate(String nickname) {
+        int duplicateNickname = userMapper.checkDuplicateNickname(nickname);
+        if (duplicateNickname > 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override

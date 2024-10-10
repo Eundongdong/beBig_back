@@ -36,7 +36,21 @@ public class MissionController {
     public ResponseEntity<?> monthlyMissionTotal(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
-            int restDays = getRestDaysInCurrentMonth();
+            int restDays = missionService.getRestDaysInCurrentMonth();
+            int currentScore = missionService.findCurrentMonthScore(userId);
+            TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", "application/json; charset=UTF-8");
+            return ResponseEntity.status(HttpStatus.OK).headers(headers).body(responseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request.");
+        }
+    }
+
+    @GetMapping("/total/{userId}")
+    public ResponseEntity<?> monthlyMissionTotalByUserId(@PathVariable long userId) {
+        try {
+            int restDays = missionService.getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
             HttpHeaders headers = new HttpHeaders();
@@ -89,8 +103,8 @@ public class MissionController {
             long personalMissionId = requestDto.getPersonalMissionId();
 
             if (missionType == 1) {
-                //미션타입 확인하고 점수계산 - 일간
-                int totalDays = getDaysInCurrentMonth();
+                //미션타입 확인하고 점수계산 - 월간간
+                int totalDays = missionService.getDaysInCurrentMonth();
                 missionService.updateScore(userId, 100 - (totalDays * 2));
                 missionService.completeMonthlyMission(personalMissionId);
                 //점수계산
@@ -131,20 +145,5 @@ public class MissionController {
             }
         }
         return result.toString();
-    }
-
-    // 오늘로부터 이번 달이 끝날 때까지 남은 일수를 반환하는 메서드
-    public static int getRestDaysInCurrentMonth() {
-        LocalDate today = LocalDate.now();
-        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
-        return (int) ChronoUnit.DAYS.between(today, lastDayOfMonth);
-    }
-
-    // 이번 달의 총 일수를 반환하는 메서드
-    public static int getDaysInCurrentMonth() {
-        LocalDate today = LocalDate.now();
-        LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
-        return lastDayOfMonth.getDayOfMonth() - firstDayOfMonth.getDayOfMonth() + 1;
     }
 }
