@@ -205,8 +205,10 @@ public class HomeServiceImp implements HomeService {
             throw new IllegalArgumentException("유효하지 않은 계좌 번호입니다.");
         }
 
+        int limit = pageSize;
+        int offset = page*pageSize;
         // 거래 내역 조회
-        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum,page, page*pageSize);
+        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum,limit,offset);
 
         // bankId로 은행 정보 조회
         BankVo bankVo = accountMapper.getBankById(accountVo.getBankId());
