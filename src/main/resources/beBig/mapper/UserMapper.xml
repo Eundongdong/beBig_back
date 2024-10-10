@@ -187,5 +187,4 @@
         from refresh_token
         where user_id = #{userId}
     </select>
-
 </mapper>
