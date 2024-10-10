@@ -119,5 +119,15 @@ public interface MissionMapper {
                               @Param("thisMonth") int thisMonth,
                               @Param("day") int day,
                               @Param("accountNum") String accountNum);
+
+
+    // personal_monthly_mission 테이블에 previous_savings_account_count 저장하는 메서드 (월초에 호출)
+    void updatePreviousSavingsAccountCount(@Param("userId") long userId, @Param("count") int count);
+
+    // personal_monthly_mission 테이블에서 previous_savings_account_count 값을 가져오는 메서드
+    int getPreviousSavingsAccountCount(@Param("userId") long userId);
+
+    // account 테이블에서 account_type이 12인 계좌의 갯수를 가져오는 메서드 (현재 갯수 확인용)
+    int countCurrentSavingsAccounts(@Param("userId") long userId);
 }
 

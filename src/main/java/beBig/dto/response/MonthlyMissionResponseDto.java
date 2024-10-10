@@ -10,6 +10,6 @@ public class MonthlyMissionResponseDto {
     private int personalMonthlyMissionId;
     private String missionTopic;
     private int missionId;
-    private boolean personalMonthlyMissionCompleted;
+    private int personalMonthlyMissionCompleted;
     private int missionType;
 }

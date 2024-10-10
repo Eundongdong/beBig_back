@@ -142,6 +142,11 @@ public class MissionServiceImp implements MissionService {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         missionMapper.insertMonthlyMission(userId, 1);
         log.info("1번 미션 할당");
+        // 1. account 테이블에서 현재 account_type이 12인 계좌의 갯수를 가져오기
+        int currentSavingsAccountCount = missionMapper.countCurrentSavingsAccounts(userId);
+
+        // 2. personal_monthly_mission 테이블에 해당 갯수를 저장하기
+        missionMapper.updatePreviousSavingsAccountCount(userId, currentSavingsAccountCount);
     }
 
     // 월간 미션 업데이트 - 월초 batch
@@ -155,6 +160,14 @@ public class MissionServiceImp implements MissionService {
             int nextMissionId = (currentMissionId % 6) + 1;  // 미션 순환
             missionMapper.updateMonthlyMission(userId, nextMissionId);
             log.info(nextMissionId + "번 미션으로 업데이트");
+
+            if (nextMissionId == 1) {
+                // 1. account 테이블에서 현재 account_type이 12인 계좌의 갯수를 가져오기
+                int currentSavingsAccountCount = missionMapper.countCurrentSavingsAccounts(userId);
+
+                // 2. personal_monthly_mission 테이블에 해당 갯수를 저장하기
+                missionMapper.updatePreviousSavingsAccountCount(userId, currentSavingsAccountCount);
+            }
         }
     }
 
@@ -166,14 +179,28 @@ public class MissionServiceImp implements MissionService {
         for (Long userId : userIds) {
             PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
             int missionId = currentMission.getMissionId();
+            if(currentMission.getPersonalMonthlyMissionCompleted() == -1) continue;
+            boolean isSucceed;
             switch (missionId) {
                 case 1:
                 case 2:
                 case 3:
-                case 6:
-                    boolean isSucceed = hasMonthlyMissionSucceeded(missionId, userId);
+                    isSucceed = hasMonthlyMissionSucceeded(missionId, userId);
                     if (isSucceed) {
                         succeedMonthlyMission(userId);
+                    } else {
+                        //실패로직 - FALSE일시 값을 진행중-아직 달성 못함 으로 바꿔야 함 -> 0
+                        markMissionAsInProgress(currentMission.getPersonalMonthlyMissionId());
+                        // -1 이면 실패 0 이면 진행중 1이면 성공
+                    }
+                    break;
+                case 6:
+                    isSucceed = hasMonthlyMissionSucceeded(missionId, userId);
+                    if (isSucceed) {
+                        succeedMonthlyMission(userId);
+                    } else {
+                        //실패로직 - FALSE일시 값을 실패으로 바꿔야 함 -> -1
+                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
                     }
                     break;
                 default:
@@ -182,18 +209,12 @@ public class MissionServiceImp implements MissionService {
         }
     }
 
-    // n 값을 결정하는 메서드 -> ??????????
-    public int determineNValue(Long userId) {
-        return 0;
-    }
-
     // 월말 체크하는 월간 미션 수행 확인  - 월말 batch
     public void checkEndOfMonthMissions() {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         List<Long> userIds = missionMapper.findAllUsersWithMonthlyMissions();
 
         for (Long userId : userIds) {
-            int n = determineNValue(userId);
             PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
             int missionId = currentMission.getMissionId();
 
@@ -203,6 +224,9 @@ public class MissionServiceImp implements MissionService {
                     boolean isSucceed = hasMonthlyMissionSucceeded(missionId, userId);
                     if (isSucceed) {
                         succeedMonthlyMission(userId);
+                    } else {
+                        //실패로직 - FALSE일시 값을 실패으로 바꿔야 함 -> -1
+                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
                     }
                     break;
 
@@ -263,7 +287,16 @@ public class MissionServiceImp implements MissionService {
         int lastDayOfMonth = currentMonth.lengthOfMonth(); // 말일 계산
 
         if (missionId == 1) {
-            // missionId 1에 대한 로직 추가 (필요할 경우)
+            // 1번 미션: 예/적금 계좌가 추가되었는지 확인
+
+            // 1. personal_monthly_mission에서 이전에 저장된 예/적금 계좌 수 가져오기
+            int previousCount = missionMapper.getPreviousSavingsAccountCount(userId);
+
+            // 2. account 테이블에서 현재 account_type이 12인 계좌의 갯수를 가져오기
+            int currentCount = missionMapper.countCurrentSavingsAccounts(userId);
+
+            // 3. 현재 계좌 수가 이전보다 증가했으면 미션 성공
+            return currentCount > previousCount;
         }
 
         if (missionId == 2) {
@@ -307,7 +340,7 @@ public class MissionServiceImp implements MissionService {
         }
 
         if (missionId == 6) {
-            // missionId 6에 대한 로직 추가 (필요할 경우)
+            return missionMapper.countCompletedDailyMissions(userId) > 0;
         }
 
         return false;
@@ -331,7 +364,7 @@ public class MissionServiceImp implements MissionService {
     }
 
     public void markMissionAsFailed(int personalMissionId) {
-        updateMissionStatus(personalMissionId, 2); // 실패 상태
+        updateMissionStatus(personalMissionId, -1); // 실패 상태
     }
 
     private void updateMissionStatus(int personalMissionId, int status) {
@@ -345,5 +378,4 @@ public class MissionServiceImp implements MissionService {
         updateScore(userId, 100 - (totalDays * 2));
         completeMonthlyMission(missionMapper.findPersonalMissionIdByUserId(userId));
     }
-
 }

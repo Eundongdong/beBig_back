@@ -340,4 +340,26 @@
         ORDER BY transaction_date asc
         LIMIT 1;
     </select>
+
+    <!-- 월초에 previous_savings_account_count 값을 업데이트하는 SQL -->
+    <update id="updatePreviousSavingsAccountCount" parameterType="map">
+        UPDATE personal_monthly_mission
+        SET previous_savings_account_count = #{count}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- previous_savings_account_count 값을 가져오는 SQL -->
+    <select id="getPreviousSavingsAccountCount" parameterType="long" resultType="int">
+        SELECT previous_savings_account_count
+        FROM personal_monthly_mission
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 현재 account_type이 12인 계좌의 갯수를 가져오는 SQL -->
+    <select id="countCurrentSavingsAccounts" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM account
+        WHERE account_type = 12
+          AND user_id = #{userId}
+    </select>
 </mapper>
