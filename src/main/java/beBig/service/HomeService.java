@@ -2,7 +2,6 @@ package beBig.service;
 
 import beBig.dto.*;
 import beBig.dto.response.FinInfoResponseDto;
-import beBig.vo.AccountVo;
 import beBig.vo.FinTestVo;
 import beBig.vo.UserVo;
 
@@ -19,7 +18,7 @@ public interface HomeService {
 
     boolean saveTransactions(Long userId, String accountNum, int days) throws Exception;
 
-    AccountTransactionDto getTransactionList(Long userId, String accountNum);
+    AccountTransactionDto getTransactionList(Long userId, String accountNum, int page, int pageSize);
 
     List<FinTestVo> findMission();
 
