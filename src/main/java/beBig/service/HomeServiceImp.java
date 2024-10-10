@@ -76,21 +76,38 @@ public class HomeServiceImp implements HomeService {
             AccountVo accountVo = mapToAccountVo(userId, accountInfo);
             accountMapper.insertAccount(accountVo); // 계좌 등록
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
-        }
 
-        // 6. 계좌별 거래 내역 저장
-        for (CodefAccountDto accountInfo : accountList) {
-            try {
-                saveTransactions(userId, accountInfo.getResAccount(), 60); // 60일간 거래 내역 저장
-            } catch (Exception e) {
-                log.error("계좌 {}의 60일간 거래 내역 저장 중 오류 발생: {}", accountInfo.getResAccount(), e.getMessage());
+            // 거래 내역 저장
+            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 60);
+
+            // 거래 내역이 없을 경우, 잔액을 이용한 임의의 거래 내역 생성
+            if (!hasTransactions) {
+                log.info("거래 내역이 없으므로 현재 잔액으로 임의의 거래 내역 생성");
+                createDummyTransaction(accountInfo);
             }
         }
-        // 7. 일일 미션 추가
+
+        // 6. 일일 미션 추가
         missionService.addDailyMissions(userId);
 
-        // 8. 저장된 계좌 정보 반환
+        // 7. 저장된 계좌 정보 반환
         return accountList;
+    }
+
+    // 거래 내역이 없을 경우 임의의 거래 내역을 생성하는 메서드
+    private void createDummyTransaction(CodefAccountDto accountInfo) {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+
+        TransactionVo transactionVo = new TransactionVo();
+        transactionVo.setAccountNum(accountInfo.getResAccount());
+        transactionVo.setTransactionBalance(Integer.parseInt(accountInfo.getResAccountBalance()));
+        transactionVo.setTransactionAmount(Integer.parseInt(accountInfo.getResAccountBalance()));
+        transactionVo.setTransactionDate(new Date());
+        transactionVo.setTransactionType("입금");
+        transactionVo.setTransactionVendor("잔액 조회");
+
+        accountMapper.insertTransaction(transactionVo); // 임의의 거래 내역 저장
+        log.info("임의의 거래 내역 등록 완료: 계좌 번호 {}, 잔액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionBalance());
     }
 
     private AccountVo mapToAccountVo(Long userId, CodefAccountDto accountInfo) {
@@ -182,8 +199,6 @@ public class HomeServiceImp implements HomeService {
         return true; // 성공적으로 저장된 경우
     }
 
-
-
     private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
         List<TransactionVo> transactionList = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd HHmmss");
@@ -218,16 +233,16 @@ public class HomeServiceImp implements HomeService {
         }
 
         int limit = pageSize;
-        int offset = page*pageSize;
+        int offset = page * pageSize;
         // 거래 내역 조회
-        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum,limit,offset);
+        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum, limit, offset);
 
         // bankId로 은행 정보 조회
         BankVo bankVo = accountMapper.getBankById(accountVo.getBankId());
 
         // 총 페이지 구하기
         long totalPosts = accountMapper.getTransactionCountByAccountNum(accountNum);
-        long totalPages = (long) Math.ceil((double) totalPosts /pageSize);
+        long totalPages = (long) Math.ceil((double) totalPosts / pageSize);
 
         // DTO 구성
         AccountTransactionDto response = new AccountTransactionDto();
