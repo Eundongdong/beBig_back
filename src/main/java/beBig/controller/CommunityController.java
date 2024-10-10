@@ -46,7 +46,6 @@ public class CommunityController {
         int type = finTypeCode.orElse(-1);
         log.info("type: " + type);
         int page = offset.orElse(0);
-        log.info("page: " + page);
         int pageSize = limit.orElse(10);
         String sort = sortType.orElse("newest");
 

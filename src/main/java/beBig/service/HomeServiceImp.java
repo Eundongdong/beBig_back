@@ -196,7 +196,7 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public AccountTransactionDto getTransactionList(Long userId, String accountNum) {
+    public AccountTransactionDto getTransactionList(Long userId, String accountNum, int page, int pageSize) {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
         // accountNum으로 계좌 정보 조회
@@ -206,18 +206,21 @@ public class HomeServiceImp implements HomeService {
         }
 
         // 거래 내역 조회
-        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum);
-
+        List<TransactionVo> transactionList = accountMapper.getTransactionsByAccountNum(accountNum,page, page*pageSize);
 
         // bankId로 은행 정보 조회
         BankVo bankVo = accountMapper.getBankById(accountVo.getBankId());
+
+        // 총 페이지 구하기
+        long totalPosts = accountMapper.getTransactionCountByAccountNum(accountNum);
+        long totalPages = (long) Math.ceil((double) totalPosts /pageSize);
 
         // DTO 구성
         AccountTransactionDto response = new AccountTransactionDto();
         response.setTransactions(transactionList);
         response.setAccountName(accountVo.getAccountName());
         response.setBankName(bankVo.getBankName());
-
+        response.setTotalPage(totalPages);
         return response;
     }
 

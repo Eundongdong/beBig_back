@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin("*")
 @Controller
@@ -108,10 +109,14 @@ public class HomeController {
     // 계좌별 거래내역 조회
     @GetMapping("/account/{accountNum}/transactions")
     public ResponseEntity<?> getTransactionList(@RequestHeader("Authorization") String token,
-                                                @PathVariable String accountNum) {
+                                                @PathVariable String accountNum
+                                                ,@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit
+                                                ,@RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset) {
+        int page = offset.orElse(0);
+        int pageSize = limit.orElse(10);
         try {
             Long userId = jwtUtil.extractUserIdFromToken(token);
-            AccountTransactionDto response = homeService.getTransactionList(userId, accountNum);
+            AccountTransactionDto response = homeService.getTransactionList(userId, accountNum, page, pageSize);
 
             if (response == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("거래 내역을 찾을 수 없습니다.");

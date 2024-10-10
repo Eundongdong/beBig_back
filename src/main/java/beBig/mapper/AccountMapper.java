@@ -28,7 +28,9 @@ public interface AccountMapper {
 
     void insertTransaction(TransactionVo transactionVo);
 
-    List<TransactionVo> getTransactionsByAccountNum(String accountNum);
+    List<TransactionVo> getTransactionsByAccountNum(String accountNum, int limit, int offset);
+
+    long getTransactionCountByAccountNum(String accountNum);
 
     AccountVo findAccountByAccountNum(String accountNum);
 
