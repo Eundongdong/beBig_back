@@ -114,7 +114,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(dailyCheckMonthlyMissionsJobDetail)
                 .withIdentity("dailyCheckMonthlyMissionsTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 9 23 * * ?")) // 매일 23시 50분에 실행 -> 더 빈번하게 해도 될거같음
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 50 23 * * ?")) // 매일 23시 50분에 실행 -> 더 빈번하게 해도 될거같음
                 .startNow()
                 .build();
     }

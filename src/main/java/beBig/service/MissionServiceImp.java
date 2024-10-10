@@ -214,21 +214,21 @@ public class MissionServiceImp implements MissionService {
             PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
 
             switch (currentMission.getMissionId()) {
-                case 4:
-                    if (missionMapper.calculateSpendingDifference(userId) < n) {
-                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
-                    } else {
-                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
-                    }
-                    break;
-                case 5:
-                    int savingDifference = missionMapper.calculateSavingDifference(userId);
-                    if (savingDifference >= n) {
-                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
-                    } else {
-                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
-                    }
-                    break;
+//                case 4:
+//                    if (missionMapper.calculateSpendingDifference(userId) < n) {
+//                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
+//                    } else {
+//                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
+//                    }
+//                    break;
+//                case 5:
+//                    int savingDifference = missionMapper.calculateSavingDifference(userId);
+//                    if (savingDifference >= n) {
+//                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
+//                    } else {
+//                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
+//                    }
+//                    break;
 
                 default:
                     log.warn("Unknown end of month mission ID: " + currentMission.getMissionId());
