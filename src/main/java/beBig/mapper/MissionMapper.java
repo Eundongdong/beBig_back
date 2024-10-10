@@ -129,5 +129,8 @@ public interface MissionMapper {
 
     // account 테이블에서 account_type이 12인 계좌의 갯수를 가져오는 메서드 (현재 갯수 확인용)
     int countCurrentSavingsAccounts(@Param("userId") long userId);
+
+    // 월업데이트 - 현재 -> 지난달 / 현재 = 0
+    void updateLastMonthScore(@Param("userId") long userId);
 }
 

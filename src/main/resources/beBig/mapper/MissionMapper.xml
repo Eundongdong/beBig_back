@@ -195,43 +195,42 @@
 
 
     <select id="calculateSpendingDifference" resultType="int">
-        SELECT
-        (SUM(CASE
-        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) - 1 AND YEAR(t.transaction_date) = YEAR(CURDATE())
-        THEN t.transaction_balance
-        ELSE 0
-        END) -
-        SUM(CASE
-        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) AND YEAR(t.transaction_date) = YEAR(CURDATE())
-        THEN t.transaction_balance
-        ELSE 0
-        END)) AS spending_difference
+        SELECT (SUM(CASE
+                        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) - 1 AND
+                             YEAR(t.transaction_date) = YEAR(CURDATE())
+                            THEN t.transaction_balance
+                        ELSE 0
+            END) -
+                SUM(CASE
+                        WHEN MONTH(t.transaction_date) = MONTH(CURDATE()) AND YEAR(t.transaction_date) = YEAR(CURDATE())
+                            THEN t.transaction_balance
+                        ELSE 0
+                    END)) AS spending_difference
         FROM transaction t
-        JOIN account a ON t.account_num = a.account_num
+                 JOIN account a ON t.account_num = a.account_num
         WHERE a.user_id = #{userId}
-        AND t.transaction_type = '출금'
-        AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
-        AND CURDATE() >= t.transaction_date;
+          AND t.transaction_type = '출금'
+          AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH)
+          AND CURDATE() >= t.transaction_date;
     </select>
 
 
     <!-- 이번달 저축 금액 계산-->
     <select id="calculateSavingDifference" resultType="int">
-        SELECT
-            (SELECT transaction_balance
-             FROM transaction
-             WHERE user_id = #{userId}
-               AND transaction_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-             ORDER BY transaction_date ASC
-                LIMIT 1) AS first_day_balance,
+        SELECT (SELECT transaction_balance
+                FROM transaction
+                WHERE user_id = #{userId}
+                  AND transaction_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                ORDER BY transaction_date ASC
+                LIMIT 1)                             AS first_day_balance,
 
-        (SELECT transaction_balance
-         FROM transaction
-         WHERE user_id = #{userId}
+               (SELECT transaction_balance
+                FROM transaction
+                WHERE user_id = #{userId}
                 ORDER BY transaction_date DESC
-                LIMIT 1) AS current_balance,
+                LIMIT 1)                             AS current_balance,
 
-             (current_balance - first_day_balance) AS saving_difference
+               (current_balance - first_day_balance) AS saving_difference
         FROM dual
     </select>
 
@@ -249,12 +248,12 @@
         FROM personal_monthly_mission
     </select>
 
-<!--    &lt;!&ndash; 저축 계좌 수 카운트 &ndash;&gt;-->
-<!--    <select id="countSavingsAccounts" parameterType="long" resultType="int">-->
-<!--        SELECT COUNT(*)-->
-<!--        FROM SavingsAccounts-->
-<!--        WHERE userId = #{userId}-->
-<!--    </select>-->
+    <!--    &lt;!&ndash; 저축 계좌 수 카운트 &ndash;&gt;-->
+    <!--    <select id="countSavingsAccounts" parameterType="long" resultType="int">-->
+    <!--        SELECT COUNT(*)-->
+    <!--        FROM SavingsAccounts-->
+    <!--        WHERE userId = #{userId}-->
+    <!--    </select>-->
 
     <!-- 월간 미션 상태 업데이트 -->
     <update id="updateMonthlyMissionStatus">
@@ -346,6 +345,13 @@
         UPDATE personal_monthly_mission
         SET previous_savings_account_count = #{count}
         WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateLastMonthScore" parameterType="long">
+        update user
+        set user_mission_last_month_score    = user_mission_current_month_score,
+            user_mission_current_month_score = 0
+        where user_id = #{userId}
     </update>
 
     <!-- previous_savings_account_count 값을 가져오는 SQL -->

@@ -19,7 +19,7 @@ public interface MissionService {
     int findSalary(long userId);
 
     //점수계산
-    int updateScore(long userId, int amount);
+    void updateScore(long userId, int amount);
 
     long findIsCompleted(long personalMissionId);
 
