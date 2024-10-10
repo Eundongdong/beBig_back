@@ -8,5 +8,5 @@ public class PersonalMonthlyMissionVo {
     private int missionId;
     private Long userId;
     private int personalMonthlyMissionCompleted;
-    private int previous_saving_account_count;
+    private int previous_savings_account_count;
 }

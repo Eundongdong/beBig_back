@@ -10,11 +10,9 @@ import java.util.List;
 public interface HomeService {
     UserVo getUserInfo(Long userId) throws Exception;
   
-    List<CodefAccountDto> getUserAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception;
-  
-    boolean addAccountToDB(Long userId, List<CodefAccountDto> codefAccountDtoList);
+       List<AccountResponseDto> showMyAccount(Long userId) throws Exception;
 
-    List<AccountResponseDto> showMyAccount(Long userId) throws Exception;
+    List<CodefAccountDto> addAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception;
 
     boolean saveTransactions(Long userId, String accountNum, int days) throws Exception;
 
