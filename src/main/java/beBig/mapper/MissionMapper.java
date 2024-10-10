@@ -2,6 +2,7 @@ package beBig.mapper;
 
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
+import beBig.vo.PersonalMonthlyMissionVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
