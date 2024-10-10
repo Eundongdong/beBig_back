@@ -51,43 +51,31 @@ public class HomeController {
         }
     }
 
-    @PostMapping("/account")
-    public ResponseEntity<?> getAccount(@RequestHeader("Authorization") String token,
+    @PostMapping("/account/add")
+    public ResponseEntity<?> addAccount(@RequestHeader("Authorization") String token,
                                         @RequestBody AccountRequestDto accountRequestDto) {
         try {
+            // 1. JWT 토큰에서 userId 추출
             Long userId = jwtUtil.extractUserIdFromToken(token);
-            List<CodefAccountDto> accountList = homeService.getUserAccount(userId, accountRequestDto);
-            if (accountList.size() == 0 || accountList == null) {
+
+            // 2. 계좌 정보 가져오고, DB에 저장 후 반환
+            List<CodefAccountDto> accountList = homeService.addAccount(userId, accountRequestDto);
+
+            // 3. 계좌 정보가 없을 때 처리
+            if (accountList == null || accountList.isEmpty()) {
                 log.info("등록된 계좌가 없습니다.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("아이디/비밀번호를 확인하세요.");
             }
 
+            // 4. 성공적으로 저장 후 프론트엔드로 반환
             return ResponseEntity.ok(accountList);
         } catch (Exception e) {
-            // 에러 발생 시 메시지를 클라이언트로 전달
-            log.error("Error occurred: ", e);  // 에러 로그 출력
+            // 에러 발생 시 처리
+            log.error("Error occurred: ", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    // 계좌를 db에 등록
-    @PostMapping("/account/add")
-    public ResponseEntity<?> addAccount(@RequestHeader("Authorization") String token,
-                                        @RequestBody List<CodefAccountDto> codefAccountDtoList) {
-        try {
-            Long userId = jwtUtil.extractUserIdFromToken(token);
-            boolean isAdded = homeService.addAccountToDB(userId, codefAccountDtoList);
-
-            if (isAdded) {
-                return ResponseEntity.ok("계좌 추가 완료");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 추가 실패");
-            }
-        } catch (Exception e) {
-            log.error("계좌 추가 실패", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 추가 중 오류가 발생했습니다.");
-        }
-    }
 
     // 계좌 목록 불러오기
     @GetMapping("/account/list")

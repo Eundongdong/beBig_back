@@ -46,41 +46,53 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public List<CodefAccountDto> getUserAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception {
+    public List<CodefAccountDto> addAccount(Long userId, AccountRequestDto accountRequestDto) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+
+        // 1. 유저 정보 가져오기 및 connectedId 확인
         UserVo userInfo = userMapper.findByUserId(userId);
         String connectedId = userInfo.getUserConnectedId();
 
-        if (connectedId != null) {
-            connectedId = codefApiRequester.addConnectedId(connectedId, accountRequestDto);
-        } else {
+        // 2. connectedId 처리 (연결 아이디가 없을 경우 등록)
+        if (connectedId == null) {
             connectedId = codefApiRequester.registerConnectedId(accountRequestDto);
             userMapper.updateUserConnectedId(userId, connectedId);
+        } else {
+            connectedId = codefApiRequester.addConnectedId(connectedId, accountRequestDto);
         }
 
-        return codefApiRequester.getAccountInfo(accountRequestDto, connectedId);
-    }
+        // 3. 계좌 정보 가져오기
+        List<CodefAccountDto> accountList = codefApiRequester.getAccountInfo(accountRequestDto, connectedId);
 
-    @Override
-    public boolean addAccountToDB(Long userId, List<CodefAccountDto> codefAccountDtoList) {
-        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+        // 4. 계좌 정보가 없으면 예외 처리
+        if (accountList == null || accountList.isEmpty()) {
+            log.info("등록된 계좌가 없습니다.");
+            throw new Exception("아이디/비밀번호를 확인하세요.");
+        }
 
-        for (CodefAccountDto accountInfo : codefAccountDtoList) {
+        // 5. 계좌 정보를 DB에 저장
+        for (CodefAccountDto accountInfo : accountList) {
             AccountVo accountVo = mapToAccountVo(userId, accountInfo);
             accountMapper.insertAccount(accountVo); // 계좌 등록
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
-
-            // 계좌 등록 후, 최근 60일간 거래 내역 저장
-            try {
-                saveTransactions(userId, accountVo.getAccountNum(), 60); // 60일간 거래 내역 저장
-            } catch (Exception e) {
-                log.error("계좌 {}의 60일간 거래 내역 저장 중 오류 발생: {}", accountVo.getAccountNum(), e.getMessage());
-            }
         }
 
+        // 6. 계좌별 거래 내역 저장
+        for (CodefAccountDto accountInfo : accountList) {
+            try {
+                saveTransactions(userId, accountInfo.getResAccount(), 60); // 60일간 거래 내역 저장
+            } catch (Exception e) {
+                log.error("계좌 {}의 60일간 거래 내역 저장 중 오류 발생: {}", accountInfo.getResAccount(), e.getMessage());
+            }
+        }
+        // 7. 일일 미션 추가
         missionService.addDailyMissions(userId);
-        return true;
+
+        // 8. 저장된 계좌 정보 반환
+        return accountList;
     }
+
     private AccountVo mapToAccountVo(Long userId, CodefAccountDto accountInfo) {
         AccountVo accountVo = new AccountVo();
         accountVo.setAccountNum(accountInfo.getResAccount());
