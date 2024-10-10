@@ -4,7 +4,7 @@ import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.mapper.MissionMapper;
 import beBig.mapper.UserMapper;
-import beBig.vo.MissionVo;v
+import beBig.vo.MissionVo;
 import beBig.vo.PersonalMonthlyMissionVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
