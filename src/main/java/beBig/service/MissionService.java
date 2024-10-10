@@ -37,4 +37,15 @@ public interface MissionService {
     void dailyCheckMonthlyMissions();
 
     void checkEndOfMonthMissions();
+
+    // 충돌방지 업뎃..
+    int getRestDaysInCurrentMonth();
+
+    int getDaysInCurrentMonth();
+
+    String replaceNWithNumber(String s, int number, double rate);
+
+    long getMonthlyMissionNumber(long userId);
+
+    boolean hasMonthlyMissionSucceeded(long missionId, long userId);
 }

@@ -92,5 +92,19 @@ public interface MissionMapper {
 //    int countSavingsAccounts(@Param("userId")Long userId);
 
     void updateMonthlyMissionStatus(@Param("personalMonthlyMissionId")int personalMonthlyMissionId, @Param("status") int status);
+
+    //오류방지
+    int countUserPosts(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int countUserLikes(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int getMonthlyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("accountNum") String accountNum);
+
+    List<String> getAccountListByUserId(@Param("userId") long userId);
+
+    long findMonthlyMissionIdByUserId(@Param("userId") long userId);
+
+    int getDailyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("day") int day, @Param("accountNum") String accountNum);
+
 }
 
