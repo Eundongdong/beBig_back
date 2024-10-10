@@ -38,7 +38,8 @@ public class CommunityController {
     public ResponseEntity<PostListResponseDto> list(@RequestParam(value = "limit", defaultValue = "10", required = false) Optional<Integer> limit,
                                                     @RequestParam(value = "offset", defaultValue = "0", required = false) Optional<Integer> offset,
                                                     @RequestParam(value = "category", required = false) Optional<Integer> postCategory,
-                                                    @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode) {
+                                                    @RequestParam(value = "type", required = false) Optional<Integer> finTypeCode,
+                                                    @RequestParam(value = "sort", required = false) Optional<String> sortType) {
         // Optional에서 값이 없을 경우 -1로 처리
         int category = postCategory.orElse(-1);
         log.info("category: " + category);
@@ -46,8 +47,9 @@ public class CommunityController {
         log.info("type: " + type);
         int page = offset.orElse(0);
         int pageSize = limit.orElse(10);
+        String sort = sortType.orElse("newest");
 
-        PostListResponseDto postListResponseDto = communityService.showList(category, type,page,pageSize);
+        PostListResponseDto postListResponseDto = communityService.showList(category,type, page, pageSize, sort);
         if (postListResponseDto.getList() == null || postListResponseDto.getList().isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
