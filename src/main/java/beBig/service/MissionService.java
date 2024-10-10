@@ -30,4 +30,21 @@ public interface MissionService {
     void updateDailyMissionForUser(Long userId);
 
     void addDailyMissions(Long userId);
+
+    // 월간 미션 업데이트 - 월초 batch
+    void updateMonthlyMissionForAllUsers();
+
+    void dailyCheckMonthlyMissions();
+
+    void checkEndOfMonthMissions();
+  
+    int getRestDaysInCurrentMonth();
+
+    int getDaysInCurrentMonth();
+
+    String replaceNWithNumber(String s, int number, double rate);
+
+    long getMonthlyMissionNumber(long userId);
+
+    boolean hasMonthlyMissionSucceeded(long missionId, long userId);
 }

@@ -60,13 +60,14 @@ public class CommunityServiceImp implements CommunityService {
      * @return 필터에 맞는 게시글 목록
      */
     @Override
-    public PostListResponseDto showList(int postCategory, int finTypeCode, int page,int pageSize) {
+    public PostListResponseDto showList(int postCategory, int finTypeCode, int page,int pageSize, String sortType) {
         CommunityMapper mapper = sqlSessionTemplate.getMapper(CommunityMapper.class);
 
         Map<String, Object> params = new HashMap<>();
         //pageable 값 추가
         params.put("limit", pageSize);
         params.put("offset",page *pageSize);
+        params.put("sortType", sortType);
 
         if(postCategory != -1){
             // 카테고리 추가
