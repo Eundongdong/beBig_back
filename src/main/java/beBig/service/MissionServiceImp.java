@@ -3,33 +3,22 @@ package beBig.service;
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.mapper.MissionMapper;
-import beBig.mapper.UserMapper;
-import beBig.vo.MissionVo;v
 import beBig.vo.PersonalMonthlyMissionVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 public class MissionServiceImp implements MissionService {
     private final SqlSessionTemplate sqlSessionTemplate;
-    private final UserMapper userMapper;
-    private final MissionMapper missionMapper;
 
     @Autowired
-    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate, UserMapper userMapper, MissionMapper missionMapper) {
+    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
-        this.userMapper = userMapper;
-        this.missionMapper = missionMapper;
     }
 
     // 월간 미션 조회
@@ -264,112 +253,5 @@ public class MissionServiceImp implements MissionService {
     private void updateMissionStatus(int personalMissionId, int status) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         missionMapper.updateMonthlyMissionStatus(personalMissionId, status);
-    }
-
-    @Override
-    // 오늘로부터 이번 달이 끝날 때까지 남은 일수를 반환하는 메서드
-    public int getRestDaysInCurrentMonth() {
-        LocalDate today = LocalDate.now();
-        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
-        return (int) ChronoUnit.DAYS.between(today, lastDayOfMonth);
-    }
-
-    @Override
-    // 이번 달의 총 일수를 반환하는 메서드
-    public int getDaysInCurrentMonth() {
-        LocalDate today = LocalDate.now();
-        LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
-        return lastDayOfMonth.getDayOfMonth() - firstDayOfMonth.getDayOfMonth() + 1;
-    }
-
-    @Override
-    // N 존재하는지 판별하고 'n'을 숫자로 변환
-    public String replaceNWithNumber(String s, int number, double rate) {
-        StringBuilder result = new StringBuilder();
-        int calSalary = (int) (number * (rate / 100));
-
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == 'n') {
-                result.append(calSalary);
-            } else {
-                result.append(s.charAt(i));
-            }
-        }
-        return result.toString();
-    }
-
-    @Override
-    public long getMonthlyMissionNumber(long userId) {
-        return missionMapper.findMonthlyMissionIdByUserId(userId);
-    }
-
-    @Override
-    public boolean hasMonthlyMissionSucceeded(long missionId, long userId) {
-        int thisMonth = LocalDate.now().getMonthValue();
-
-        if (missionId == 1) {
-
-        }
-        if (missionId == 2) {
-            return missionMapper.countUserPosts(thisMonth, userId) >= 4;
-        }
-        if (missionId == 3) {
-            return missionMapper.countUserLikes(thisMonth, userId) >= 50;
-        }
-        if (missionId == 4) {
-            //개인별 n원 가져오기
-            int target = countNValue(missionId, userId); // = n원
-            int totalConsumption = 0;
-            List<String> accountList = missionMapper.getAccountListByUserId(userId);
-            for (String accountNum : accountList) {
-                int consumption = missionMapper.getMonthlyConsumption(thisMonth, accountNum);
-                totalConsumption += consumption;
-            }
-            return totalConsumption >= target;
-        }
-        if (missionId == 5) {
-            // 한 달 동안 매일 n원씩 저축 미션
-            int N = countNValue(missionId, userId);
-
-            List<String> accountList = missionMapper.getAccountListByUserId(userId);
-
-            // 지난달의 총 지출 가져오기
-            int lastMonth = thisMonth == 1 ? 12 : thisMonth - 1; // 지난달 계산
-            int lastYear = thisMonth == 1 ? LocalDate.now().getYear() - 1 : LocalDate.now().getYear();
-            int lastMonthTotalConsumption = 0;
-
-            for (String accountNum : accountList) {
-                int consumption = missionMapper.getMonthlyConsumption(lastMonth, accountNum);
-                lastMonthTotalConsumption += consumption;
-            }
-
-            // 지난달 일수 계산 (윤년을 고려한 일수 계산)
-            YearMonth yearMonthObject = YearMonth.of(lastYear, lastMonth);
-            int lastDay = yearMonthObject.lengthOfMonth(); // 지난달의 일 수
-            int lastConsumptionPerDay = lastMonthTotalConsumption / lastDay;// 지난달 일별 소비 금액 계산
-            int target = lastConsumptionPerDay - N; // 목표 소비금액. 해당 값 이하일시 성공으로 처리
-
-            // 오늘까지 매일의 소비가 목표 금액 이하인지 확인
-            int todayDate = LocalDate.now().getDayOfMonth(); // 현재 월의 오늘 날짜
-            for (int i = 1; i <= todayDate; i++) {
-                for (String accountNum : accountList) {
-                    int consumption = missionMapper.getDailyConsumption(thisMonth, i, accountNum);
-                    if (consumption > target) return false;
-                }
-            }
-            return true;
-        }
-        if (missionId == 6) {
-
-        }
-
-        return false;
-    }
-
-    public int countNValue(long missionId, long userId) {
-        int salary = findSalary(userId);
-        double rate = findRate(userId, missionId);
-        return (int) (salary * (rate / 100));
     }
 }

@@ -55,12 +55,11 @@ public interface UserMapper {
 
     List<UserVo> getAllUsers();
 
-    void updateUserAgeRange(@Param("userId") Long userId, @Param("ageRange") int ageRange);
+    void updateUserAgeRange(@Param("userId")Long userId, @Param("ageRange")int ageRange);
 
     Long findUserIdByUserLoginId(@Param("userLoginId") String userLoginId);
 
     void clearRefreshTokenByUserId(@Param("userId") Long userId);
 
     int countRefreshTokenByUserId(Long userId);
-
 }

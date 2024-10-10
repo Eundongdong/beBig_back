@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static beBig.controller.MissionController.getRestDaysInCurrentMonth;
+
 @CrossOrigin("*")
 @Controller
 @RequestMapping("/mypage")
@@ -69,7 +71,7 @@ public class MyPageController {
     public ResponseEntity<?> monthlyMissionTotal(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
-            int restDays = missionService.getRestDaysInCurrentMonth();
+            int restDays = getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
             HttpHeaders headers = new HttpHeaders();

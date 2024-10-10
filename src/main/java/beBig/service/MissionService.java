@@ -37,14 +37,4 @@ public interface MissionService {
     void dailyCheckMonthlyMissions();
 
     void checkEndOfMonthMissions();
-  
-    int getRestDaysInCurrentMonth();
-
-    int getDaysInCurrentMonth();
-
-    String replaceNWithNumber(String s, int number, double rate);
-
-    long getMonthlyMissionNumber(long userId);
-
-    boolean hasMonthlyMissionSucceeded(long missionId, long userId);
 }
