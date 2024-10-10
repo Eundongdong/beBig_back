@@ -49,7 +49,6 @@ public class MissionServiceImp implements MissionService {
         missionMapper.completeDailyMission(personalMissionId);
     }
 
-    // 미션 비율 조회
     @Override
     public double findRate(long userId, long missionId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
@@ -73,6 +72,7 @@ public class MissionServiceImp implements MissionService {
     @Override
     public int updateScore(long userId, int amount) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        //월별점수가져옴
         int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId) + amount;
         missionMapper.updateCurrentMissionMonthScoreByUserId(userId, currentScore);
         return currentScore;
