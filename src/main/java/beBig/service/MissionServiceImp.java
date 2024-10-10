@@ -74,12 +74,14 @@ public class MissionServiceImp implements MissionService {
 
     // 점수 계산 및 업데이트
     @Override
-    public int updateScore(long userId, int amount) {
+    public void updateScore(long userId, int amount) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         //월별점수가져옴
-        int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId) + amount;
-        missionMapper.updateCurrentMissionMonthScoreByUserId(userId, currentScore);
-        return currentScore;
+        int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId);
+        // 새로운 점수를 계산
+        int newScore = currentScore + amount;
+        // 계산된 점수를 업데이트
+        missionMapper.updateCurrentMissionMonthScoreByUserId(userId, newScore);
     }
 
     // 미션 완료 여부 조회
@@ -179,7 +181,7 @@ public class MissionServiceImp implements MissionService {
         for (Long userId : userIds) {
             PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
             int missionId = currentMission.getMissionId();
-            if(currentMission.getPersonalMonthlyMissionCompleted() == -1) continue;
+            if (currentMission.getPersonalMonthlyMissionCompleted() == -1) continue;
             boolean isSucceed;
             switch (missionId) {
                 case 1:
@@ -376,6 +378,13 @@ public class MissionServiceImp implements MissionService {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         int totalDays = getDaysInCurrentMonth();
         updateScore(userId, 100 - (totalDays * 2));
-        completeMonthlyMission(missionMapper.findPersonalMissionIdByUserId(userId));
+        log.info("userId = " + userId + ", totalDays = " + totalDays);
+        Integer monthlyMissionId = missionMapper.findPersonalMissionIdByUserId(userId);
+        log.info("Monthly mission id: " + monthlyMissionId);
+        if (monthlyMissionId == null) {
+            throw new IllegalArgumentException("해당 사용자에 대한 월간 미션 ID가 존재하지 않습니다.");
+        }
+
+        completeMonthlyMission(monthlyMissionId);
     }
 }
