@@ -76,5 +76,54 @@ public class BatchConfig extends DefaultBatchConfigurer {
                     return null;
                 }).build();
     }
+
+    @Bean(name = "updateMonthlyMissionJob")
+    public Job updateMonthlyMissionJob() {
+        return jobBuilderFactory.get("updateMonthlyMissionJob")
+                .start(updateMonthlyMissionStep())
+                .build();
+    }
+
+    @Bean
+    public Step updateMonthlyMissionStep() {
+        return stepBuilderFactory.get("updateMonthlyMissionStep")
+                .tasklet((contribution, chunkContext) -> {
+                    missionService.updateMonthlyMissionForAllUsers();
+                    return null;
+                }).build();
+    }
+
+    @Bean(name = "dailyCheckMonthlyMissionsJob")
+    public Job dailyCheckMonthlyMissionsJob() {
+        return jobBuilderFactory.get("dailyCheckMonthlyMissionsJob")
+                .start(dailyCheckMonthlyMissionsStep())
+                .build();
+    }
+
+    @Bean
+    public Step dailyCheckMonthlyMissionsStep() {
+        return stepBuilderFactory.get("dailyCheckMonthlyMissionsStep")
+                .tasklet((contribution, chunkContext) -> {
+                    missionService.dailyCheckMonthlyMissions();
+                    return null;
+                }).build();
+    }
+
+    @Bean(name = "checkEndOfMonthMissionsJob")
+    public Job checkEndOfMonthMissionsJob() {
+        return jobBuilderFactory.get("checkEndOfMonthMissionsJob")
+                .start(checkEndOfMonthMissionsStep())
+                .build();
+    }
+
+    @Bean
+    public Step checkEndOfMonthMissionsStep() {
+        return stepBuilderFactory.get("checkEndOfMonthMissionsStep")
+                .tasklet((contribution, chunkContext) -> {
+                    missionService.checkEndOfMonthMissions();
+                    return null;
+                }).build();
+    }
+
 }
 
