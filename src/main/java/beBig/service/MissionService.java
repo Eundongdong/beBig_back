@@ -37,7 +37,8 @@ public interface MissionService {
     void dailyCheckMonthlyMissions();
 
     void checkEndOfMonthMissions();
-  
+
+    // 충돌방지 업뎃..
     int getRestDaysInCurrentMonth();
 
     int getDaysInCurrentMonth();

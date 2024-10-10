@@ -3,8 +3,6 @@ package beBig.service;
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.mapper.MissionMapper;
-import beBig.mapper.UserMapper;
-import beBig.vo.MissionVo;
 import beBig.vo.PersonalMonthlyMissionVo;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -15,21 +13,16 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 public class MissionServiceImp implements MissionService {
     private final SqlSessionTemplate sqlSessionTemplate;
-    private final UserMapper userMapper;
-    private final MissionMapper missionMapper;
 
     @Autowired
-    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate, UserMapper userMapper, MissionMapper missionMapper) {
+    public MissionServiceImp(SqlSessionTemplate sqlSessionTemplate) {
         this.sqlSessionTemplate = sqlSessionTemplate;
-        this.userMapper = userMapper;
-        this.missionMapper = missionMapper;
     }
 
     // 월간 미션 조회
@@ -60,7 +53,6 @@ public class MissionServiceImp implements MissionService {
         missionMapper.completeDailyMission(personalMissionId);
     }
 
-    // 미션 비율 조회
     @Override
     public double findRate(long userId, long missionId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
@@ -84,6 +76,7 @@ public class MissionServiceImp implements MissionService {
     @Override
     public int updateScore(long userId, int amount) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        //월별점수가져옴
         int currentScore = missionMapper.findCurrentMissionMonthScoreByUserId(userId) + amount;
         missionMapper.updateCurrentMissionMonthScoreByUserId(userId, currentScore);
         return currentScore;
@@ -225,45 +218,26 @@ public class MissionServiceImp implements MissionService {
             PersonalMonthlyMissionVo currentMission = missionMapper.getCurrentMonthlyMission(userId);
 
             switch (currentMission.getMissionId()) {
-//                case 4:
-//                    if (missionMapper.calculateSpendingDifference(userId) < n) {
-//                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
-//                    } else {
-//                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
-//                    }
-//                    break;
-//                case 5:
-//                    int savingDifference = missionMapper.calculateSavingDifference(userId);
-//                    if (savingDifference >= n) {
-//                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
-//                    } else {
-//                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
-//                    }
-//                    break;
+                case 4:
+                    if (missionMapper.calculateSpendingDifference(userId) < n) {
+                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
+                    } else {
+                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
+                    }
+                    break;
+                case 5:
+                    int savingDifference = missionMapper.calculateSavingDifference(userId);
+                    if (savingDifference >= n) {
+                        markMissionAsComplete(currentMission.getPersonalMonthlyMissionId());
+                    } else {
+                        markMissionAsFailed(currentMission.getPersonalMonthlyMissionId());
+                    }
+                    break;
 
                 default:
                     log.warn("Unknown end of month mission ID: " + currentMission.getMissionId());
             }
         }
-    }
-
-
-    // 상태 업데이트 메서드들
-    public void markMissionAsInProgress(int personalMissionId) {
-        updateMissionStatus(personalMissionId, 0); // 진행 중 상태
-    }
-
-    public void markMissionAsComplete(int personalMissionId) {
-        updateMissionStatus(personalMissionId, 1); // 완료 상태
-    }
-
-    public void markMissionAsFailed(int personalMissionId) {
-        updateMissionStatus(personalMissionId, 2); // 실패 상태
-    }
-
-    private void updateMissionStatus(int personalMissionId, int status) {
-        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
-        missionMapper.updateMonthlyMissionStatus(personalMissionId, status);
     }
 
     @Override
@@ -301,6 +275,7 @@ public class MissionServiceImp implements MissionService {
 
     @Override
     public long getMonthlyMissionNumber(long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         return missionMapper.findMonthlyMissionIdByUserId(userId);
     }
 
@@ -308,69 +283,107 @@ public class MissionServiceImp implements MissionService {
     public boolean hasMonthlyMissionSucceeded(long missionId, long userId) {
         MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         int thisMonth = LocalDate.now().getMonthValue();
+        int thisYear = LocalDate.now().getYear();
+        int today = LocalDate.now().getDayOfMonth();
 
         if (missionId == 1) {
+            // missionId 1에 대한 로직 추가 (필요할 경우)
+        }
 
-        }
         if (missionId == 2) {
-            return missionMapper.countUserPosts(thisMonth, userId) >= 4;
+            // 현재 연도와 월에 대해 사용자가 4개 이상의 게시글을 작성했는지 확인
+            return missionMapper.countUserPosts(thisYear, thisMonth, userId) >= 4;
         }
+
         if (missionId == 3) {
-            return missionMapper.countUserLikes(thisMonth, userId) >= 50;
+            // 현재 연도와 월에 대해 사용자의 좋아요 합이 50 이상인지 확인
+            return missionMapper.countUserLikes(thisYear, thisMonth, userId) >= 50;
         }
+
         if (missionId == 4) {
-            //개인별 n원 가져오기
-            int target = countNValue(missionId, userId); // = n원
+            // 개인별 n원 목표 설정 후 소비 확인
+            int target = countNValue(missionId, userId); // 목표 금액
             int totalConsumption = 0;
             List<String> accountList = missionMapper.getAccountListByUserId(userId);
+
+            // 각 계좌에 대한 월별 총 소비 계산
             for (String accountNum : accountList) {
-                int consumption = missionMapper.getMonthlyConsumption(thisMonth, accountNum);
+                int consumption = missionMapper.getMonthlyConsumption(thisYear, thisMonth, accountNum);
                 totalConsumption += consumption;
             }
+
+            // 목표 금액 이상 소비했는지 확인
             return totalConsumption >= target;
         }
+
         if (missionId == 5) {
             // 한 달 동안 매일 n원씩 저축 미션
-            int N = countNValue(missionId, userId);
 
+            int N = countNValue(missionId, userId); // 목표 금액
             List<String> accountList = missionMapper.getAccountListByUserId(userId);
 
-            // 지난달의 총 지출 가져오기
-            int lastMonth = thisMonth == 1 ? 12 : thisMonth - 1; // 지난달 계산
-            int lastYear = thisMonth == 1 ? LocalDate.now().getYear() - 1 : LocalDate.now().getYear();
+            // 지난달의 총 지출 계산
+            int lastMonth = thisMonth == 1 ? 12 : thisMonth - 1;
+            int lastYear = thisMonth == 1 ? thisYear - 1 : thisYear;
             int lastMonthTotalConsumption = 0;
 
             for (String accountNum : accountList) {
-                int consumption = missionMapper.getMonthlyConsumption(lastMonth, accountNum);
+                int consumption = missionMapper.getMonthlyConsumption(lastYear, lastMonth, accountNum);
                 lastMonthTotalConsumption += consumption;
             }
 
-            // 지난달 일수 계산 (윤년을 고려한 일수 계산)
+            // 지난달의 일별 소비 금액 계산
             YearMonth yearMonthObject = YearMonth.of(lastYear, lastMonth);
-            int lastDay = yearMonthObject.lengthOfMonth(); // 지난달의 일 수
-            int lastConsumptionPerDay = lastMonthTotalConsumption / lastDay;// 지난달 일별 소비 금액 계산
-            int target = lastConsumptionPerDay - N; // 목표 소비금액. 해당 값 이하일시 성공으로 처리
+            int lastDay = yearMonthObject.lengthOfMonth(); // 지난달의 일수
+            int lastConsumptionPerDay = lastMonthTotalConsumption / lastDay;
+            int target = lastConsumptionPerDay - N; // 목표 소비금액
 
-            // 오늘까지 매일의 소비가 목표 금액 이하인지 확인
-            int todayDate = LocalDate.now().getDayOfMonth(); // 현재 월의 오늘 날짜
-            for (int i = 1; i <= todayDate; i++) {
+            // 오늘까지 매일 소비가 목표 금액 이하인지 확인
+            for (int i = 1; i <= today; i++) {
                 for (String accountNum : accountList) {
-                    int consumption = missionMapper.getDailyConsumption(thisMonth, i, accountNum);
-                    if (consumption > target) return false;
+                    int dailyConsumption = missionMapper.getDailyConsumption(thisYear, thisMonth, i, accountNum);
+                    if (dailyConsumption > target) {
+                        return false;
+                    }
                 }
             }
             return true;
         }
-        if (missionId == 6) {
 
+        if (missionId == 6) {
+            // missionId 6에 대한 로직 추가 (필요할 경우)
         }
 
         return false;
     }
 
+
+    //N값 계산기
     public int countNValue(long missionId, long userId) {
         int salary = findSalary(userId);
         double rate = findRate(userId, missionId);
         return (int) (salary * (rate / 100));
     }
+
+    // 상태 업데이트 메서드들
+    public void markMissionAsInProgress(int personalMissionId) {
+        updateMissionStatus(personalMissionId, 0); // 진행 중 상태
+    }
+
+    public void markMissionAsComplete(int personalMissionId) {
+        updateMissionStatus(personalMissionId, 1); // 완료 상태
+    }
+
+    public void markMissionAsFailed(int personalMissionId) {
+        updateMissionStatus(personalMissionId, 2); // 실패 상태
+    }
+
+    private void updateMissionStatus(int personalMissionId, int status) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
+        missionMapper.updateMonthlyMissionStatus(personalMissionId, status);
+    }
+
+    //충돌방지 업데이트
+
+
 }

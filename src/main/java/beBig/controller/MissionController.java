@@ -5,7 +5,6 @@ import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
 import beBig.dto.response.TotalMissionResponseDto;
 import beBig.service.MissionService;
-import beBig.service.UserServiceImp;
 import beBig.service.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +31,12 @@ public class MissionController {
 
     private final MissionService missionService;
     private final JwtUtil jwtUtil;
-    private final UserServiceImp userService;
 
     @GetMapping("/total")
     public ResponseEntity<?> monthlyMissionTotal(@RequestHeader("Authorization") String token) {
         try {
             long userId = jwtUtil.extractUserIdFromToken(token);
-            int restDays = missionService.getRestDaysInCurrentMonth();
+            int restDays = getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
             HttpHeaders headers = new HttpHeaders();
@@ -52,7 +50,7 @@ public class MissionController {
     @GetMapping("/total/{userId}")
     public ResponseEntity<?> monthlyMissionTotalByUserId(@PathVariable long userId) {
         try {
-            int restDays = missionService.getRestDaysInCurrentMonth();
+            int restDays = getRestDaysInCurrentMonth();
             int currentScore = missionService.findCurrentMonthScore(userId);
             TotalMissionResponseDto responseDto = new TotalMissionResponseDto(restDays, currentScore);
             HttpHeaders headers = new HttpHeaders();
@@ -71,7 +69,7 @@ public class MissionController {
             MonthlyMissionResponseDto dto = missionService.showMonthlyMission(userId);
             int salary = missionService.findSalary(userId);
             double rate = missionService.findRate(userId, dto.getMissionId());
-            dto.setMissionTopic(missionService.replaceNWithNumber(dto.getMissionTopic(), salary, rate));
+            dto.setMissionTopic(replaceNWithNumber(dto.getMissionTopic(), salary, rate));
             log.info("사용자 ID: {}의 월간 미션 조회 성공: {}", userId, dto);
             return ResponseEntity.status(HttpStatus.OK).body(dto);
 
@@ -106,7 +104,7 @@ public class MissionController {
 
             if (missionType == 1) {
                 //미션타입 확인하고 점수계산 - 일간
-                int totalDays = missionService.getDaysInCurrentMonth();
+                int totalDays = getDaysInCurrentMonth();
                 missionService.updateScore(userId, 100 - (totalDays * 2));
                 missionService.completeMonthlyMission(personalMissionId);
                 //점수계산
@@ -132,20 +130,35 @@ public class MissionController {
         }
     }
 
-    @PostMapping("/complete-monthly-mission")
-    public ResponseEntity<?> completeMonthlyMission(@RequestHeader("Authorization") String token) {
-        long userId = jwtUtil.extractUserIdFromToken(token);
-        //missionId는 int로 설정되어있음
-        //1.월간 미션 아이디 확인하기
-        long missionId = missionService.getMonthlyMissionNumber(userId);
-        log.info("missionId : {}", missionId);
-        boolean isSuccess = missionService.hasMonthlyMissionSucceeded(missionId, userId);
-        if (isSuccess) {
-            log.info("성공");
-        } else {
-            log.info("실패띠");
+    //날짜관련 계산
+
+    // N 존재하는지 판별하고 'n'을 숫자로 변환
+    public String replaceNWithNumber(String s, int number, double rate) {
+        StringBuilder result = new StringBuilder();
+        int calSalary = (int) (number * (rate / 100));
+
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == 'n') {
+                result.append(calSalary);
+            } else {
+                result.append(s.charAt(i));
+            }
         }
-        return ResponseEntity.status(HttpStatus.OK).body("monthly_mission : " + isSuccess);
+        return result.toString();
     }
 
+    // 오늘로부터 이번 달이 끝날 때까지 남은 일수를 반환하는 메서드
+    public static int getRestDaysInCurrentMonth() {
+        LocalDate today = LocalDate.now();
+        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
+        return (int) ChronoUnit.DAYS.between(today, lastDayOfMonth);
+    }
+
+    // 이번 달의 총 일수를 반환하는 메서드
+    public static int getDaysInCurrentMonth() {
+        LocalDate today = LocalDate.now();
+        LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
+        return lastDayOfMonth.getDayOfMonth() - firstDayOfMonth.getDayOfMonth() + 1;
+    }
 }

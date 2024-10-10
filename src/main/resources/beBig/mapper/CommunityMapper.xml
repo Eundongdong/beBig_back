@@ -80,15 +80,7 @@
                 </if>
             </if>
         </where>
-        <choose>
-            <when test="sortType == 'like'">
-                ORDER BY p.post_like_hits DESC
-            </when>
-            <otherwise>
-                ORDER BY p.post_created_time DESC
-            </otherwise>
-        </choose>
---         ORDER BY p.post_id DESC
+        ORDER BY p.post_id DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 

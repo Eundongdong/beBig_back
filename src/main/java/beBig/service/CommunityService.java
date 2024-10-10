@@ -8,7 +8,7 @@ import beBig.vo.PostVo;
 import java.util.List;
 
 public interface CommunityService {
-    public PostListResponseDto showList(int postCategory, int finTypeCode, int page, int pageSize, String sortType);
+    public PostListResponseDto showList(int postCategory, int finTypeCode, int page, int pageSize);
     public PostVo showDetail(Long postId);
     public void updateLike(long userId, long postId);
     public void write(PostVo post) throws AmazonS3UploadException;
