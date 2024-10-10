@@ -30,4 +30,14 @@ public interface MissionService {
     void updateDailyMissionForUser(Long userId);
 
     void addDailyMissions(Long userId);
+
+    int getRestDaysInCurrentMonth();
+
+    int getDaysInCurrentMonth();
+
+    String replaceNWithNumber(String s, int number, double rate);
+
+    long getMonthlyMissionNumber(long userId);
+
+    boolean hasMonthlyMissionSucceeded(long missionId, long userId);
 }

@@ -53,5 +53,17 @@ public interface MissionMapper {
     void insertDailyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
 
     int findExistingDailyMissionsCount(@Param("userId") Long userId);
+
+    long findMonthlyMissionIdByUserId(@Param("userId") long userId);
+
+    int countUserPosts(@Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int countUserLikes(@Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int getMonthlyConsumption(@Param("thisMonth") int thisMonth, @Param("accountNum") String accountNum);
+
+    List<String> getAccountListByUserId(@Param("userId") long userId);
+
+    int getDailyConsumption(@Param("thisMonth") int thisMonth, @Param("day") int day, @Param("accountNum") String accountNum);
 }
 
