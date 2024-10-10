@@ -280,9 +280,9 @@ public class HomeServiceImp implements HomeService {
     }
 
     @Override
-    public void saveUserFinType(Long userId, int userFinType) {
+    public void saveUserFinType(Long userId, int userFinType, int userIncome) {
         HomeMapper homeMapper = sqlSessionTemplate.getMapper(HomeMapper.class);
-        homeMapper.saveFinTypeWithUserId(userId, userFinType);
+        homeMapper.saveFinTypeWithUserId(userId, userFinType, userIncome);
         missionService.addDailyMissions(userId);
     }
 }

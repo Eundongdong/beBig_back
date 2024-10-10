@@ -190,8 +190,9 @@ public class HomeController {
                 log.error("user_fin_type 값이 없습니다.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user_fin_type 값이 필요합니다.");
             }
+            Integer userIncome = Integer.parseInt((String) requestBody.get("user_income"));
             log.info("userFinType: {}", userFinType);
-            homeService.saveUserFinType(userId, userFinType);
+            homeService.saveUserFinType(userId, userFinType,userIncome);
 
             return ResponseEntity.ok("success");
         } catch (JwtException e) {

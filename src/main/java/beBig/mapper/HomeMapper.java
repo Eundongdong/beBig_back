@@ -13,5 +13,5 @@ public interface HomeMapper {
 
     FinTypeVo findFinTypeByUserId(@Param("userId") long userId);
 
-    void saveFinTypeWithUserId(@Param("userId") Long userId, @Param("userFinType") int userFinType);
+    void saveFinTypeWithUserId(@Param("userId") Long userId, @Param("userFinType") int userFinType, @Param("userIncome") int userIncome);
 }
