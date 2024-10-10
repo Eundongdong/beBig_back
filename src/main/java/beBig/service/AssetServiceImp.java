@@ -53,32 +53,44 @@ public class AssetServiceImp implements AssetService {
         params.put("userId", userId);
 
         long totalCashBalance = 0;
-        long totalDepositSavingBalance = 0;
+        long totalDepositSavingsBalance = 0;
+        long totalEtcBalance = 0;
 
         // 각 계좌별로 잔액을 계산
         for(String accountNum : accountNumbers) {
             params.put("accountNum", accountNum);
 
-            // 최근 현금(입금/출금) 거래 내역 조회
-            Long cashBalance = assetMapper.showLatestCashBalance(params);
+            String accountType = assetMapper.findAccountTypeByAccountNum(accountNum);
+            log.info("accountType : " + accountType);
+            params.put("accountType", accountType);
 
-            // 최근 예금/적금 거래 내역 조회
-            Long depositBalance = assetMapper.showLatestDepositBalance(params);
-
-            if (cashBalance != null) {
-                totalCashBalance += cashBalance;
-            }
-
-            if (depositBalance != null) {
-                totalDepositSavingBalance += depositBalance;
+            if ("11".equals(accountType)) {
+                // 현금 계좌의 최신 잔액 조회
+                Long cashBalance = assetMapper.showLatestCashBalance(params);
+                if (cashBalance != null) {
+                    totalCashBalance += cashBalance;
+                }
+            } else if ("12".equals(accountType)) {
+                // 예적금 계좌의 최신 잔액 조회
+                Long depositBalance = assetMapper.showLatestDepositBalance(params);
+                if (depositBalance != null) {
+                    totalDepositSavingsBalance += depositBalance;
+                }
+            } else if ("14".equals(accountType)) {
+                // 기타 계좌의 최신 잔액 조회
+                Long etcBalance = assetMapper.showLatestEtcBalance(params);
+                if (etcBalance != null) {
+                    totalEtcBalance += etcBalance;
+                }
             }
         }
 
         // 총 잔액 계산 후 DTO 생성
         AssetAnalysisDto assetAnalysisDto = new AssetAnalysisDto();
         assetAnalysisDto.setTotalCashBalance(totalCashBalance);
-        assetAnalysisDto.setTotalDepositSavingsBalance(totalDepositSavingBalance);
-        assetAnalysisDto.setTotalBalance(totalCashBalance + totalDepositSavingBalance);
+        assetAnalysisDto.setTotalDepositSavingsBalance(totalDepositSavingsBalance);
+        assetAnalysisDto.setTotalEtcBalance(totalEtcBalance);
+        assetAnalysisDto.setTotalBalance(totalCashBalance + totalDepositSavingsBalance + totalEtcBalance);
 
         return assetAnalysisDto;
     }

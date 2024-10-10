@@ -10,5 +10,6 @@ import lombok.*;
 public class AssetAnalysisDto {
     private long totalCashBalance;
     private long totalDepositSavingsBalance;
+    private long totalEtcBalance;
     private long totalBalance;
 }
