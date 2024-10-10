@@ -306,6 +306,7 @@ public class MissionServiceImp implements MissionService {
 
     @Override
     public boolean hasMonthlyMissionSucceeded(long missionId, long userId) {
+        MissionMapper missionMapper = sqlSessionTemplate.getMapper(MissionMapper.class);
         int thisMonth = LocalDate.now().getMonthValue();
 
         if (missionId == 1) {

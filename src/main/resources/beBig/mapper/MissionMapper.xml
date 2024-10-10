@@ -271,13 +271,6 @@
         where user_id = #{userId}
     </select>
 
-    <select id="getMonthlyConsumption" resultType="int">
-        SELECT SUM(amount)
-        FROM consumption
-        WHERE MONTH(consumption_date) = #{thisMonth}
-          AND user_id = #{userId}
-    </select>
-
     <select id="getAccountListByUserId" resultMap="String">
         SELECT account_num
         FROM account
