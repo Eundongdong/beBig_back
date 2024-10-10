@@ -2,6 +2,7 @@ package beBig.mapper;
 
 import beBig.dto.response.DailyMissionResponseDto;
 import beBig.dto.response.MonthlyMissionResponseDto;
+import beBig.vo.PersonalMonthlyMissionVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -15,7 +16,7 @@ public interface MissionMapper {
 
     void completeMonthlyMission(@Param("personalMissionId") long personalMissionId);
 
-    void completeDailyMonthlyMission(@Param("personalMissionId") long personalMissionId);
+    void completeDailyMission(@Param("personalMissionId") long personalMissionId);
 
     int findSalaryByUserId(@Param("userId") long userId);
 
@@ -53,5 +54,57 @@ public interface MissionMapper {
     void insertDailyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
 
     int findExistingDailyMissionsCount(@Param("userId") Long userId);
+
+    // 신규 월간 미션 삽입
+    void insertMonthlyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
+
+    // 현재 월간 미션 ID 가져오기
+    int getCurrentMonthlyMissionId(Long userId);
+
+    // 월간 미션 완료
+    void completeMonthlyMission(@Param("personalMissionId") long personalMissionId,@Param("personalMonthlyMissionCompleted") int personalMonthlyMissionCompleted);
+
+    // 월간 미션 업데이트
+    void updateMonthlyMission(@Param("userId") Long userId, @Param("missionId") int missionId);
+
+    // 현재 월간 미션 정보 가져오기
+    PersonalMonthlyMissionVo getCurrentMonthlyMission(@Param("userId")Long userId);
+
+    // 커뮤니티 글 수 카운트
+    int countCommunityPosts(@Param("userId")Long userId);
+
+    // 좋아요 수 카운트
+    int countPostLikesInMonth(@Param("userId")Long userId);
+
+    // 소비 차이 계산
+    int calculateSpendingDifference(@Param("userId")Long userId);
+
+    // 저축 차이 계산
+    int calculateSavingDifference(@Param("userId")Long userId);
+
+    // 데일리 미션 완료 수 카운트
+    int countCompletedDailyMissions(@Param("userId")Long userId);
+
+    // 모든 사용자 ID 가져오기
+    List<Long> findAllUsersWithMonthlyMissions();
+
+//    // 저축 계좌 수 카운트
+//    int countSavingsAccounts(@Param("userId")Long userId);
+
+    void updateMonthlyMissionStatus(@Param("personalMonthlyMissionId")int personalMonthlyMissionId, @Param("status") int status);
+
+    //오류방지
+    int countUserPosts(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int countUserLikes(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("userId") long userId);
+
+    int getMonthlyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("accountNum") String accountNum);
+
+    List<String> getAccountListByUserId(@Param("userId") long userId);
+
+    long findMonthlyMissionIdByUserId(@Param("userId") long userId);
+
+    int getDailyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("day") int day, @Param("accountNum") String accountNum);
+
 }
 

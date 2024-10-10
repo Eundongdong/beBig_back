@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -15,10 +16,12 @@ import java.net.URL;
 public class KakaoOauthService {
 
     // 카카오 REST API 키 <- 형이 바꿔야함
-    private String REST_API_KEY = "f8156e1595fd76d2b241ad4b4f3c4ca6";
+    @Value("${kakao.REST_API_KEY}")
+    private String REST_API_KEY;
 
     // 카카오 로그인 후 리다이렉트될 URI <-이것도 형네주소
-    private String REDIRECT_URI = "http://localhost:5173/user";
+    @Value("${kakao.REDIRECT_URI}")
+    private String REDIRECT_URI;
 
     public String getAccessToken(String authorize_code) {
         String access_Token = ""; // 엑세스 토큰을 저장할 변수
