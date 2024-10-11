@@ -146,7 +146,6 @@ public class MissionServiceImp implements MissionService {
         log.info("1번 미션 할당");
         // 1. account 테이블에서 현재 account_type이 12인 계좌의 갯수를 가져오기
         int currentSavingsAccountCount = missionMapper.countCurrentSavingsAccounts(userId);
-
         // 2. personal_monthly_mission 테이블에 해당 갯수를 저장하기
         missionMapper.updatePreviousSavingsAccountCount(userId, currentSavingsAccountCount);
     }
@@ -162,7 +161,7 @@ public class MissionServiceImp implements MissionService {
             int nextMissionId = (currentMissionId % 6) + 1;  // 미션 순환
             missionMapper.updateMonthlyMission(userId, nextMissionId);
             log.info(nextMissionId + "번 미션으로 업데이트");
-
+            missionMapper.updateLastMonthScore(userId);
             if (nextMissionId == 1) {
                 // 1. account 테이블에서 현재 account_type이 12인 계좌의 갯수를 가져오기
                 int currentSavingsAccountCount = missionMapper.countCurrentSavingsAccounts(userId);
@@ -171,6 +170,7 @@ public class MissionServiceImp implements MissionService {
                 missionMapper.updatePreviousSavingsAccountCount(userId, currentSavingsAccountCount);
             }
         }
+
     }
 
     // 매일 체크하는 월간 미션 수행 확인 - 일간 batch
