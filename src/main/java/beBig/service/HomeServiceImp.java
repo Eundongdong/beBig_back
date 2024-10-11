@@ -78,7 +78,7 @@ public class HomeServiceImp implements HomeService {
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
 
             // 거래 내역 저장
-            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 60);
+            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 10);
 
             // 거래 내역이 없을 경우, 잔액을 이용한 임의의 거래 내역 생성
             if (!hasTransactions) {
@@ -175,12 +175,11 @@ public class HomeServiceImp implements HomeService {
 
         // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
-        List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
-
-        if (transactionHistory == null || transactionHistory.isEmpty()) {
-            log.info("거래 내역이 없습니다: 계좌 번호 {}", requestDto.getAccount());
+        if(responseDto == null){
             return false;
         }
+        List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
+
 
         List<TransactionVo> transactionList = mapToTransactionList(requestDto, transactionHistory);
 
