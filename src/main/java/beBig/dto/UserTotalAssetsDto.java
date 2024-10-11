@@ -12,6 +12,8 @@ public class UserTotalAssetsDto implements Comparable<UserTotalAssetsDto> {
     private long totalAssets;
     private int rank;
     private long totalSameAgeRangeUsers;
+    private long avgAsset;
+
 
     @Override
     public int compareTo(UserTotalAssetsDto o) {

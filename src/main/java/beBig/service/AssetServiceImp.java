@@ -283,6 +283,15 @@ public class AssetServiceImp implements AssetService {
      * @param userId : 조회할 아이디
      * @return UserTotalAssetsDto
      */
+    /**
+     * 같은 나잇대 유저들의 총 자산을 불러오고, UserId가 상위 몇 퍼센트인지 반환
+     * 1. userId와 같은 나잇대 유저 List
+     * 2. 각 유저별로 계좌 List 찾기 + 각 유저의 총 자산 구하기
+     * 3. 같은 나잇대 유저의 총 자산을 기준으로 랭킹 부여 및 상위 퍼센트 계산
+     * 4. userId가 상위 몇 퍼센트인지 반환하기
+     * @param userId : 조회할 아이디
+     * @return UserTotalAssetsDto
+     */
     @Override
     public UserTotalAssetsDto showAgeComparison(long userId) {
         AssetMapper assetMapper = sqlSessionTemplate.getMapper(AssetMapper.class);
@@ -295,6 +304,8 @@ public class AssetServiceImp implements AssetService {
         // UserId별로 계좌 리스트 받아오기 및 총 자산 계산
         List<UserTotalAssetsDto> totalAssetsDtoList = new ArrayList<>();
         Map<Long, UserTotalAssetsDto> totalAssetsDtoMap = new HashMap<>();  // userId로 빠른 접근을 위한 Map
+        long totalAssetsSum = 0;  // 총 자산 합계
+
         for (UserVo user : sameAgeUserList) {
             UserTotalAssetsDto totalAssetsDto = new UserTotalAssetsDto();
             totalAssetsDto.setAgeRange(user.getUserAgeRange());
@@ -310,25 +321,37 @@ public class AssetServiceImp implements AssetService {
             }
             totalAssetsDto.setTotalAssets(totalAsset);
 
+            // 총 자산 합계에 추가
+            totalAssetsSum += totalAsset;
+
             // 리스트와 맵에 각각 저장
             totalAssetsDtoList.add(totalAssetsDto);
             totalAssetsDtoMap.put(user.getUserId(), totalAssetsDto);
         }
 
-        // 총 자산을 기준으로 내림차순 정렬 후 순위 부여
+        // 총 자산을 기준으로 내림차순 정렬
         totalAssetsDtoList.sort(Comparator.comparingDouble(UserTotalAssetsDto::getTotalAssets).reversed());
         log.info("totalAssetsDtoList{}", totalAssetsDtoList);
 
-        // Rank 부여
-        int rank = 1;
-        for (UserTotalAssetsDto dto : totalAssetsDtoList) {
-            dto.setRank(rank++);
+        // Rank를 상위 몇 퍼센트로 변환하여 부여 (정수형)
+        int totalUsers = totalAssetsDtoList.size();
+        for (int i = 0; i < totalUsers; i++) {
+            UserTotalAssetsDto dto = totalAssetsDtoList.get(i);
+            int rank = i + 1; // 순위
+            int percentile = (int) Math.round(((double) rank / totalUsers) * 100);  // 상위 퍼센트 계산 후 반올림
+            dto.setRank(percentile);
         }
+
+        // 평균 자산 계산
+        long avgAssets = totalAssetsSum / totalUsers;
 
         // 유저찾기
         UserTotalAssetsDto targetUser = totalAssetsDtoMap.get(userId);
-        targetUser.setTotalSameAgeRangeUsers(totalAssetsDtoList.size());
+        targetUser.setTotalSameAgeRangeUsers(totalUsers);
+        targetUser.setAvgAsset(avgAssets);  // 평균 자산 설정
 
         return targetUser;
     }
+
+
 }
