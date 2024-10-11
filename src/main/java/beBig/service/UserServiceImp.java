@@ -19,6 +19,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -42,21 +43,34 @@ public class UserServiceImp implements UserService {
     public void registerUser(UserDto userDto) throws Exception {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
         String encryptedPassword = passwordEncoder.encode(userDto.getPassword());
+
         // 새로운 사용자 객체 생성
         UserVo user = new UserVo();
         user.setUserName(userDto.getName());
         user.setUserNickname(userDto.getNickname());
         user.setUserLoginId(userDto.getUserLoginId());
-        user.setUserPassword(encryptedPassword); // 비밀번호 암호화 필요
+        user.setUserPassword(encryptedPassword); // 비밀번호 암호화
         user.setUserEmail(userDto.getEmail());
         user.setUserGender(userDto.isGender());
         user.setUserBirth(userDto.getBirth());
         user.setFinTypeCode(0);
         user.setUserBadgeCode(0);
         user.setUserLoginType(userDto.getUserLoginType());
+
+        // 나이를 계산해 연령대 저장
+        int age = calculateAge(userDto.getBirth()); // 나이 계산
+        user.setUserAgeRange(age - age%10); // 연령대 저장
+
         // 사용자 정보 저장
         userMapper.insert(user);
         log.info("user 저장성공: {}", user.getUserName());
+    }
+
+    // 나이를 계산하는 메서드
+    private int calculateAge(Date birthDate) {
+        LocalDate birth = birthDate.toLocalDate();
+        LocalDate now = LocalDate.now();
+        return Period.between(birth, now).getYears(); // 나이 계산
     }
 
     // 임시 비밀번호 생성
