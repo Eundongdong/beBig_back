@@ -10,9 +10,9 @@ public class UserTotalAssetsDto implements Comparable<UserTotalAssetsDto> {
     private int age;
     private int ageRange;
     private long totalAssets;
-    private int rank;
+    private int rank; // 비율로 수정
     private long totalSameAgeRangeUsers;
-    private long avgAsset;
+    private long avgAsset; // 추가
 
 
     @Override
