@@ -75,7 +75,6 @@ public class QuartzConfig {
                 .forJob(transactionUpdateJobDetail)
                 .withIdentity("transactionUpdateTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 0 12 * * ?"))
-                .startNow()
                 .build();
     }
 
@@ -85,7 +84,6 @@ public class QuartzConfig {
                 .forJob(ageUpdateJobDetail)
                 .withIdentity("ageUpdateTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1 1 ?"))
-                .startNow()
                 .build();
     }
 
@@ -95,7 +93,6 @@ public class QuartzConfig {
                 .forJob(assignDailyMissionJobDetail)
                 .withIdentity("assignDailyMissionTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
-                .startNow()
                 .build();
     }
 
@@ -105,7 +102,6 @@ public class QuartzConfig {
                 .forJob(updateMonthlyMissionJobDetail)
                 .withIdentity("updateMonthlyMissionTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 0 1 * * ?")) // 매달 1일에 실행
-                .startNow()
                 .build();
     }
 
@@ -115,7 +111,6 @@ public class QuartzConfig {
                 .forJob(dailyCheckMonthlyMissionsJobDetail)
                 .withIdentity("dailyCheckMonthlyMissionsTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 50 23 * * ?")) // 매일 23시 50분에 실행 -> 더 빈번하게 해도 될거같음
-                .startNow()
                 .build();
     }
 
@@ -125,7 +120,6 @@ public class QuartzConfig {
                 .forJob(checkEndOfMonthMissionsJobDetail)
                 .withIdentity("checkEndOfMonthMissionsTrigger")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 50 23 L * ?")) // 매달 마지막날 23:50에 실행
-                .startNow()
                 .build();
     }
 
