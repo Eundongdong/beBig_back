@@ -23,7 +23,7 @@ public interface UserMapper {
 
     UserVo findByUserLoginId(String userLoginId);
 
-    boolean isUserLoginIdDuplicated(String userLoginId); //아이디 중복체크
+    int isUserLoginIdDuplicated(String userLoginId); //아이디 중복체크
 
     String findUserLoginIdByNameAndEmail(Map<String, Object> params); // 아이디 찾기
 

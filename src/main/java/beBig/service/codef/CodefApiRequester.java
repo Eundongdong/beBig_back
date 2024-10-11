@@ -224,41 +224,47 @@ public class CodefApiRequester {
     }
 
     public CodefTransactionResponseDto getTransactionHistory(CodefTransactionRequestDto requestDto) throws Exception {
-        String accessToken = codefTokenManager.getAccessToken();
-        String requestUrl = "https://development.codef.io/v1/kr/bank/p/account/transaction-list";
+        try {
+            String accessToken = codefTokenManager.getAccessToken();
+            String requestUrl = "https://development.codef.io/v1/kr/bank/p/account/transaction-list";
 
-        // 요청 바디 생성
-        ObjectMapper objectMapper = new ObjectMapper();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+            // 요청 바디 생성
+            ObjectMapper objectMapper = new ObjectMapper();
+            String requestBody = objectMapper.writeValueAsString(requestDto);
 
-        // API 요청 보내기
-        String response = sendPostRequest(requestUrl, accessToken, requestBody);
+            // API 요청 보내기
+            String response = sendPostRequest(requestUrl, accessToken, requestBody);
 
-        // 응답 파싱
-        JsonNode jsonNode = objectMapper.readTree(response);
+            // 응답 파싱
+            JsonNode jsonNode = objectMapper.readTree(response);
 
-        // 결과 코드 체크
-        String resultCode = jsonNode.path("result").path("code").asText();
-        if (!"CF-00000".equals(resultCode)) {
-            throw new Exception("Codef API error: " + jsonNode.path("result").path("message").asText());
+            // 결과 코드 체크
+            String resultCode = jsonNode.path("result").path("code").asText();
+            if (!"CF-00000".equals(resultCode)) {
+                throw new Exception("Codef API error: " + jsonNode.path("result").path("message").asText());
+            }
+
+            // CodefTransactionResponseDto 생성
+            CodefTransactionResponseDto transactionResponseDto = new CodefTransactionResponseDto();
+            transactionResponseDto.setAccountNum(jsonNode.path("data").path("resAccount").asText());
+
+            // 거래 내역 리스트 존재 여부 체크
+            ArrayNode transactionArray = (ArrayNode) jsonNode.path("data").path("resTrHistoryList");
+            List<CodefTransactionResponseDto.HistoryItem> historyItems = new ArrayList<>();
+
+            // 각 항목을 DTO로 변환하여 리스트에 추가
+            for (JsonNode node : transactionArray) {
+                CodefTransactionResponseDto.HistoryItem historyItem = objectMapper.treeToValue(node, CodefTransactionResponseDto.HistoryItem.class);
+                historyItems.add(historyItem);
+            }
+
+            transactionResponseDto.setResTrHistoryList(historyItems);
+            return transactionResponseDto;
+
+        } catch (Exception e) {
+            // 에러가 발생하면 로그를 남기고 null 반환
+            log.error("거래 내역 조회 중 에러 발생: ", e);
+            return null; // 에러 발생 시 null 반환
         }
-
-        // CodefTransactionResponseDto 생성
-        CodefTransactionResponseDto transactionResponseDto = new CodefTransactionResponseDto();
-        transactionResponseDto.setAccountNum(jsonNode.path("data").path("resAccount").asText());
-
-        // 거래 내역 리스트 존재 여부 체크
-        ArrayNode transactionArray = (ArrayNode) jsonNode.path("data").path("resTrHistoryList");
-        List<CodefTransactionResponseDto.HistoryItem> historyItems = new ArrayList<>();
-
-        // 각 항목을 DTO로 변환하여 리스트에 추가
-        for (JsonNode node : transactionArray) {
-            CodefTransactionResponseDto.HistoryItem historyItem = objectMapper.treeToValue(node, CodefTransactionResponseDto.HistoryItem.class);
-            historyItems.add(historyItem);
-        }
-
-        transactionResponseDto.setResTrHistoryList(historyItems);
-        return transactionResponseDto;
     }
-
 }
