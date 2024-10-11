@@ -149,7 +149,8 @@ public class UserServiceImp implements UserService {
     @Override
     public boolean isUserLoginIdDuplicated(String userLoginId) {
         UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        return userMapper.isUserLoginIdDuplicated(userLoginId);
+        int count = userMapper.isUserLoginIdDuplicated(userLoginId);
+        return count > 0;
     }
 
     //아이디 찾기

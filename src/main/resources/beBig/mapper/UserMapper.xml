@@ -59,8 +59,8 @@
     </insert>
 
     <!--아이디 중복체크-->
-    <select id="isUserLoginIdDuplicated" resultType="boolean" parameterType="string">
-        SELECT COUNT(*) > 0
+    <select id="isUserLoginIdDuplicated" resultType="int" parameterType="string">
+        SELECT COUNT(*)
         FROM user
         WHERE user_login_id = #{userLoginId}
     </select>
