@@ -78,7 +78,7 @@ public class HomeServiceImp implements HomeService {
             log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
 
             // 거래 내역 저장
-            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 10);
+            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 60);
 
             // 거래 내역이 없을 경우, 잔액을 이용한 임의의 거래 내역 생성
             if (!hasTransactions) {

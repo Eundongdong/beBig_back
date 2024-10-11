@@ -14,8 +14,6 @@ public interface MissionMapper {
 
     MonthlyMissionResponseDto getPersonalMonthlyMission(@Param("userId") long userId);
 
-    void completeMonthlyMission(@Param("personalMissionId") long personalMissionId);
-
     void completeDailyMission(@Param("personalMissionId") long personalMissionId);
 
     int findSalaryByUserId(@Param("userId") long userId);
@@ -72,26 +70,11 @@ public interface MissionMapper {
     // 현재 월간 미션 정보 가져오기
     PersonalMonthlyMissionVo getCurrentMonthlyMission(@Param("userId") Long userId);
 
-    // 커뮤니티 글 수 카운트
-    int countCommunityPosts(@Param("userId") Long userId);
-
-    // 좋아요 수 카운트
-    int countPostLikesInMonth(@Param("userId") Long userId);
-
-    // 소비 차이 계산
-    int calculateSpendingDifference(@Param("userId") Long userId);
-
-    // 저축 차이 계산
-    int calculateSavingDifference(@Param("userId") Long userId);
-
     // 데일리 미션 완료 수 카운트
     int countCompletedDailyMissions(@Param("userId") Long userId);
 
     // 모든 사용자 ID 가져오기
     List<Long> findAllUsersWithMonthlyMissions();
-
-//    // 저축 계좌 수 카운트
-//    int countSavingsAccounts(@Param("userId")Long userId);
 
     void updateMonthlyMissionStatus(@Param("personalMonthlyMissionId") int personalMonthlyMissionId, @Param("status") int status);
 
@@ -100,22 +83,21 @@ public interface MissionMapper {
 
     int countUserLikes(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("userId") long userId);
 
-    int getMonthlyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("accountNum") String accountNum);
+    Integer getMonthlyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("accountNum") String accountNum);
 
     List<String> getAccountListByUserId(@Param("userId") long userId);
 
     long findMonthlyMissionIdByUserId(@Param("userId") long userId);
 
-    int getDailyConsumption(@Param("thisYear") int thisYear, @Param("thisMonth") int thisMonth, @Param("day") int day, @Param("accountNum") String accountNum);
 
     int findPersonalMissionIdByUserId(@Param("userId") long userId);
 
-    int findBalanceOnFirstDay(@Param("thisYear") int thisYear,
+    Integer findBalanceOnFirstDay(@Param("thisYear") int thisYear,
                          @Param("thisMonth") int thisMonth,
                          @Param("day") int day,
                          @Param("accountNum") String accountNum);
 
-    int findBalanceOnLastDay(@Param("thisYear") int thisYear,
+    Integer findBalanceOnLastDay(@Param("thisYear") int thisYear,
                               @Param("thisMonth") int thisMonth,
                               @Param("day") int day,
                               @Param("accountNum") String accountNum);
@@ -125,12 +107,19 @@ public interface MissionMapper {
     void updatePreviousSavingsAccountCount(@Param("userId") long userId, @Param("count") int count);
 
     // personal_monthly_mission 테이블에서 previous_savings_account_count 값을 가져오는 메서드
-    int getPreviousSavingsAccountCount(@Param("userId") long userId);
+    Integer getPreviousSavingsAccountCount(@Param("userId") long userId);
 
     // account 테이블에서 account_type이 12인 계좌의 갯수를 가져오는 메서드 (현재 갯수 확인용)
-    int countCurrentSavingsAccounts(@Param("userId") long userId);
+    Integer countCurrentSavingsAccounts(@Param("userId") long userId);
 
     // 월업데이트 - 현재 -> 지난달 / 현재 = 0
     void updateLastMonthScore(@Param("userId") long userId);
+
+    // 소비 차이 계산0
+    int calculateSpendingDifference(@Param("userId") Long userId, @Param("accountNum") String accountNum);
+
+    // 저축 차이 계산
+    int calculateSavingDifference(@Param("userId") Long userId, @Param("accountNum") String accountNum);
+
 }
 

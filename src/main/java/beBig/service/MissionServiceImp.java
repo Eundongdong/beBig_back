@@ -312,35 +312,42 @@ public class MissionServiceImp implements MissionService {
         }
 
         if (missionId == 4) {
-            // 개인별 n원 목표 설정 후 소비 확인
+            // 개인별 N원 목표 설정 후 소비 확인
             int target = countNValue(missionId, userId); // 목표 금액
-            int totalConsumption = 0;
-            List<String> accountList = missionMapper.getAccountListByUserId(userId);
+            List<String> accountNums = missionMapper.getAccountListByUserId(userId); // 모든 계좌 번호 리스트
 
-            // 각 계좌에 대한 월별 총 소비 계산
-            for (String accountNum : accountList) {
-                int consumption = missionMapper.getMonthlyConsumption(thisYear, thisMonth, accountNum);
-                totalConsumption += consumption;
+            int totalConsumption = 0;
+
+            for (String accountNum : accountNums) {
+                // 각 계좌에 대한 소비 금액 계산
+                Integer consumption = missionMapper.calculateSpendingDifference(userId, accountNum);
+                if (consumption != null) {
+                    totalConsumption += consumption;
+                }
             }
 
-            // 목표 금액 이상 소비했는지 확인
+            // 목표 금액 이하 소비했는지 확인
             return totalConsumption >= target;
         }
 
         if (missionId == 5) {
             // 한달동안 N원을 모아보세요
             int target = countNValue(missionId, userId); // 일정금액
-            List<String> accountList = missionMapper.getAccountListByUserId(userId);
-            int balance = 0;
-            // 이번달 1일과 총액 구하기
-            for (String accountNum : accountList) {
-                int firstBalance = missionMapper.findBalanceOnFirstDay(thisYear, thisMonth, 1, accountNum);
-                int lastBalance = missionMapper.findBalanceOnLastDay(thisYear, thisMonth, lastDayOfMonth, accountNum);
-                balance += lastBalance - firstBalance;
-            }
-            return balance >= target;
-        }
+            List<String> accountNums = missionMapper.getAccountListByUserId(userId); // 모든 계좌 번호 리스트
 
+            int totalSavingDifference = 0;
+
+            for (String accountNum : accountNums) {
+                // 각 계좌에 대한 저축 금액 계산
+                Integer savingDifference = missionMapper.calculateSavingDifference(userId, accountNum);
+                if (savingDifference != null) {
+                    totalSavingDifference += savingDifference;
+                }
+            }
+
+            // 목표 금액 이상 저축했는지 확인
+            return totalSavingDifference >= target;
+        }
         if (missionId == 6) {
             return missionMapper.countCompletedDailyMissions(userId) > 0;
         }
