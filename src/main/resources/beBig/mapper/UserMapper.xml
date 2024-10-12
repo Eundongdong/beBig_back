@@ -202,4 +202,5 @@
         WHERE user_nickname = #{nickname}
     </select>
 
+
 </mapper>

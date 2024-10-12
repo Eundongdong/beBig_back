@@ -1,9 +1,6 @@
 package beBig.mapper;
 
-import beBig.vo.FinTestVo;
-import beBig.vo.FinTypeVo;
-import beBig.vo.UserVo;
-import beBig.vo.UtilVo;
+import beBig.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -55,7 +52,7 @@ public interface UserMapper {
 
     List<UserVo> getAllUsers();
 
-    void updateUserAgeRange(@Param("userId")Long userId, @Param("ageRange")int ageRange);
+    void updateUserAgeRange(@Param("userId") Long userId, @Param("ageRange") int ageRange);
 
     Long findUserIdByUserLoginId(@Param("userLoginId") String userLoginId);
 
@@ -65,5 +62,12 @@ public interface UserMapper {
 
     int checkDuplicateEmail(@Param("email") String email);
 
-    int checkDuplicateNickname(@Param("nickname")String nickname);
+    int checkDuplicateNickname(@Param("nickname") String nickname);
+
+    // 특정 유저 정보를 가져오는 메서드
+    UserVo findUserByUserId(long userId);
+
+    // 동일한 나이대의 유저 리스트를 가져오는 메서드
+    List<UserVo> findUserWithSameAgeRange(int ageRange);
+
 }
