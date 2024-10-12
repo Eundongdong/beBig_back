@@ -117,34 +117,34 @@ public class HomeController {
         }
     }
 
-    // 거래 내역 저장 -> Spring Batch를 활용하여 스케줄링 예정으로, 수정 필요함
-    // batch를 통한 구현 완료 -> 이 부분은 사용자가 새로고침 버튼을 누르면 직접 호출하는 기능으로 활용하거나, 삭제
-//    @PostMapping("/transactions")
-//    public ResponseEntity<?> saveTransactions(@RequestHeader("Authorization") String token,
-//                                              @RequestBody Map<String, String> requestBody) {
-//        try {
-//            Long userId = jwtUtil.extractUserIdFromToken(token);
-//
-//            // requestBody에서 accountNum을 추출
-//            String accountNum = requestBody.get("accountNum");
-//
-//            if (accountNum == null) {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 번호가 누락되었습니다.");
-//            }
-//
-//            // 추출한 accountNum을 사용하여 서비스 메서드 호출
-//            boolean isSaved = homeService.saveTransactions(userId, accountNum, 1);
-//
-//            if (isSaved) {
-//                return ResponseEntity.ok("거래 내역이 성공적으로 저장되었습니다.");
-//            } else {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("거래 내역 저장에 실패했습니다.");
-//            }
-//        } catch (Exception e) {
-//            log.error("거래 내역 저장 실패", e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("거래 내역 저장 중 오류가 발생했습니다.");
-//        }
-//    }
+//     거래 내역 저장 -> Spring Batch를 활용하여 스케줄링 예정으로, 수정 필요함
+//     batch를 통한 구현 완료 -> 이 부분은 사용자가 새로고침 버튼을 누르면 직접 호출하는 기능으로 활용하거나, 삭제
+    @PostMapping("/account/update-transactions")
+    public ResponseEntity<?> saveTransactions(@RequestHeader("Authorization") String token,
+                                              @RequestBody Map<String, String> requestBody) {
+        try {
+            Long userId = jwtUtil.extractUserIdFromToken(token);
+
+            // requestBody에서 accountNum을 추출
+            String accountNum = requestBody.get("accountNum");
+
+            if (accountNum == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("계좌 번호가 누락되었습니다.");
+            }
+
+            // 추출한 accountNum을 사용하여 서비스 메서드 호출
+            boolean isSaved = homeService.saveTransactions(userId, accountNum, 1);
+
+            if (isSaved) {
+                return ResponseEntity.ok("거래 내역이 성공적으로 저장되었습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("거래 내역 저장에 실패했습니다.");
+            }
+        } catch (Exception e) {
+            log.error("거래 내역 저장 실패", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("거래 내역 저장 중 오류가 발생했습니다.");
+        }
+    }
 
     @GetMapping("/fin-test")
     public ResponseEntity<List<FinTestVo>> getTest() {
