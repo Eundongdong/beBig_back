@@ -83,12 +83,11 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <!-- 중복 거래 내역 확인 -->
-    <select id="findTransactionByDateAndAmount" resultType="TransactionVo">
+    <!-- 계좌번호와 날짜 범위로 거래 내역 조회 -->
+    <select id="findTransactionsByAccountNumAndDateRange" resultType="TransactionVo">
         SELECT * FROM transaction
         WHERE account_num = #{accountNum}
-          AND transaction_date = #{transactionDate}
-          AND transaction_amount = #{transactionAmount}
+          AND transaction_date BETWEEN #{startDate} AND #{endDate}
     </select>
 
     <select id="findAccountDetailsByUserId" resultType="beBig.dto.AccountResponseDto">
