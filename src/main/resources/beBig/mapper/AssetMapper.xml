@@ -86,4 +86,62 @@
     </select>
 
 
+    <!-- 나이대별 총 자산 계산 -->
+    <select id="findTotalAssetsByAgeRange" resultType="beBig.dto.UserTotalAssetsDto" parameterType="int">
+        SELECT
+            u.user_id,
+            SUM(t.transaction_balance) AS totalAssets,
+            u.user_age_range
+        FROM user u
+                 JOIN account a ON u.user_id = a.user_id
+                 JOIN transaction t ON a.account_num = t.account_num
+        WHERE u.user_age_range = #{ageRange}
+        GROUP BY u.user_id
+        ORDER BY totalAssets DESC
+    </select>
+
+    <!-- 특정 유저의 계좌 번호 리스트 조회 -->
+    <select id="findAccountNumByPartUserId" resultType="beBig.vo.AccountVo" parameterType="long">
+        SELECT account_num, bank_id, account_name, account_type
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 특정 유저 정보 조회 -->
+    <select id="findUserByUserId" resultType="beBig.vo.UserVo" parameterType="long">
+        SELECT *
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 동일한 나이대의 유저 리스트 조회 -->
+    <select id="findUserWithSameAgeRange" resultType="beBig.vo.UserVo" parameterType="int">
+        SELECT *
+        FROM user
+        WHERE user_age_range = #{ageRange}
+    </select>
+
+
+    <select id="findUserBalance" resultType="beBig.vo.AssetUserBalanceVo" parameterType="long">
+        WITH LatestTransactions AS (
+            SELECT
+                t.account_num,
+                t.transaction_balance,
+                ROW_NUMBER() OVER (PARTITION BY t.account_num ORDER BY t.transaction_date DESC) AS rn
+            FROM transaction t
+        )
+        SELECT
+            u.user_id,
+            COALESCE(u.user_age_range, 0) AS user_age_range,
+            COALESCE(SUM(lt.transaction_balance), 0) AS total_balance
+        FROM user u
+                 LEFT JOIN account a
+                           ON u.user_id = a.user_id
+                 LEFT JOIN LatestTransactions lt
+                           ON a.account_num = lt.account_num
+        WHERE u.user_age_range = (SELECT user_age_range FROM user WHERE user_id = #{userId})
+          AND (lt.rn = 1 OR lt.rn IS NULL)
+        GROUP BY u.user_id, u.user_age_range
+        ORDER BY total_balance desc, u.user_id
+    </select>
 </mapper>

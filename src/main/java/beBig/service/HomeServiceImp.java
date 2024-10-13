@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -148,55 +149,63 @@ public class HomeServiceImp implements HomeService {
         }
     }
 
-    @Override
     public boolean saveTransactions(Long userId, String accountNum, int days) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
-        // 1. 계좌번호를 사용하여 bankId 조회
+        // 1. 계좌번호로 bankId와 bankCode 조회
         int bankId = accountMapper.findBankIdByAccountNum(accountNum);
         String bankCode = accountMapper.findBankCodeByBankId(bankId);
 
         // 거래 내역 요청 객체 생성
         CodefTransactionRequestDto requestDto = new CodefTransactionRequestDto();
         UserVo userInfo = getUserInfo(userId);
-        requestDto.setAccount(accountNum);  // 추출된 accountNum 사용
+        requestDto.setAccount(accountNum);
         requestDto.setConnectedId(userInfo.getUserConnectedId());
         requestDto.setOrganization(bankCode);
 
         // 날짜 설정 (최근 {days}일)
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(days);  // 입력 받은 일수만큼 이전으로 설정
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        requestDto.setStartDate(startDate.format(formatter));
-        requestDto.setEndDate(endDate.format(formatter));
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(days);
+
+        requestDto.setStartDate(startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        requestDto.setEndDate(endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         requestDto.setOrderBy("0");
 
         log.info(requestDto.toString());
 
         // 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
-        if(responseDto == null){
+        if (responseDto == null) {
             return false;
         }
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
+        List<TransactionVo> newTransactionList = mapToTransactionList(requestDto, transactionHistory);
 
+        // 2. 최근 이틀치 거래 내역 조회 (DateTime 비교를 위해 그대로 사용)
+        List<TransactionVo> existingTransactions = accountMapper.findTransactionsByAccountNumAndDateRange(
+                accountNum, startDate, endDate); // 쿼리에서 LocalDateTime을 직접 사용
 
-        List<TransactionVo> transactionList = mapToTransactionList(requestDto, transactionHistory);
+        // 3. 기존 거래 내역을 HashSet에 저장 (날짜 + 금액 조합 키)
+        HashSet<String> existingTransactionKeys = new HashSet<>();
+        for (TransactionVo tx : existingTransactions) {
+            String key = tx.getTransactionDate() + "_" + tx.getTransactionAmount();
+            existingTransactionKeys.add(key);
+        }
 
-        // 중복 체크 및 저장
-        for (TransactionVo transactionVo : transactionList) {
-            TransactionVo existingTransaction = accountMapper.findTransactionByDateAndAmount(
-                    transactionVo.getAccountNum(), transactionVo.getTransactionDate(), transactionVo.getTransactionAmount());
-
-            if (existingTransaction == null) {
-                accountMapper.insertTransaction(transactionVo); // 중복이 없을 경우에만 저장
+        // 4. 중복되지 않는 거래만 저장
+        for (TransactionVo transactionVo : newTransactionList) {
+            String key = transactionVo.getTransactionDate() + "_" + transactionVo.getTransactionAmount();
+            if (!existingTransactionKeys.contains(key)) {
+                accountMapper.insertTransaction(transactionVo);
             } else {
-                log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
+                log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}",
+                        transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
             }
         }
 
         return true; // 성공적으로 저장된 경우
     }
+
 
     private List<TransactionVo> mapToTransactionList(CodefTransactionRequestDto requestDto, List<CodefTransactionResponseDto.HistoryItem> transactionHistory) throws Exception {
         List<TransactionVo> transactionList = new ArrayList<>();

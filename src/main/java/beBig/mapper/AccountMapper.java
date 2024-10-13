@@ -7,6 +7,7 @@ import beBig.vo.TransactionVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +38,10 @@ public interface AccountMapper {
 
     AccountVo findAccountByAccountNum(String accountNum);
 
-    TransactionVo findTransactionByDateAndAmount(
+    List<TransactionVo> findTransactionsByAccountNumAndDateRange(
             @Param("accountNum") String accountNum,
-            @Param("transactionDate") Date transactionDate,
-            @Param("transactionAmount") Integer transactionAmount); // 중복 거래 조회
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
     List<AccountResponseDto> findAccountDetailsByUserId(Long userId);
 
@@ -49,5 +50,4 @@ public interface AccountMapper {
     int findBankIdByAccountNum(String accountNum);
 
     List<AccountVo> findAllAccounts();
-
 }
