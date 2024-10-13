@@ -28,7 +28,7 @@ jobs:
       run: ./gradlew clean build  # Gradle로 프로젝트 빌드 (WAR 파일 생성)
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2  # 빌드된 WAR 파일을 아티팩트로 업로드
+      uses: actions/upload-artifact@v4  # 빌드된 WAR 파일을 아티팩트로 업로드
       with:
         name: beBig-1.0-SNAPSHOT
         path: build/libs/beBig-1.0-SNAPSHOT.war  # 업로드할 WAR 파일 경로
