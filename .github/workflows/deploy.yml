@@ -6,35 +6,35 @@ on:
       - main  # main 브랜치에 push할 때만 실행
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+  # build:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4  # 레포지토리의 코드를 가져옴
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4  # 레포지토리의 코드를 가져옴
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4  # JDK 17 설정
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+  #   - name: Set up JDK 17
+  #     uses: actions/setup-java@v4  # JDK 17 설정
+  #     with:
+  #       java-version: '17'
+  #       distribution: 'temurin'
 
-    - name: Grant execute permission for Gradlew
-      run: chmod +x ./gradlew  # gradlew 파일에 실행 권한 부여
+  #   - name: Grant execute permission for Gradlew
+  #     run: chmod +x ./gradlew  # gradlew 파일에 실행 권한 부여
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4.0.0  # Gradle 환경 설정
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4.0.0  # Gradle 환경 설정
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew clean build  # Gradle로 프로젝트 빌드 (WAR 파일 생성)
+  #   - name: Build with Gradle Wrapper
+  #     run: ./gradlew clean build  # Gradle로 프로젝트 빌드 (WAR 파일 생성)
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3  # 최신 버전(v3)으로 변경
-      with:
-        name: beBig-1.0-SNAPSHOT
-        path: build/libs/beBig-1.0-SNAPSHOT.war  # 업로드할 WAR 파일 경로
+  #   - name: Upload artifact
+  #     uses: actions/upload-artifact@v3  # 최신 버전(v3)으로 변경
+  #     with:
+  #       name: beBig-1.0-SNAPSHOT
+  #       path: build/libs/beBig-1.0-SNAPSHOT.war  # 업로드할 WAR 파일 경로
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,14 +50,20 @@ jobs:
         username: ${{ secrets.AWS_USER }}
         key: ${{ secrets.AWS_KEY }}
         script: |
+
+          cd ~/beBig_back
+          git pull origin main --rebase
+
+          ./gradlew clean build
+          
           # Tomcat 중지 (정상적으로 종료되지 않으면 포트에서 프로세스 강제 종료)
           sudo sh /usr/local/tomcat9/bin/shutdown.sh || sudo fuser -k 8080/tcp
           
           # 기존 WAR 파일 제거
-          rm -f /usr/local/tomcat9/webapps/beBig-1.0-SNAPSHOT.war
+          # rm -f /usr/local/tomcat9/webapps/beBig-1.0-SNAPSHOT.war
           
           # 새로운 WAR 파일 업로드
-          scp build/libs/beBig-1.0-SNAPSHOT.war ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:/usr/local/tomcat9/webapps/
+          # scp build/libs/beBig-1.0-SNAPSHOT.war ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}:/usr/local/tomcat9/webapps/
 
           # Tomcat 재시작
           sudo sh /usr/local/tomcat9/bin/startup.sh
