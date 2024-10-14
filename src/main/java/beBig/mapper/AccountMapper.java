@@ -20,9 +20,7 @@ public interface AccountMapper {
     List<Integer> findAllOtherBanksExceptPrimary(int primaryBankId);
 
     List<AccountVo> findAccountById(Long userId);
-
-    void insertAccount(AccountVo accountVo);
-
+    
     BankVo getBankByCode(String bankCode);
 
     BankVo getBankById(int id);
@@ -50,4 +48,8 @@ public interface AccountMapper {
     int findBankIdByAccountNum(String accountNum);
 
     List<AccountVo> findAllAccounts();
+
+    void insertTransactionBatch(List<TransactionVo> transactions);
+
+    void insertAccount(List<AccountVo> accountsToInsert);
 }
