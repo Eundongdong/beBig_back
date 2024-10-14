@@ -11,7 +11,7 @@ public class SavingsProductVo {
     private int savingsProductTerm;
     private double savingsProductRate;
     private double savingsProductMaxRate;
-    private String bankUrl;
+    private String savingsProductUrl;
 
     private BankVo bank; // FK - 은행 정보
 }
