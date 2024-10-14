@@ -36,7 +36,7 @@ public class AssetController {
     public ResponseEntity<AssetAnalysisDto> assetAnalysis(@RequestHeader("Authorization") String token) {
         long userId = jwtUtil.extractUserIdFromToken(token);
 
-        AssetAnalysisDto analysisDto = assetService.showAnalysis(userId);
+            AssetAnalysisDto analysisDto = assetService.showAnalysis(userId);
         if (analysisDto == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

@@ -94,6 +94,7 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("계좌 목록 불러오기 중 오류가 발생했습니다.");
         }
     }
+
     // 계좌별 거래내역 조회
     @GetMapping("/account/{accountNum}/transactions")
     public ResponseEntity<?> getTransactionList(@RequestHeader("Authorization") String token,
