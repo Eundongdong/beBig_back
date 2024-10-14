@@ -170,6 +170,12 @@
         WHERE user_id = #{userId}
     </update>
 
+    <update id="updateMonthlyDB" parameterType="map" >
+        update user
+        set user_mission_current_month_score = #{score}
+        where user_id = #{userId};
+    </update>
+
     <delete id="clearRefreshTokenByUserId" parameterType="long">
         delete
         from refresh_token
