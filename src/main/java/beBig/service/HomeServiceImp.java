@@ -72,16 +72,19 @@ public class HomeServiceImp implements HomeService {
             throw new Exception("아이디/비밀번호를 확인하세요.");
         }
 
-        // 5. 계좌 정보를 DB에 저장
+        // 5. 계좌 정보를 AccountVo 리스트로 매핑
+        List<AccountVo> accountsToInsert = accountList.stream()
+                .map(accountInfo -> mapToAccountVo(userId, accountInfo))
+                .toList();
+
+        // 6. 배치로 계좌 저장
+        accountMapper.insertAccount(accountsToInsert);
+        log.info("{}개의 계좌가 등록되었습니다.", accountsToInsert.size());
+
+        // 7. 거래 내역 저장 및 임의의 거래 내역 생성 처리
         for (CodefAccountDto accountInfo : accountList) {
-            AccountVo accountVo = mapToAccountVo(userId, accountInfo);
-            accountMapper.insertAccount(accountVo); // 계좌 등록
-            log.info("계좌 등록 완료: {}", accountVo.getAccountNum());
+            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 360);
 
-            // 거래 내역 저장
-            boolean hasTransactions = saveTransactions(userId, accountInfo.getResAccount(), 60);
-
-            // 거래 내역이 없을 경우, 잔액을 이용한 임의의 거래 내역 생성
             if (!hasTransactions) {
                 log.info("거래 내역이 없으므로 현재 잔액으로 임의의 거래 내역 생성");
                 createDummyTransaction(accountInfo);
@@ -192,18 +195,28 @@ public class HomeServiceImp implements HomeService {
             existingTransactionKeys.add(key);
         }
 
-        // 4. 중복되지 않는 거래만 저장
-        for (TransactionVo transactionVo : newTransactionList) {
-            String key = transactionVo.getTransactionDate() + "_" + transactionVo.getTransactionAmount();
-            if (!existingTransactionKeys.contains(key)) {
-                accountMapper.insertTransaction(transactionVo);
-            } else {
-                log.info("중복된 거래 내역이 있습니다: 계좌 번호 {}, 거래 금액 {}",
-                        transactionVo.getAccountNum(), transactionVo.getTransactionAmount());
-            }
+        // 4. 중복되지 않는 거래만 필터링
+        List<TransactionVo> transactionsToSave = newTransactionList.stream()
+                .filter(tx -> {
+                    String key = tx.getTransactionDate() + "_" + tx.getTransactionAmount();
+                    return !existingTransactionKeys.contains(key);
+                })
+                .toList();
+
+        if (!transactionsToSave.isEmpty()) {
+            // 5. 배치 저장 호출
+            saveTransactionsInBatch(transactionsToSave);
+        } else {
+            log.info("저장할 새로운 거래 내역이 없습니다.");
         }
 
-        return true; // 성공적으로 저장된 경우
+        return true;
+    }
+
+    private void saveTransactionsInBatch(List<TransactionVo> transactions) {
+        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
+        accountMapper.insertTransactionBatch(transactions);  // 배치 삽입 호출
+        log.info("배치로 {}개의 거래 내역 저장 완료", transactions.size());
     }
 
 
