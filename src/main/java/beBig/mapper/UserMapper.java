@@ -70,4 +70,5 @@ public interface UserMapper {
     // 동일한 나이대의 유저 리스트를 가져오는 메서드
     List<UserVo> findUserWithSameAgeRange(int ageRange);
 
+    void updateMonthlyDB(@Param("userId") Long userId, @Param("score") int score);
 }

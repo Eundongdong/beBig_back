@@ -296,6 +296,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // 500 Internal Server Error
         }
     }
+
     @GetMapping("/check-email")
     public ResponseEntity<?> checkEmailIsDuplicate(@RequestParam String email) {
         boolean isDuplicate = userService.isEmailDuplicate(email);
@@ -317,20 +318,17 @@ public class UserController {
     }
 
 
-//    @GetMapping("/social-signup/info")
-//    public ResponseEntity<String> infoSocialSignup() {
-//        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-//    }
-//
-//    @PostMapping("/social-signup/register")
-//    public ResponseEntity<String> registerSocialSignup() {
-//        return ResponseEntity.status(HttpStatus.OK).body("Hello World!");
-//    }
-//
-//    @GetMapping("/test")
-//    public String test() {
-//        // user/index.jsp 페이지로 이동
-//        return "/index";
+//    @PostMapping("/update-db")
+//    public ResponseEntity<?> updateDB(HttpServletRequest request) {
+//        try {
+//            for (long i = 1; i <= 10024; i++) {
+//                int rand = (int) (Math.random() * 46);
+//                userMapper.updateMonthlyDB(i, rand);
+//            }
+//            return ResponseEntity.ok("성공");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("실패");
+//        }
 //    }
 
 }
