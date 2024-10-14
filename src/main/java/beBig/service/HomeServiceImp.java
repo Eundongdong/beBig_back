@@ -102,6 +102,10 @@ public class HomeServiceImp implements HomeService {
     private void createDummyTransaction(CodefAccountDto accountInfo) {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
+        // 임의의 거래 내역을 담을 리스트 생성
+        List<TransactionVo> dummyTransactions = new ArrayList<>();
+
+        // 임의의 거래 내역 생성
         TransactionVo transactionVo = new TransactionVo();
         transactionVo.setAccountNum(accountInfo.getResAccount());
         transactionVo.setTransactionBalance(Integer.parseInt(accountInfo.getResAccountBalance()));
@@ -110,9 +114,14 @@ public class HomeServiceImp implements HomeService {
         transactionVo.setTransactionType("입금");
         transactionVo.setTransactionVendor("잔액 조회");
 
-        accountMapper.insertTransaction(transactionVo); // 임의의 거래 내역 저장
+        // 리스트에 거래 내역 추가
+        dummyTransactions.add(transactionVo);
+
+        // 배치로 거래 내역 저장
+        accountMapper.insertTransactionBatch(dummyTransactions); // 임의의 거래 내역 저장
         log.info("임의의 거래 내역 등록 완료: 계좌 번호 {}, 잔액 {}", transactionVo.getAccountNum(), transactionVo.getTransactionBalance());
     }
+
 
     private AccountVo mapToAccountVo(Long userId, CodefAccountDto accountInfo) {
         AccountVo accountVo = new AccountVo();
