@@ -313,6 +313,7 @@ public class AssetServiceImp implements AssetService {
             sameAgeUsers++;
             if (user.getUserId() == userId) {
                 response.setTotalAssets(user.getTotalBalance());
+                response.setAgeRange(user.getUserAgeRange());
                 userRank = sameAgeUsers; // 유저 순위 설정
             }
         }
@@ -328,7 +329,6 @@ public class AssetServiceImp implements AssetService {
 
         return response;
     }
-
 
 
 //    @Override

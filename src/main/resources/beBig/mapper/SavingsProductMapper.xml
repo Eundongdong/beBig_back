@@ -9,17 +9,16 @@
     </insert>
     <!-- 주거래 은행 및 다른 은행에서 추천 상품 2개씩 가져오기 -->
     <select id="getTop2RecommendedSavingsProduct" parameterType="map" resultType="SavingsProductVo">
-        SELECT sp.*, b.bank_url
-        FROM savings_product sp
-        JOIN bank b ON sp.bank_id = b.bank_id
-        WHERE sp.bank_id = #{bankId}
-        ORDER BY sp.savings_product_max_rate DESC,
+        SELECT *
+        FROM savings_product
+        WHERE bank_id = #{bankId}
+        ORDER BY savings_product_max_rate DESC,
                  CASE
-                     WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN sp.savings_product_term
+                     WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN savings_product_term
                      ELSE 9999
                      END ASC,
                  CASE
-                     WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN sp.savings_product_term
+                     WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN savings_product_term
                      ELSE 0
                      END DESC
             LIMIT 2

@@ -17,11 +17,20 @@
         WHERE u.user_id = #{userId}
     </select>
 
+<!--    <select id="findUserRank" resultType="beBig.vo.UserRankVo">-->
+<!--        SELECT u.user_id,-->
+<!--               RANK() OVER (ORDER BY u.user_salary DESC) AS user_rank-->
+<!--        FROM user u;-->
+<!--    </select>-->
+
+
     <select id="findUserRank" resultType="beBig.vo.UserRankVo">
         SELECT u.user_id,
-               RANK() OVER (ORDER BY u.user_salary DESC) AS user_rank
-        FROM user u;
+               user_mission_current_month_score AS user_rank
+        FROM user u
+        order by user_rank desc;
     </select>
+
 
     <!-- userId를 받아서 특정 사용자의 게시물 정보를 조회하는 쿼리 -->
     <select id="findMyPagePost" resultType="beBig.dto.response.MyPagePostResponseDto" parameterType="long">

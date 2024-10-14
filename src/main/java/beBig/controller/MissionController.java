@@ -105,15 +105,15 @@ public class MissionController {
             if (missionType == 1) {
                 //미션타입 확인하고 점수계산 - 월간간
                 int totalDays = missionService.getDaysInCurrentMonth();
-                missionService.updateScore(userId, 100 - (totalDays * 2));
+                missionService.updateScore(userId, 100 - (totalDays * 3));
                 missionService.completeMonthlyMission(personalMissionId);
                 //점수계산
                 log.info("사용자 ID: {}의 월간 미션 변경: 미션 ID: {}", userId, personalMissionId);
             } else if (missionType == 2) {
                 //미션타입 확인하고 점수계산 - 일간
-                int amount = 2;
+                int amount = 1;
                 long isCompleted = missionService.findIsCompleted(personalMissionId);
-                if (isCompleted == 1) amount = -2;
+                if (isCompleted == 1) amount = -1;
                 missionService.updateScore(userId, amount); // 값 변화
                 missionService.completeDailyMission(personalMissionId); // 상태바꾸기
                 log.info("사용자 ID: {}의 일일 미션 변경: 미션 ID: {}", userId, personalMissionId);

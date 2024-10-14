@@ -10,7 +10,7 @@ public class DepositProductVo {
     private int depositProductTerm;
     private double depositProductRate;
     private double depositProductMaxRate;
-    private String bankUrl;
+    private String depositProductUrl;
 
     private BankVo bank; // FK - 은행 정보
 }

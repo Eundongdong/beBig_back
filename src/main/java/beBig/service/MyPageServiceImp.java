@@ -54,18 +54,27 @@ public class MyPageServiceImp implements MyPageService {
         dto.setFinTypeInfo(userProfileResponseVo.getFinTypeInfo());
 
         long rank = 0;
+        int count = 0;
         for (UserRankVo u : list) {
+            count++;
             if (u.getUserId() == userId) {
-                rank = u.getUserRank();
+                rank = count;
                 break;
             }
         }
 
-        double percentageRank = (double) rank / list.size() * 100;
-        dto.setUserRank((long) percentageRank);
+        // 총 사용자 수 대비 백분율 계산 (소수점 포함)
+
+        double percentageRank = ((double) rank / (double) list.size()) * 100;
+        log.info("Calculated percentageRank: {}", percentageRank);  // 백분율 확인
+
+        dto.setUserRank((long) Math.ceil(percentageRank));  // 소수점 반올림하여 DTO에 설정
+        log.info("dto.UserRank (rounded percentage): {}", dto.getUserRank());  // 결과 로그 확인
+
 
         return dto;
     }
+
 
     @Override
     public List<MyPagePostResponseDto> findMyPostByUserId(long userId) {
