@@ -40,9 +40,9 @@ public class SwaggerConfig {
         return new ApiInfo("beBig REST API Documentation",
                 "REST Api Documentation",
                 "1.0",
-                "localhost:8080",
+                "3.35.68.38:8080",
                 new Contact("Bbbbick","https://www.notion.so/eundongdong/Bbbbick-BeBig-879744fc89154868b8715f77a18b57bf?pvs=4","test@test.email"),
-                "비빅", "http://localhost:8080",
+                "비빅", "http://3.35.68.38:80",
                 new ArrayList<VendorExtension>());
     }
 
