@@ -80,7 +80,7 @@ public class QuartzConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(transactionUpdateJobDetail)
                 .withIdentity("transactionUpdateTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0/8 * * ?")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 23/8 * * ?")
                         .inTimeZone(krTimeZone))  // TimeZone 적용
                 .build();
     }
