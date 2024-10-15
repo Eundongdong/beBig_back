@@ -16,11 +16,11 @@
                  CASE
                      WHEN #{finTypeCode} = 1 OR #{finTypeCode} = 3 THEN savings_product_term
                      ELSE 9999
-                     END ASC,
+                     END DESC,
                  CASE
                      WHEN #{finTypeCode} = 2 OR #{finTypeCode} = 4 THEN savings_product_term
                      ELSE 0
-                     END DESC
+                     END ASC
             LIMIT 2
     </select>
 

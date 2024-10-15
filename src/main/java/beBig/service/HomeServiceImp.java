@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -133,34 +134,6 @@ public class HomeServiceImp implements HomeService {
         return accountVo;
     }
 
-    // 전체 거래내역 업데이트
-    @Override
-    public void updateTransactions() {
-        AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
-
-        // 모든 계좌 조회
-        List<AccountVo> accountList = accountMapper.findAllAccounts(); // 모든 계좌를 조회하는 메서드 필요
-
-        if (accountList == null || accountList.isEmpty()) {
-            log.warn("등록된 계좌가 없습니다.");
-            return; // 계좌가 없으면 종료
-        }
-
-        for (AccountVo account : accountList) {
-            Long userId = account.getUserId();
-            String accountNum = account.getAccountNum();
-
-            try {
-                // saveTransactions 메서드를 호출하여 1일간 거래 내역 저장
-                saveTransactions(userId, accountNum, 1);
-                log.info(userId + "의 거래내역 update : " + accountNum);
-            } catch (Exception e) {
-                log.error("계좌 {}의 거래 내역 저장 중 오류 발생: {}", accountNum, e.getMessage());
-                // 오류 발생 시 다음 계좌로 넘어감
-            }
-        }
-    }
-
     public boolean saveTransactions(Long userId, String accountNum, int days) throws Exception {
         AccountMapper accountMapper = sqlSessionTemplate.getMapper(AccountMapper.class);
 
@@ -185,7 +158,7 @@ public class HomeServiceImp implements HomeService {
 
         log.info(requestDto.toString());
 
-        // 거래 내역 조회
+        // 2. 거래 내역 조회
         CodefTransactionResponseDto responseDto = codefApiRequester.getTransactionHistory(requestDto);
         if (responseDto == null) {
             return false;
@@ -193,30 +166,34 @@ public class HomeServiceImp implements HomeService {
         List<CodefTransactionResponseDto.HistoryItem> transactionHistory = responseDto.getResTrHistoryList();
         List<TransactionVo> newTransactionList = mapToTransactionList(requestDto, transactionHistory);
 
-        // 2. 최근 이틀치 거래 내역 조회 (DateTime 비교를 위해 그대로 사용)
+        // 3. 최근 이틀치 거래 내역 조회 (최적화된 쿼리 수행)
         List<TransactionVo> existingTransactions = accountMapper.findTransactionsByAccountNumAndDateRange(
-                accountNum, startDate, endDate); // 쿼리에서 LocalDateTime을 직접 사용
+                accountNum, startDate, endDate);
 
-        // 3. 기존 거래 내역을 HashSet에 저장 (날짜 + 금액 조합 키)
-        HashSet<String> existingTransactionKeys = new HashSet<>();
-        for (TransactionVo tx : existingTransactions) {
-            String key = tx.getTransactionDate() + "_" + tx.getTransactionAmount();
-            existingTransactionKeys.add(key);
+        if (existingTransactions.isEmpty()) {
+            // 기존 거래가 없으면 모든 거래를 저장
+            saveTransactionsInBatch(newTransactionList);
+            log.info("모든 거래 내역이 저장되었습니다.");
+            return true;
         }
 
-        // 4. 중복되지 않는 거래만 필터링
+        // 4. 기존 거래 내역을 HashSet에 저장 (중복 체크용 키 생성)
+        Set<String> existingTransactionKeys = existingTransactions.stream()
+                .map(tx -> tx.getTransactionDate() + "_" + tx.getTransactionAmount())
+                .collect(Collectors.toSet());
+
+        // 5. 중복되지 않는 거래만 필터링
         List<TransactionVo> transactionsToSave = newTransactionList.stream()
-                .filter(tx -> {
-                    String key = tx.getTransactionDate() + "_" + tx.getTransactionAmount();
-                    return !existingTransactionKeys.contains(key);
-                })
+                .filter(tx -> !existingTransactionKeys.contains(tx.getTransactionDate() + "_" + tx.getTransactionAmount()))
                 .toList();
 
+        // 6. 새로운 거래 내역이 있다면 저장
         if (!transactionsToSave.isEmpty()) {
-            // 5. 배치 저장 호출
             saveTransactionsInBatch(transactionsToSave);
+            log.info("새로운 거래 내역이 저장되었습니다.");
         } else {
             log.info("저장할 새로운 거래 내역이 없습니다.");
+            return false;
         }
 
         return true;
