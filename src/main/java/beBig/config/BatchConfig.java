@@ -1,10 +1,12 @@
 package beBig.config;
 
 import beBig.mapper.AccountMapper;
+import beBig.mapper.UserMapper;
 import beBig.service.HomeService;
 import beBig.service.MissionService;
 import beBig.service.UserService;
 import beBig.vo.AccountVo;
+import beBig.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -18,7 +20,9 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +31,7 @@ import java.util.Set;
 @Configuration
 @EnableBatchProcessing
 public class BatchConfig extends DefaultBatchConfigurer {
+    private final UserMapper userMapper;
     private final HomeService homeService;
     private final UserService userService;
     private final MissionService missionService;
@@ -34,7 +39,8 @@ public class BatchConfig extends DefaultBatchConfigurer {
     private final StepBuilderFactory stepBuilderFactory;
     private final AccountMapper accountMapper;
 
-    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, HomeService homeService, UserService userService, MissionService missionService, AccountMapper accountMapper) {
+    public BatchConfig(UserMapper userMapper, JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, HomeService homeService, UserService userService, MissionService missionService, AccountMapper accountMapper) {
+        this.userMapper = userMapper;
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
         this.homeService = homeService;
@@ -42,7 +48,6 @@ public class BatchConfig extends DefaultBatchConfigurer {
         this.missionService = missionService;
         this.accountMapper = accountMapper;
     }
-
     @Bean
     public Job transactionUpdateJob() {
         return jobBuilderFactory.get("transactionUpdateJob")
@@ -55,7 +60,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
     @Bean
     public Step transactionUpdateStep() {
         return stepBuilderFactory.get("transactionUpdateStep")
-                .<AccountVo, Boolean>chunk(10) // 청크 단위로 데이터 처리
+                .<AccountVo, Boolean>chunk(20) // 청크 단위로 데이터 처리
                 .reader(accountItemReader())
                 .processor(accountItemProcessor())
                 .writer(accountItemWriter())
@@ -63,6 +68,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 .retry(Exception.class) // 에러 발생시 재시도
                 .retryLimit(2)          // 최대 2회 재시도
                 .skip(Exception.class)  // 재시도 후 실패 시 건너뜀
+                .taskExecutor(taskExecutor()) // 비동기 처리
                 .build();
     }
 
@@ -111,6 +117,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
         return new ItemWriter<Boolean>() {
             @Override
             public void write(List<? extends Boolean> items) throws Exception {
+                log.info("청크 쓰기 시작 - 처리된 항목 수: {}", items.size()); // 청크 쓰기 시작 로그
                 // 처리 결과를 로그로 남기거나 추가 작업을 수행
                 for (Boolean success : items) {
                     if (success) {
@@ -129,17 +136,72 @@ public class BatchConfig extends DefaultBatchConfigurer {
     @Bean(name = "ageUpdateJob")
     public Job ageUpdateJob() {
         return jobBuilderFactory.get("ageUpdateJob")
-                .start(ageUpdateStep())
+                .incrementer(new RunIdIncrementer())
+                .flow(ageUpdateStep())
+                .end()
                 .build();
     }
 
     @Bean
     public Step ageUpdateStep() {
         return stepBuilderFactory.get("ageUpdateStep")
-                .tasklet((contribution, chunkContext) -> {
-                    userService.updateUserAges();
-                    return null;
-                }).build();
+                .<UserVo, UserVo>chunk(100) // 청크 단위 설정
+                .reader(userItemReader())
+                .processor(userItemProcessor())
+                .writer(userItemWriter())
+                .faultTolerant()
+                .retry(Exception.class)
+                .retryLimit(2)
+                .taskExecutor(taskExecutor()) // 멀티스레드 실행
+                .build();
+    }
+
+    @Bean
+    public ItemReader<UserVo> userItemReader() {
+        return new ItemReader<UserVo>() {
+            private List<UserVo> users = userMapper.getAllUsers(); // 사용자 목록 조회
+            private int currentIndex = 0;
+
+            @Override
+            public UserVo read() throws Exception {
+                if (currentIndex < users.size()) {
+                    return users.get(currentIndex++);
+                }
+                return null; // 모든 사용자 처리 완료
+            }
+        };
+    }
+
+    @Bean
+    public ItemProcessor<UserVo, UserVo> userItemProcessor() {
+        return user -> {
+            if (user.getUserBirth() == null) return null; // 생일 없는 경우 제외
+
+            LocalDate today = LocalDate.now();
+            int age = today.getYear() - user.getUserBirth().toLocalDate().getYear();
+            user.setUserAgeRange((age / 10) * 10); // 나이 범위 설정
+            return user;
+        };
+    }
+
+    @Bean
+    public ItemWriter<UserVo> userItemWriter() {
+        return users -> {
+            userMapper.updateUsersAgeRanges((List<UserVo>) users); // 일괄 업데이트 수행
+            log.info("청크 단위 나이 범위 업데이트 완료 - {}명", users.size());
+        };
+    }
+
+    // TaskExecutor 설정
+    @Bean
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2); // 최소 스레드 수
+        executor.setMaxPoolSize(4); // 최대 스레드 수
+        executor.setQueueCapacity(24); // 큐 용량
+        executor.setThreadNamePrefix("age-update-thread-");
+        executor.initialize();
+        return executor;
     }
 
     @Bean(name = "assignDailyMissionJob")

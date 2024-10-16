@@ -251,27 +251,23 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void updateUserAges() {
-        UserMapper userMapper = sqlSessionTemplate.getMapper(UserMapper.class);
-        LocalDate today = LocalDate.now();
-        int currentYear = today.getYear();
-        List<UserVo> users = userMapper.getAllUsers();
+        List<UserVo> users = userMapper.getAllUsers(); // 모든 사용자 가져오기
 
-        for (UserVo user : users) {
-            Date birthDate = user.getUserBirth();
-            if (birthDate != null) { // null 체크
-                LocalDate localBirthDate = (birthDate).toLocalDate();
-                int birthYear = localBirthDate.getYear();
-                int age = currentYear - birthYear; // 나이 계산
-
-                // 나이에 따라 나이 범위 설정
+        // 나이 범위 계산 및 설정
+        users.forEach(user -> {
+            if (user.getUserBirth() != null) {
+                LocalDate today = LocalDate.now();
+                int age = today.getYear() - user.getUserBirth().toLocalDate().getYear();
                 int ageRange = (age / 10) * 10;
-
-
-                userMapper.updateUserAgeRange(user.getUserId(), ageRange);
-                log.info("updated :" + user.getUserLoginId() + " - age range: " + ageRange);
+                user.setUserAgeRange(ageRange);
             }
-        }
+        });
+
+        // 일괄 업데이트 실행
+        userMapper.updateUsersAgeRanges(users);
+        log.info("모든 사용자 나이 범위 업데이트 완료 - 총 {}명", users.size());
     }
+
 
 
     //    public UserVo findByUserId(String userId) throws Exception {

@@ -157,18 +157,28 @@
         WHERE refresh_token = #{refreshToken};
     </update>
 
-    <!-- 모든 사용자 정보를 가져오는 쿼리 -->
+    <!-- 모든 사용자 정보 가져오기 -->
     <select id="getAllUsers" resultType="UserVo">
-        SELECT user_id, user_birth, user_age_range
+        SELECT user_id, user_birth
         FROM user
     </select>
 
-    <!-- 사용자 나이 범위 업데이트 쿼리 -->
-    <update id="updateUserAgeRange" parameterType="map">
+    <!-- 사용자 나이 범위 일괄 업데이트 -->
+    <update id="updateUsersAgeRanges" parameterType="list">
         UPDATE user
-        SET user_age_range = #{ageRange}
-        WHERE user_id = #{userId}
+        SET user_age_range =
+        CASE
+        <foreach collection="list" item="user" separator=" ">
+            WHEN user_id = #{user.userId} THEN #{user.userAgeRange}
+        </foreach>
+        ELSE user_age_range
+        END
+        WHERE user_id IN
+        <foreach collection="list" item="user" open="(" separator="," close=")">
+            #{user.userId}
+        </foreach>
     </update>
+
 
     <update id="updateMonthlyDB" parameterType="map" >
         update user

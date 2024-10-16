@@ -71,4 +71,6 @@ public interface UserMapper {
     List<UserVo> findUserWithSameAgeRange(int ageRange);
 
     void updateMonthlyDB(@Param("userId") Long userId, @Param("score") int score);
+
+    void updateUsersAgeRanges(List<UserVo> users);
 }
